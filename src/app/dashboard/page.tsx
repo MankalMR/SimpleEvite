@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Invitation, RSVP } from '@/lib/supabase';
 
@@ -166,11 +167,13 @@ export default function Dashboard() {
               return (
                 <div key={invitation.id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
                   {invitation.designs?.image_url && (
-                    <div className="h-48 bg-gray-100">
-                      <img
+                    <div className="h-48 bg-gray-100 relative">
+                      <Image
                         src={invitation.designs.image_url}
                         alt={invitation.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        unoptimized
                       />
                     </div>
                   )}

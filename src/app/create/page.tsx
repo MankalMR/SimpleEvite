@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Design } from '@/lib/supabase';
 
@@ -217,11 +218,13 @@ export default function CreateInvitation() {
                         }`}
                         onClick={() => setFormData({ ...formData, design_id: design.id })}
                       >
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                          <img
+                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
+                          <Image
                             src={design.image_url}
                             alt={design.name}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
+                            unoptimized
                           />
                         </div>
                         <p className="text-sm text-center text-gray-800 font-medium truncate">

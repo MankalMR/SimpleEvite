@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 // GET /api/invitations/[id] - Get invitation by ID (for owner)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,6 +14,8 @@ export async function GET(
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const resolvedParams = await params;
 
     const { data: invitation, error } = await supabase
       .from('invitations')
@@ -32,7 +34,7 @@ export async function GET(
           created_at
         )
       `)
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', session.user.id)
       .single();
 
@@ -50,7 +52,7 @@ export async function GET(
 // PUT /api/invitations/[id] - Update invitation
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -59,6 +61,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     const body = await request.json();
     const { title, description, event_date, event_time, location, design_id } = body;
 
@@ -78,7 +81,7 @@ export async function PUT(
         design_id: design_id || null,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', session.user.id)
       .select(`
         *,
@@ -104,7 +107,7 @@ export async function PUT(
 // DELETE /api/invitations/[id] - Delete invitation
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -113,10 +116,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
+
     const { error } = await supabase
       .from('invitations')
       .delete()
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', session.user.id);
 
     if (error) {

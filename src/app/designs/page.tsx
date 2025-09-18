@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Design } from '@/lib/supabase';
 
@@ -209,11 +210,13 @@ export default function MyDesigns() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {designs.map((design) => (
               <div key={design.id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                <div className="aspect-square bg-gray-100">
-                  <img
+                <div className="aspect-square bg-gray-100 relative">
+                  <Image
                     src={design.image_url}
                     alt={design.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    unoptimized
                   />
                 </div>
                 <div className="p-4">

@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 // PUT /api/designs/[id] - Update design
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,6 +15,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     const body = await request.json();
     const { name } = body;
 
@@ -25,7 +26,7 @@ export async function PUT(
     const { data: design, error } = await supabase
       .from('designs')
       .update({ name })
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', session.user.id)
       .select()
       .single();
@@ -44,7 +45,7 @@ export async function PUT(
 // DELETE /api/designs/[id] - Delete design
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -53,11 +54,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
+
     // First get the design to get the image URL for cleanup
     const { data: design } = await supabase
       .from('designs')
       .select('image_url')
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', session.user.id)
       .single();
 
@@ -69,7 +72,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('designs')
       .delete()
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', session.user.id);
 
     if (error) {

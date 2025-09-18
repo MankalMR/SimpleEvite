@@ -4,9 +4,11 @@ import { supabase } from '@/lib/supabase';
 // GET /api/invite/[token] - Get invitation by share token (public endpoint)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const resolvedParams = await params;
+
     const { data: invitation, error } = await supabase
       .from('invitations')
       .select(`
@@ -31,7 +33,7 @@ export async function GET(
           created_at
         )
       `)
-      .eq('share_token', params.token)
+      .eq('share_token', resolvedParams.token)
       .single();
 
     if (error || !invitation) {

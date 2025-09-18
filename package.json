@@ -25,8 +25,8 @@
     "tailwindcss"
   ],
   "scripts": {
-    "dev": "next dev --turbopack -p 3008",
-    "build": "next build --turbopack",
+    "dev": "next dev -p 3008",
+    "build": "next build",
     "start": "next start -p 3008",
     "stop": "pkill -f \"next.*3008\" || kill $(lsof -ti:3008) 2>/dev/null || echo 'No dev server running on port 3008'",
     "stop:hard": "pkill -f \"next\" && pkill -f \"node.*3008\" && pkill -f \"npm.*dev\" || echo 'Killed all Next.js processes'",

@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Invitation, RSVP } from '@/lib/supabase';
 
@@ -13,20 +14,13 @@ interface InvitationWithRSVPs extends Invitation {
 
 export default function InvitationView() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
   const [invitation, setInvitation] = useState<InvitationWithRSVPs | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (id) {
-      fetchInvitation();
-    }
-  }, [id]);
-
-  const fetchInvitation = async () => {
+  const fetchInvitation = useCallback(async () => {
     try {
       const response = await fetch(`/api/invitations/${id}`);
       if (!response.ok) {
@@ -39,12 +33,18 @@ export default function InvitationView() {
       }
       const data = await response.json();
       setInvitation(data.invitation);
-    } catch (err) {
+    } catch {
       setError('Failed to load invitation');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchInvitation();
+    }
+  }, [id, fetchInvitation]);
 
   const copyInviteLink = () => {
     if (!invitation) return;
@@ -130,7 +130,7 @@ export default function InvitationView() {
               {error || 'Invitation not found'}
             </h1>
             <p className="text-gray-600 mb-6">
-              The invitation may have been deleted or you don't have permission to view it.
+              The invitation may have been deleted or you don&apos;t have permission to view it.
             </p>
             <Link
               href="/dashboard"
@@ -179,11 +179,13 @@ export default function InvitationView() {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
 
           {invitation.designs?.image_url && (
-            <div className="mb-6">
-              <img
+            <div className="mb-6 relative h-64 w-full">
+              <Image
                 src={invitation.designs.image_url}
                 alt={invitation.title}
-                className="w-full h-64 object-cover rounded-lg"
+                fill
+                className="object-cover rounded-lg"
+                unoptimized
               />
             </div>
           )}
@@ -278,9 +280,9 @@ export default function InvitationView() {
                              'Maybe'}
                           </span>
                         </div>
-                        {rsvp.comment && (
-                          <p className="text-gray-600 text-sm">"{rsvp.comment}"</p>
-                        )}
+                      {rsvp.comment && (
+                        <p className="text-gray-600 text-sm">&ldquo;{rsvp.comment}&rdquo;</p>
+                      )}
                         <p className="text-xs text-gray-500 mt-2">
                           Responded {new Date(rsvp.created_at).toLocaleDateString()} at {new Date(rsvp.created_at).toLocaleTimeString()}
                         </p>

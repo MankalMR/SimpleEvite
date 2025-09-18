@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Invitation, RSVP } from '@/lib/supabase';
@@ -26,13 +26,7 @@ export default function PublicInvite() {
     comment: '',
   });
 
-  useEffect(() => {
-    if (token) {
-      fetchInvitation();
-    }
-  }, [token]);
-
-  const fetchInvitation = async () => {
+  const fetchInvitation = useCallback(async () => {
     try {
       const response = await fetch(`/api/invite/${token}`);
       if (!response.ok) {
@@ -46,12 +40,18 @@ export default function PublicInvite() {
       const data = await response.json();
       console.log('Invitation data:', data.invitation); // Debug log
       setInvitation(data.invitation);
-    } catch (err) {
+    } catch {
       setError('Failed to load invitation');
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      fetchInvitation();
+    }
+  }, [token, fetchInvitation]);
 
   const handleRSVPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,8 +302,8 @@ export default function PublicInvite() {
                           : 'border-gray-300 text-gray-700 hover:border-gray-400'
                       }`}
                     >
-                      {response === 'yes' ? 'Yes, I\'ll be there!' :
-                       response === 'no' ? 'Sorry, can\'t make it' :
+                      {response === 'yes' ? 'Yes, I&apos;ll be there!' :
+                       response === 'no' ? 'Sorry, can&apos;t make it' :
                        'Maybe'}
                     </button>
                   ))}
@@ -359,7 +359,7 @@ export default function PublicInvite() {
         {/* Guest List */}
         {invitation.rsvps && invitation.rsvps.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Who's Coming</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Who&apos;s Coming</h2>
             <div className="space-y-4">
               {invitation.rsvps
                 .filter(rsvp => rsvp.response === 'yes')
@@ -373,7 +373,7 @@ export default function PublicInvite() {
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
                       {rsvp.comment && (
-                        <p className="text-gray-600 text-sm mt-1">"{rsvp.comment}"</p>
+                        <p className="text-gray-600 text-sm mt-1">&ldquo;{rsvp.comment}&rdquo;</p>
                       )}
                     </div>
                   </div>

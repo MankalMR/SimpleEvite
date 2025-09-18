@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 // DELETE /api/rsvp/[id] - Delete RSVP (only invitation owner can delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,6 +14,8 @@ export async function DELETE(
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const resolvedParams = await params;
 
     // First check if the user owns the invitation this RSVP belongs to
     const { data: rsvp, error: rsvpError } = await supabase
@@ -24,7 +26,7 @@ export async function DELETE(
           user_id
         )
       `)
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .single();
 
     if (rsvpError || !rsvp) {
@@ -32,8 +34,8 @@ export async function DELETE(
     }
 
     // Check if the current user owns the invitation
-    const invitation = rsvp.invitations as any;
-    if (invitation.user_id !== session.user.id) {
+    const invitations = rsvp.invitations as { user_id: string }[];
+    if (!invitations || invitations.length === 0 || invitations[0].user_id !== session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -41,7 +43,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('rsvps')
       .delete()
-      .eq('id', params.id);
+      .eq('id', resolvedParams.id);
 
     if (error) {
       console.error('Error deleting RSVP:', error);
