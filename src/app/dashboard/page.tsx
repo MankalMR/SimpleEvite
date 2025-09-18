@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
+import { formatShortDate, isDateInPast } from '@/lib/date-utils';
 import { Invitation, RSVP } from '@/lib/supabase';
 
 interface InvitationWithRSVPs extends Invitation {
@@ -66,13 +67,7 @@ export default function Dashboard() {
     return stats;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  // Using formatShortDate from date-utils to avoid timezone issues
 
   const copyInviteLink = (shareToken: string) => {
     const url = `${window.location.origin}/invite/${shareToken}`;
@@ -162,7 +157,7 @@ export default function Dashboard() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {invitations.map((invitation) => {
               const rsvpStats = getRSVPStats(invitation.rsvps || []);
-              const isUpcoming = new Date(invitation.event_date) >= new Date();
+              const isUpcoming = !isDateInPast(invitation.event_date);
 
               return (
                 <div key={invitation.id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -192,7 +187,7 @@ export default function Dashboard() {
                     </div>
 
                     <p className="text-gray-800 text-sm mb-4 font-medium">
-                      {formatDate(invitation.event_date)}
+                      {formatShortDate(invitation.event_date)}
                       {invitation.event_time && ` at ${invitation.event_time}`}
                     </p>
 

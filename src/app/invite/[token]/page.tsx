@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Invitation, RSVP } from '@/lib/supabase';
+import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
 
 interface InvitationWithRSVPs extends Invitation {
   designs?: { id: string; name: string; image_url: string };
@@ -93,14 +94,7 @@ export default function PublicInvite() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  // Removed formatDate function - now using utility from date-utils
 
   const formatTime = (timeString: string) => {
     return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
@@ -143,8 +137,8 @@ export default function PublicInvite() {
     );
   }
 
-  const rsvpStats = getRSVPStats(invitation.rsvps || []);
-  const eventPassed = new Date(invitation.event_date) < new Date();
+      const rsvpStats = getRSVPStats(invitation.rsvps || []);
+      const eventPassed = isDateInPast(invitation.event_date);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -209,7 +203,7 @@ export default function PublicInvite() {
               </svg>
               <div>
                 <h3 className="font-semibold text-gray-900">Date</h3>
-                <p className="text-gray-600">{formatDate(invitation.event_date)}</p>
+                <p className="text-gray-600">{formatDisplayDate(invitation.event_date)}</p>
               </div>
             </div>
 

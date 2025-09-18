@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
+import { formatDisplayDate } from '@/lib/date-utils';
 import { Invitation, RSVP } from '@/lib/supabase';
 
 interface InvitationWithRSVPs extends Invitation {
@@ -77,14 +78,30 @@ export default function InvitationView() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  const deleteInvitation = async () => {
+    if (!invitation || !confirm('Are you sure you want to delete this invitation? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/invitations/${invitation.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete invitation');
+      }
+
+      alert('Invitation deleted successfully!');
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'An unexpected error occurred.');
+    }
   };
+
+  // Using formatDisplayDate from date-utils to avoid timezone issues
 
   const formatTime = (timeString: string) => {
     return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
@@ -148,22 +165,30 @@ export default function InvitationView() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{invitation.title}</h1>
-            <p className="text-gray-600">
-              Created {new Date(invitation.created_at).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="flex gap-3">
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{invitation.title}</h1>
+                <p className="text-gray-700 font-medium">
+                  Created {new Date(invitation.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex gap-3">
             <button
               onClick={copyInviteLink}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors"
             >
               Copy Invite Link
             </button>
+            <Link
+              href={`/invitations/${invitation.id}/edit`}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Edit
+            </Link>
             <Link
               href={`/invite/${invitation.share_token}`}
               target="_blank"
@@ -171,8 +196,15 @@ export default function InvitationView() {
             >
               Preview
             </Link>
+                <button
+                  onClick={deleteInvitation}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
 
         {/* Event Details */}
         <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
@@ -193,19 +225,19 @@ export default function InvitationView() {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Date</h3>
-              <p className="text-gray-600 mb-4">{formatDate(invitation.event_date)}</p>
+              <p className="text-gray-800 mb-4 font-medium">{formatDisplayDate(invitation.event_date)}</p>
 
               {invitation.event_time && (
                 <>
                   <h3 className="font-semibold text-gray-900 mb-2">Time</h3>
-                  <p className="text-gray-600 mb-4">{formatTime(invitation.event_time)}</p>
+                  <p className="text-gray-800 mb-4 font-medium">{formatTime(invitation.event_time)}</p>
                 </>
               )}
 
               {invitation.location && (
                 <>
                   <h3 className="font-semibold text-gray-900 mb-2">Location</h3>
-                  <p className="text-gray-600">{invitation.location}</p>
+                  <p className="text-gray-800 font-medium">{invitation.location}</p>
                 </>
               )}
             </div>
@@ -214,7 +246,7 @@ export default function InvitationView() {
               {invitation.description && (
                 <>
                   <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-600">{invitation.description}</p>
+                  <p className="text-gray-800 font-medium">{invitation.description}</p>
                 </>
               )}
             </div>
@@ -228,19 +260,19 @@ export default function InvitationView() {
           <div className="grid grid-cols-3 gap-6 mb-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600 mb-2">{rsvpStats.yes}</div>
-              <div className="text-sm text-gray-600">Yes</div>
+              <div className="text-sm text-gray-800 font-medium">Yes</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-yellow-600 mb-2">{rsvpStats.maybe}</div>
-              <div className="text-sm text-gray-600">Maybe</div>
+              <div className="text-sm text-gray-800 font-medium">Maybe</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-red-600 mb-2">{rsvpStats.no}</div>
-              <div className="text-sm text-gray-600">No</div>
+              <div className="text-sm text-gray-800 font-medium">No</div>
             </div>
           </div>
 
-          <div className="text-center text-sm text-gray-600">
+          <div className="text-center text-sm text-gray-800 font-medium">
             Total Responses: {(invitation.rsvps || []).length}
           </div>
         </div>
@@ -314,6 +346,7 @@ export default function InvitationView() {
             </button>
           </div>
         )}
+        </div>
       </div>
     </ProtectedRoute>
   );
