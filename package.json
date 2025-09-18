@@ -1,27 +1,58 @@
 {
   "name": "simple-evite",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "private": false,
+  "description": "A minimalistic event invitation platform built with Next.js, Supabase, and Google OAuth",
+  "author": "Mmankal <your.email@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmankal/simple-evite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mmankal/simple-evite/issues"
+  },
+  "homepage": "https://github.com/mmankal/simple-evite#readme",
+  "keywords": [
+    "nextjs",
+    "react",
+    "supabase",
+    "invitation",
+    "rsvp",
+    "event-management",
+    "oauth",
+    "typescript",
+    "tailwindcss"
+  ],
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -p 3008",
     "build": "next build --turbopack",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start -p 3008",
+    "stop": "pkill -f \"next.*3008\" || kill $(lsof -ti:3008) 2>/dev/null || echo 'No dev server running on port 3008'",
+    "stop:hard": "pkill -f \"next\" && pkill -f \"node.*3008\" && pkill -f \"npm.*dev\" || echo 'Killed all Next.js processes'",
+    "restart": "npm run stop && npm run dev",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "reset": "npm run clean && npm install",
+    "lint": "eslint",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "next": "15.5.3",
+    "next-auth": "^4.24.11",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.3"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
