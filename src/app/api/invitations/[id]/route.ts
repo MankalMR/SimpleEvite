@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 // GET /api/invitations/[id] - Get invitation by ID (for owner)
 export async function GET(
@@ -11,34 +12,27 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const resolvedParams = await params;
 
-    const { data: invitation, error } = await supabase
-      .from('invitations')
-      .select(`
-        *,
-        designs (
-          id,
-          name,
-          image_url
-        ),
-        rsvps (
-          id,
-          name,
-          response,
-          comment,
-          created_at
-        )
-      `)
-      .eq('id', resolvedParams.id)
-      .eq('user_id', session.user.id)
+    // Get user from database
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', session.user.email)
       .single();
 
-    if (error || !invitation) {
+    if (userError) {
+      throw userError;
+    }
+
+    // Get invitation using the database layer
+    const invitation = await supabaseDb.getInvitation(resolvedParams.id, userData.id);
+
+    if (!invitation) {
       return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
 
@@ -57,7 +51,7 @@ export async function PUT(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -70,30 +64,28 @@ export async function PUT(
       return NextResponse.json({ error: 'Title and event date are required' }, { status: 400 });
     }
 
-    const { data: invitation, error } = await supabase
-      .from('invitations')
-      .update({
-        title,
-        description,
-        event_date,
-        event_time,
-        location,
-        design_id: design_id || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', resolvedParams.id)
-      .eq('user_id', session.user.id)
-      .select(`
-        *,
-        designs (
-          id,
-          name,
-          image_url
-        )
-      `)
+    // Get user from database
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', session.user.email)
       .single();
 
-    if (error || !invitation) {
+    if (userError) {
+      throw userError;
+    }
+
+    // Update invitation using the database layer
+    const invitation = await supabaseDb.updateInvitation(resolvedParams.id, {
+      title,
+      description,
+      event_date,
+      event_time,
+      location,
+      design_id: design_id || null,
+    }, userData.id);
+
+    if (!invitation) {
       return NextResponse.json({ error: 'Invitation not found or unauthorized' }, { status: 404 });
     }
 
@@ -112,20 +104,27 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const resolvedParams = await params;
 
-    const { error } = await supabase
-      .from('invitations')
-      .delete()
-      .eq('id', resolvedParams.id)
-      .eq('user_id', session.user.id);
+    // Get user from database
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', session.user.email)
+      .single();
 
-    if (error) {
-      console.error('Error deleting invitation:', error);
+    if (userError) {
+      throw userError;
+    }
+
+    // Delete invitation using the database layer
+    const success = await supabaseDb.deleteInvitation(resolvedParams.id, userData.id);
+
+    if (!success) {
       return NextResponse.json({ error: 'Failed to delete invitation' }, { status: 500 });
     }
 

@@ -6,7 +6,7 @@ const getSupabaseHostname = () => {
   if (supabaseUrl) {
     try {
       return new URL(supabaseUrl).hostname;
-    } catch (error) {
+    } catch {
       console.warn('Invalid NEXT_PUBLIC_SUPABASE_URL, falling back to wildcard');
     }
   }
