@@ -4,29 +4,18 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
-import { Design } from '@/lib/supabase';
-
-interface Invitation {
-  id: string;
-  title: string;
-  description: string;
-  event_date: string;
-  event_time: string;
-  location: string;
-  design_id: string | null;
-  designs?: { id: string; name: string; image_url: string };
-}
+import { getTextOverlayStyleOptions, getTextPositionOptions, getTextSizeOptions, TextOverlayStyle, TextPosition, TextSize } from '@/lib/text-overlay-utils';
+import { validateInvitationForm, formatInvitationForSubmission } from '@/lib/form-utils';
+import { InvitationPreview } from '@/components/invitation-preview';
+import { useInvitations } from '@/hooks/useInvitations';
+import { useDesigns } from '@/hooks/useDesigns';
 
 export default function EditInvitation() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [designs, setDesigns] = useState<Design[]>([]);
-  const [invitation, setInvitation] = useState<Invitation | null>(null);
+  const [selectedDesign, setSelectedDesign] = useState<{ id: string; name: string; image_url: string } | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -34,85 +23,105 @@ export default function EditInvitation() {
     event_time: '',
     location: '',
     design_id: '',
+    // Text overlay styling options
+    text_overlay_style: 'light' as TextOverlayStyle,
+    text_position: 'center' as TextPosition,
+    text_size: 'large' as TextSize,
+    text_shadow: true,
+    text_background: false,
+    text_background_opacity: 0.3,
   });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  const {
+    designs,
+    loading: designsLoading,
+    error: designsError,
+    fetchDesigns,
+  } = useDesigns();
+
+  const {
+    invitation,
+    invitationLoading: loading,
+    invitationError: error,
+    fetchInvitation,
+    updateInvitation,
+    updateLoading: saving,
+    updateError,
+  } = useInvitations();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch invitation data
-        const inviteResponse = await fetch(`/api/invitations/${id}`);
-        if (!inviteResponse.ok) {
-          throw new Error('Failed to fetch invitation');
-        }
-        const inviteData = await inviteResponse.json();
-        const invite = inviteData.invitation;
-
-        setInvitation(invite);
-        setFormData({
-          title: invite.title || '',
-          description: invite.description || '',
-          event_date: invite.event_date ? (invite.event_date.includes('T') ? invite.event_date.split('T')[0] : invite.event_date) : '',
-          event_time: invite.event_time || '',
-          location: invite.location || '',
-          design_id: invite.design_id || '',
-        });
-
-        // Fetch available designs
-        const designsResponse = await fetch('/api/designs');
-        if (designsResponse.ok) {
-          const designsData = await designsResponse.json();
-          setDesigns(designsData.designs || []);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    fetchDesigns();
     if (id) {
-      fetchData();
+      fetchInvitation(id);
     }
-  }, [id]);
+  }, [id, fetchDesigns, fetchInvitation]);
+
+  useEffect(() => {
+    if (invitation) {
+      // Debug logging
+      console.log('Loaded invitation data:', invitation);
+      console.log('Text overlay settings:', {
+        text_overlay_style: invitation.text_overlay_style,
+        text_position: invitation.text_position,
+        text_size: invitation.text_size,
+        text_shadow: invitation.text_shadow,
+        text_background: invitation.text_background,
+        text_background_opacity: invitation.text_background_opacity,
+      });
+
+      setFormData({
+        title: invitation.title || '',
+        description: invitation.description || '',
+        event_date: invitation.event_date ? (invitation.event_date.includes('T') ? invitation.event_date.split('T')[0] : invitation.event_date) : '',
+        event_time: invitation.event_time || '',
+        location: invitation.location || '',
+        design_id: invitation.design_id || '',
+        // Text overlay styling options
+        text_overlay_style: (invitation.text_overlay_style || 'light') as TextOverlayStyle,
+        text_position: (invitation.text_position || 'center') as TextPosition,
+        text_size: (invitation.text_size || 'large') as TextSize,
+        text_shadow: invitation.text_shadow ?? true,
+        text_background: invitation.text_background ?? false,
+        text_background_opacity: invitation.text_background_opacity ?? 0.3,
+      });
+
+      // Set selected design if invitation has one
+      if (invitation.design_id) {
+        const design = designs.find(d => d.id === invitation.design_id);
+        setSelectedDesign(design || null);
+      }
+    }
+  }, [invitation, designs]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.event_date) {
-      alert('Please fill in the required fields (Title and Event Date).');
+    // Validate form
+    const validation = validateInvitationForm(formData);
+    if (!validation.isValid) {
+      setFormErrors(validation.errors);
       return;
     }
 
-    setSaving(true);
+    if (!invitation) return;
 
     try {
-      const response = await fetch(`/api/invitations/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          event_date: formData.event_date,
-          event_time: formData.event_time,
-          location: formData.location,
-          design_id: formData.design_id || null,
-        }),
-      });
+      setFormErrors({});
+      const formattedData = formatInvitationForSubmission(formData);
+      await updateInvitation(invitation.id, formattedData);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update invitation');
-      }
-
-      // Redirect back to invitation view
-      router.push(`/invitations/${id}`);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'An unexpected error occurred.');
-    } finally {
-      setSaving(false);
+      router.push(`/invitations/${invitation.id}`);
+    } catch (error) {
+      console.error('Update invitation error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to update invitation');
     }
+  };
+
+  const handleDesignSelect = (designId: string) => {
+    setFormData({ ...formData, design_id: designId });
+    const design = designs.find(d => d.id === designId);
+    setSelectedDesign(design || null);
   };
 
   if (loading) {
@@ -151,7 +160,24 @@ export default function EditInvitation() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-100 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Panel - Preview */}
+            <div className="lg:sticky lg:top-8 lg:self-start">
+              <div className="bg-white rounded-lg shadow-sm border p-6 h-[600px] lg:h-[700px]">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Live Preview</h2>
+                <div className="h-[calc(100%-3rem)]">
+                  <InvitationPreview
+                    formData={formData}
+                    selectedDesign={selectedDesign}
+                    isEditing={true}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Panel - Form */}
+            <div className="space-y-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Edit Invitation</h1>
             <button
@@ -258,7 +284,7 @@ export default function EditInvitation() {
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
-                  onClick={() => setFormData({ ...formData, design_id: '' })}
+                  onClick={() => handleDesignSelect('')}
                 >
                   <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 flex items-center justify-center">
                     <span className="text-gray-500 text-sm">No Design</span>
@@ -277,7 +303,7 @@ export default function EditInvitation() {
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-300 hover:border-gray-400'
                     }`}
-                    onClick={() => setFormData({ ...formData, design_id: design.id })}
+                    onClick={() => handleDesignSelect(design.id)}
                   >
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
                       <Image
@@ -309,24 +335,149 @@ export default function EditInvitation() {
               )}
             </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={() => router.push(`/invitations/${id}`)}
-                className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
+            {/* Text Overlay Styling Section */}
+            <div className="bg-white rounded-lg shadow-sm border p-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Text Overlay Styling</h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Customize how your text appears on the invitation background image.
+              </p>
+
+              <div className="space-y-6">
+                {/* Style Selection */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                    Text Style
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {getTextOverlayStyleOptions().map((option) => (
+                      <div
+                        key={option.value}
+                        className={`border-2 rounded-lg p-3 cursor-pointer transition-colors ${
+                          formData.text_overlay_style === option.value
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                        onClick={() => setFormData({ ...formData, text_overlay_style: option.value })}
+                      >
+                        <div className="font-semibold text-sm text-gray-900 mb-1">
+                          {option.label}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {option.description}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Position and Size */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="text_position" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Text Position
+                    </label>
+                    <select
+                      id="text_position"
+                      value={formData.text_position}
+                      onChange={(e) => setFormData({ ...formData, text_position: e.target.value as TextPosition })}
+                      className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {getTextPositionOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label} - {option.description}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="text_size" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Text Size
+                    </label>
+                    <select
+                      id="text_size"
+                      value={formData.text_size}
+                      onChange={(e) => setFormData({ ...formData, text_size: e.target.value as TextSize })}
+                      className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {getTextSizeOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label} - {option.description}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Advanced Options */}
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="text_shadow"
+                      checked={formData.text_shadow}
+                      onChange={(e) => setFormData({ ...formData, text_shadow: e.target.checked })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="text_shadow" className="ml-2 block text-sm text-gray-900">
+                      Add text shadow for better readability
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="text_background"
+                      checked={formData.text_background}
+                      onChange={(e) => setFormData({ ...formData, text_background: e.target.checked })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="text_background" className="ml-2 block text-sm text-gray-900">
+                      Add semi-transparent background behind text
+                    </label>
+                  </div>
+
+                  {formData.text_background && (
+                    <div>
+                      <label htmlFor="text_background_opacity" className="block text-sm font-semibold text-gray-900 mb-2">
+                        Background Opacity: {Math.round(formData.text_background_opacity * 100)}%
+                      </label>
+                      <input
+                        type="range"
+                        id="text_background_opacity"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={formData.text_background_opacity}
+                        onChange={(e) => setFormData({ ...formData, text_background_opacity: parseFloat(e.target.value) })}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </form>
+
+              {/* Submit Button */}
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => router.push(`/invitations/${id}`)}
+                  className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+            </div>
+          </div>
         </div>
       </div>
     </ProtectedRoute>

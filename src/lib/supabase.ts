@@ -40,6 +40,13 @@ export interface Invitation {
   share_token: string;
   created_at: string;
   updated_at: string;
+  // Text overlay styling options
+  text_overlay_style?: 'light' | 'dark' | 'vibrant' | 'muted' | 'elegant' | 'bold';
+  text_position?: 'center' | 'top' | 'bottom' | 'left' | 'right';
+  text_size?: 'small' | 'medium' | 'large' | 'extra-large';
+  text_shadow?: boolean;
+  text_background?: boolean;
+  text_background_opacity?: number;
 }
 
 export interface RSVP {

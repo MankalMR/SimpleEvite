@@ -1,57 +1,37 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { formatDisplayDate } from '@/lib/date-utils';
-import { Invitation, RSVP } from '@/lib/supabase';
-
-interface InvitationWithRSVPs extends Invitation {
-  designs?: { id: string; name: string; image_url: string };
-  rsvps?: RSVP[];
-}
+import { RSVP } from '@/lib/supabase';
+import { getRSVPStats, sortRSVPsByDate, getRSVPResponseColorClasses } from '@/lib/rsvp-utils';
+import { copyInviteLink } from '@/lib/clipboard-utils';
+import { useInvitations } from '@/hooks/useInvitations';
+import { getTextOverlayConfig, getTextOverlayContainerClasses, getTextOverlayContentClasses, getTextOverlayTitleClasses, getTextOverlayDescriptionClasses, getTextOverlayBackgroundClasses, getTextOverlayBackgroundStyles } from '@/lib/text-overlay-utils';
 
 export default function InvitationView() {
   const params = useParams();
   const id = params.id as string;
 
-  const [invitation, setInvitation] = useState<InvitationWithRSVPs | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchInvitation = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/invitations/${id}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError('Invitation not found');
-        } else {
-          setError('Failed to load invitation');
-        }
-        return;
-      }
-      const data = await response.json();
-      setInvitation(data.invitation);
-    } catch {
-      setError('Failed to load invitation');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const {
+    invitation,
+    invitationLoading: loading,
+    invitationError: error,
+    fetchInvitation,
+  } = useInvitations();
 
   useEffect(() => {
     if (id) {
-      fetchInvitation();
+      fetchInvitation(id);
     }
   }, [id, fetchInvitation]);
 
-  const copyInviteLink = () => {
+  const handleCopyInviteLink = () => {
     if (!invitation) return;
-    const url = `${window.location.origin}/invite/${invitation.share_token}`;
-    navigator.clipboard.writeText(url);
-    alert('Invite link copied to clipboard!');
+    copyInviteLink(invitation.share_token);
   };
 
   const deleteRSVP = async (rsvpId: string) => {
@@ -68,11 +48,8 @@ export default function InvitationView() {
         throw new Error('Failed to delete RSVP');
       }
 
-      // Remove RSVP from local state
-      setInvitation(prev => prev ? {
-        ...prev,
-        rsvps: prev.rsvps?.filter(rsvp => rsvp.id !== rsvpId) || []
-      } : null);
+      // Refresh invitation data to get updated RSVP list
+      await fetchInvitation(id);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Failed to delete RSVP');
     }
@@ -111,15 +88,7 @@ export default function InvitationView() {
     });
   };
 
-  const getRSVPStats = (rsvps: RSVP[]) => {
-    return rsvps.reduce(
-      (acc, rsvp) => {
-        acc[rsvp.response]++;
-        return acc;
-      },
-      { yes: 0, no: 0, maybe: 0 }
-    );
-  };
+  // Using getRSVPStats utility function
 
   if (loading) {
     return (
@@ -178,7 +147,7 @@ export default function InvitationView() {
               </div>
               <div className="flex gap-3">
             <button
-              onClick={copyInviteLink}
+              onClick={handleCopyInviteLink}
               className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors"
             >
               Copy Invite Link
@@ -210,17 +179,65 @@ export default function InvitationView() {
         <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
 
-          {invitation.designs?.image_url && (
-            <div className="mb-6 relative h-64 w-full">
-              <Image
-                src={invitation.designs.image_url}
-                alt={invitation.title}
-                fill
-                className="object-cover rounded-lg"
-                unoptimized
-              />
-            </div>
-          )}
+          {/* Complete Invitation Preview */}
+          <div className="mb-6">
+            <h3 className="font-semibold text-gray-900 mb-4">Invitation Preview</h3>
+            {invitation.designs?.image_url ? (
+              <div className="relative h-96 w-full rounded-lg overflow-hidden">
+                <Image
+                  src={invitation.designs.image_url}
+                  alt={invitation.title}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                {/* Text overlay with customizable styling */}
+                {(() => {
+                  const textConfig = getTextOverlayConfig(invitation);
+                  const containerClasses = getTextOverlayContainerClasses(textConfig);
+                  const contentClasses = getTextOverlayContentClasses(textConfig);
+                  const titleClasses = getTextOverlayTitleClasses(textConfig);
+                  const descriptionClasses = getTextOverlayDescriptionClasses(textConfig);
+                  const backgroundClasses = getTextOverlayBackgroundClasses(textConfig);
+                  const backgroundStyles = getTextOverlayBackgroundStyles(textConfig);
+
+                  return (
+                    <div className={containerClasses}>
+                      {textConfig.background && (
+                        <div
+                          className={`absolute inset-0 ${backgroundClasses}`}
+                          style={backgroundStyles}
+                        />
+                      )}
+                      <div className={contentClasses}>
+                        <h1 className={titleClasses}>
+                          {invitation.title}
+                        </h1>
+                        {invitation.description && (
+                          <p className={descriptionClasses}>
+                            {invitation.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16 rounded-lg">
+                <div className="text-center px-4">
+                  <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+                    {invitation.title}
+                  </h1>
+                  {invitation.description && (
+                    <p className="text-lg md:text-xl max-w-2xl mx-auto text-gray-700">
+                      {invitation.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div>
@@ -339,7 +356,7 @@ export default function InvitationView() {
               Share your invitation link to start receiving responses.
             </p>
             <button
-              onClick={copyInviteLink}
+              onClick={handleCopyInviteLink}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
               Copy Invite Link

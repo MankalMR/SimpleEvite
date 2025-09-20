@@ -15,7 +15,30 @@ function rowToInvitation(row: Record<string, unknown>): Invitation {
     share_token: row.share_token as string,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
+    // Text overlay styling options
+    text_overlay_style: row.text_overlay_style as 'light' | 'dark' | 'vibrant' | 'muted' | 'elegant' | 'bold' | undefined,
+    text_position: row.text_position as 'center' | 'top' | 'bottom' | 'left' | 'right' | undefined,
+    text_size: row.text_size as 'small' | 'medium' | 'large' | 'extra-large' | undefined,
+    text_shadow: row.text_shadow as boolean | undefined,
+    text_background: row.text_background as boolean | undefined,
+    text_background_opacity: row.text_background_opacity as number | undefined,
   };
+}
+
+// Helper function to convert Supabase row with nested RSVPs and Designs to Invitation
+function rowToInvitationWithRSVPs(row: Record<string, unknown>): any {
+  const invitation = rowToInvitation(row);
+  const result: any = {
+    ...invitation,
+    rsvps: (row.rsvps as any[])?.map(rowToRSVP) || [],
+  };
+
+  // Add designs if present
+  if (row.designs) {
+    result.designs = rowToDesign(row.designs as Record<string, unknown>);
+  }
+
+  return result;
 }
 
 // Helper function to convert Supabase row to Design
@@ -41,42 +64,99 @@ function rowToRSVP(row: Record<string, unknown>): RSVP {
   };
 }
 
+// Reusable query fragments
+const INVITATION_BASE_SELECT = `
+  *,
+  text_overlay_style,
+  text_position,
+  text_size,
+  text_shadow,
+  text_background,
+  text_background_opacity
+`;
+
+const INVITATION_WITH_RSVPS_SELECT = `
+  ${INVITATION_BASE_SELECT},
+  rsvps (
+    id,
+    name,
+    response,
+    comment,
+    created_at
+  )
+`;
+
+const INVITATION_WITH_DESIGNS_SELECT = `
+  ${INVITATION_BASE_SELECT},
+  designs!design_id (
+    id,
+    name,
+    image_url
+  )
+`;
+
+const INVITATION_FULL_SELECT = `
+  ${INVITATION_BASE_SELECT},
+  rsvps (
+    id,
+    name,
+    response,
+    comment,
+    created_at
+  ),
+  designs!design_id (
+    id,
+    name,
+    image_url
+  )
+`;
+
 export const supabaseDb = {
-  // Get all invitations for a user
+  // Get all invitations for a user with RSVP data and designs
   async getInvitations(userId: string): Promise<Invitation[]> {
     const { data, error } = await supabaseAdmin
       .from('invitations')
-      .select('*')
+      .select(INVITATION_FULL_SELECT)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data.map(rowToInvitation);
+    return data.map(rowToInvitationWithRSVPs);
   },
 
-  // Get a single invitation by ID
+  // Get a single invitation by ID with RSVP data and designs (for owner)
   async getInvitation(id: string, userId: string): Promise<Invitation | null> {
     const { data, error } = await supabaseAdmin
       .from('invitations')
-      .select('*')
+      .select(INVITATION_FULL_SELECT)
       .eq('id', id)
       .eq('user_id', userId)
       .single();
 
-    if (error) return null;
-    return rowToInvitation(data);
+    if (error) {
+      console.error('Error fetching invitation:', error);
+      return null;
+    }
+
+    console.log('Raw invitation data from Supabase:', data);
+    return rowToInvitationWithRSVPs(data);
   },
 
-  // Get invitation by share token (public)
+  // Get invitation by share token (public) - with full data including designs and RSVPs
   async getInvitationByToken(token: string): Promise<Invitation | null> {
     const { data, error } = await supabaseAdmin
       .from('invitations')
-      .select('*')
+      .select(INVITATION_FULL_SELECT)
       .eq('share_token', token)
       .single();
 
-    if (error) return null;
-    return rowToInvitation(data);
+    if (error) {
+      console.error('Error fetching invitation by token:', error);
+      return null;
+    }
+
+    console.log('Raw invitation data from Supabase (public):', data);
+    return rowToInvitationWithRSVPs(data);
   },
 
   // Create a new invitation
@@ -95,6 +175,12 @@ export const supabaseDb = {
         location: invitation.location,
         design_id: invitation.design_id,
         share_token: invitation.share_token,
+        text_overlay_style: invitation.text_overlay_style || 'light',
+        text_position: invitation.text_position || 'center',
+        text_size: invitation.text_size || 'large',
+        text_shadow: invitation.text_shadow ?? true,
+        text_background: invitation.text_background ?? false,
+        text_background_opacity: invitation.text_background_opacity ?? 0.3,
       })
       .select()
       .single();
@@ -118,6 +204,12 @@ export const supabaseDb = {
         event_time: updates.event_time,
         location: updates.location,
         design_id: updates.design_id,
+        text_overlay_style: updates.text_overlay_style,
+        text_position: updates.text_position,
+        text_size: updates.text_size,
+        text_shadow: updates.text_shadow,
+        text_background: updates.text_background,
+        text_background_opacity: updates.text_background_opacity,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

@@ -1,52 +1,41 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { Invitation, RSVP } from '@/lib/supabase';
+import { RSVP } from '@/lib/supabase';
 import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
-
-interface InvitationWithRSVPs extends Invitation {
-  designs?: { id: string; name: string; image_url: string };
-  rsvps?: RSVP[];
-}
+import { getTextOverlayConfig, getTextOverlayContainerClasses, getTextOverlayContentClasses, getTextOverlayTitleClasses, getTextOverlayDescriptionClasses, getTextOverlayBackgroundClasses, getTextOverlayBackgroundStyles } from '@/lib/text-overlay-utils';
+import { getRSVPStats, sortRSVPsByDate, getRSVPResponseColorClasses } from '@/lib/rsvp-utils';
+import { validateRSVPForm } from '@/lib/form-utils';
+import { usePublicInvitation } from '@/hooks/usePublicInvitation';
 
 export default function PublicInvite() {
   const params = useParams();
   const token = params.token as string;
 
-  const [invitation, setInvitation] = useState<InvitationWithRSVPs | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    invitation,
+    loading,
+    error,
+    rsvpLoading,
+    rsvpError,
+    fetchInvitation,
+    submitRSVP,
+  } = usePublicInvitation(token);
+
   const [showRSVPForm, setShowRSVPForm] = useState(false);
-  const [rsvpLoading, setRsvpLoading] = useState(false);
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
-  const [rsvpData, setRsvpData] = useState({
+  const [rsvpData, setRsvpData] = useState<{
+    name: string;
+    response: 'yes' | 'no' | 'maybe' | '';
+    comment: string;
+  }>({
     name: '',
-    response: '' as 'yes' | 'no' | 'maybe' | '',
+    response: '',
     comment: '',
   });
-
-  const fetchInvitation = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/invite/${token}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError('Invitation not found');
-        } else {
-          setError('Failed to load invitation');
-        }
-        return;
-      }
-      const data = await response.json();
-      console.log('Invitation data:', data.invitation); // Debug log
-      setInvitation(data.invitation);
-    } catch {
-      setError('Failed to load invitation');
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (token) {
@@ -56,41 +45,31 @@ export default function PublicInvite() {
 
   const handleRSVPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRsvpLoading(true);
+
+    // Validate form
+    const validation = validateRSVPForm(rsvpData);
+    if (!validation.isValid) {
+      setFormErrors(validation.errors);
+      return;
+    }
+
+    if (!invitation || !rsvpData.response) return;
 
     try {
-      const response = await fetch('/api/rsvp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          invitation_id: invitation?.id,
-          name: rsvpData.name.trim(),
-          response: rsvpData.response,
-          comment: rsvpData.comment.trim() || null,
-        }),
+      setFormErrors({});
+      await submitRSVP({
+        invitation_id: invitation.id,
+        name: rsvpData.name.trim(),
+        response: rsvpData.response as 'yes' | 'no' | 'maybe',
+        comment: rsvpData.comment.trim() || undefined,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to submit RSVP');
-      }
-
-      const data = await response.json();
-
-      // Add the new RSVP to the invitation
-      setInvitation(prev => prev ? {
-        ...prev,
-        rsvps: [...(prev.rsvps || []), data.rsvp]
-      } : null);
 
       setRsvpSubmitted(true);
       setShowRSVPForm(false);
+      setRsvpData({ name: '', response: '', comment: '' });
     } catch (error) {
+      console.error('RSVP submission error:', error);
       alert(error instanceof Error ? error.message : 'Failed to submit RSVP');
-    } finally {
-      setRsvpLoading(false);
     }
   };
 
@@ -161,33 +140,95 @@ export default function PublicInvite() {
               priority
               unoptimized={true}
             />
-            {/* No overlay - pure background image */}
-            <div className="absolute inset-0 flex items-center justify-center z-20">
-              <div className="text-center px-4">
-                <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white drop-shadow-lg">
-                  {invitation.title}
-                </h1>
-                {invitation.description && (
-                  <p className="text-lg md:text-xl max-w-2xl mx-auto text-white drop-shadow-lg">
-                    {invitation.description}
-                  </p>
-                )}
-              </div>
-            </div>
+            {/* Text overlay with customizable styling */}
+            {(() => {
+              const textConfig = getTextOverlayConfig(invitation);
+              const containerClasses = getTextOverlayContainerClasses(textConfig);
+              const contentClasses = getTextOverlayContentClasses(textConfig);
+              const titleClasses = getTextOverlayTitleClasses(textConfig);
+              const descriptionClasses = getTextOverlayDescriptionClasses(textConfig);
+              const backgroundClasses = getTextOverlayBackgroundClasses(textConfig);
+              const backgroundStyles = getTextOverlayBackgroundStyles(textConfig);
+
+              return (
+                <div className={containerClasses}>
+                  {textConfig.background && (
+                    <div
+                      className={`absolute inset-0 ${backgroundClasses}`}
+                      style={backgroundStyles}
+                    />
+                  )}
+                  <div className={contentClasses}>
+                    <h1 className={titleClasses}>
+                      {invitation.title}
+                    </h1>
+                    {invitation.description && (
+                      <p className={descriptionClasses}>
+                        {invitation.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         ) : (
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
-            <div className="text-center px-4">
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-gray-900">
-                {invitation.title}
-              </h1>
-              {invitation.description && (
-                <p className="text-lg md:text-xl max-w-2xl mx-auto text-gray-600">
-                  {invitation.description}
-                </p>
-              )}
-            </div>
-          </div>
+          /* No Design - Beautiful Gradient Background with Text Overlay */
+          (() => {
+            // Create beautiful gradient backgrounds for when no design is selected
+            const gradientBackgrounds = [
+              'bg-gradient-to-br from-purple-400 via-pink-500 to-red-500',
+              'bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500',
+              'bg-gradient-to-br from-green-400 via-blue-500 to-purple-600',
+              'bg-gradient-to-br from-yellow-400 via-red-500 to-pink-500',
+              'bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500',
+              'bg-gradient-to-br from-teal-400 via-blue-500 to-indigo-600'
+            ];
+
+            // Select gradient based on text style for consistency
+            const getGradientForStyle = (style: string) => {
+              switch (style) {
+                case 'vibrant': return gradientBackgrounds[0]; // Purple-pink-red
+                case 'elegant': return gradientBackgrounds[1]; // Blue-purple-pink
+                case 'bold': return gradientBackgrounds[2]; // Green-blue-purple
+                case 'light': return gradientBackgrounds[4]; // Indigo-purple-pink
+                case 'dark': return gradientBackgrounds[5]; // Teal-blue-indigo
+                case 'muted': return gradientBackgrounds[3]; // Yellow-red-pink
+                default: return gradientBackgrounds[0];
+              }
+            };
+
+            const textConfig = getTextOverlayConfig(invitation);
+            const containerClasses = getTextOverlayContainerClasses(textConfig);
+            const contentClasses = getTextOverlayContentClasses(textConfig);
+            const titleClasses = getTextOverlayTitleClasses(textConfig);
+            const descriptionClasses = getTextOverlayDescriptionClasses(textConfig);
+            const backgroundClasses = getTextOverlayBackgroundClasses(textConfig);
+            const backgroundStyles = getTextOverlayBackgroundStyles(textConfig);
+
+            return (
+              <div className={`h-96 relative ${getGradientForStyle(invitation.text_overlay_style || 'vibrant')}`}>
+                <div className={containerClasses}>
+                  {textConfig.background && (
+                    <div
+                      className={`absolute inset-0 ${backgroundClasses}`}
+                      style={backgroundStyles}
+                    />
+                  )}
+                  <div className={contentClasses}>
+                    <h1 className={titleClasses}>
+                      {invitation.title}
+                    </h1>
+                    {invitation.description && (
+                      <p className={descriptionClasses}>
+                        {invitation.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()
         )}
       </div>
 

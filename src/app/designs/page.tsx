@@ -4,32 +4,25 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Design } from '@/lib/supabase';
+import { useDesigns } from '@/hooks/useDesigns';
 
 export default function MyDesigns() {
-  const [designs, setDesigns] = useState<Design[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    designs,
+    loading,
+    uploadLoading: uploading,
+    deleteLoading,
+    error,
+    fetchDesigns,
+    uploadDesign,
+    deleteDesign,
+  } = useDesigns();
 
   useEffect(() => {
     fetchDesigns();
-  }, []);
-
-  const fetchDesigns = async () => {
-    try {
-      const response = await fetch('/api/designs');
-      if (response.ok) {
-        const data = await response.json();
-        setDesigns(data.designs);
-      }
-    } catch (error) {
-      console.error('Error fetching designs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchDesigns]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -47,93 +40,28 @@ export default function MyDesigns() {
       return;
     }
 
-    setUploading(true);
-
     try {
       const designName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
-
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('name', designName);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to upload design');
-      }
-
-      const data = await response.json();
-      setDesigns([data.design, ...designs]);
+      await uploadDesign(file, designName);
 
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
+      console.error('Upload design error:', error);
       alert(error instanceof Error ? error.message : 'Failed to upload design');
-    } finally {
-      setUploading(false);
     }
   };
 
-  const startEditing = (design: Design) => {
-    setEditingId(design.id);
-    setEditName(design.name);
-  };
+  // Note: Design editing functionality removed for simplicity
+  // Users can delete and re-upload designs if needed
 
-  const cancelEditing = () => {
-    setEditingId(null);
-    setEditName('');
-  };
-
-  const saveEdit = async (id: string) => {
-    if (!editName.trim()) {
-      alert('Design name cannot be empty');
-      return;
-    }
-
+  const handleDeleteDesign = async (id: string) => {
     try {
-      const response = await fetch(`/api/designs/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: editName.trim() }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update design');
-      }
-
-      const data = await response.json();
-      setDesigns(designs.map(d => d.id === id ? data.design : d));
-      cancelEditing();
+      await deleteDesign(id);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to update design');
-    }
-  };
-
-  const deleteDesign = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this design?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/designs/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete design');
-      }
-
-      setDesigns(designs.filter(d => d.id !== id));
-    } catch (error) {
+      console.error('Delete design error:', error);
       alert(error instanceof Error ? error.message : 'Failed to delete design');
     }
   };
@@ -220,58 +148,22 @@ export default function MyDesigns() {
                   />
                 </div>
                 <div className="p-4">
-                  {editingId === design.id ? (
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveEdit(design.id);
-                          if (e.key === 'Escape') cancelEditing();
-                        }}
-                        autoFocus
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => saveEdit(design.id)}
-                          className="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs font-medium hover:bg-green-700 transition-colors"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={cancelEditing}
-                          className="flex-1 border border-gray-300 text-gray-700 px-2 py-1 rounded text-xs font-medium hover:bg-gray-50 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-gray-900 truncate">
+                      {design.name}
+                    </h3>
+                    <p className="text-xs text-gray-700">
+                      Created {new Date(design.created_at).toLocaleDateString()}
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => handleDeleteDesign(design.id)}
+                        className="border border-red-300 text-red-700 px-3 py-1 rounded text-xs font-medium hover:bg-red-50 transition-colors"
+                      >
+                        Delete
+                      </button>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {design.name}
-                      </h3>
-                      <p className="text-xs text-gray-700">
-                        Created {new Date(design.created_at).toLocaleDateString()}
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => startEditing(design)}
-                          className="flex-1 border border-gray-300 text-gray-700 px-2 py-1 rounded text-xs font-medium hover:bg-gray-50 transition-colors"
-                        >
-                          Rename
-                        </button>
-                        <button
-                          onClick={() => deleteDesign(design.id)}
-                          className="border border-red-300 text-red-700 px-2 py-1 rounded text-xs font-medium hover:bg-red-50 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}

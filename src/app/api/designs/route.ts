@@ -21,6 +21,10 @@ export async function GET() {
       .single();
 
     if (userError) {
+      // If user doesn't exist yet, return empty designs array
+      if (userError.code === 'PGRST116') {
+        return NextResponse.json({ designs: [] });
+      }
       throw userError;
     }
 
@@ -59,6 +63,10 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError) {
+      // If user doesn't exist yet, this shouldn't happen in POST, but handle gracefully
+      if (userError.code === 'PGRST116') {
+        return NextResponse.json({ error: 'User not found. Please sign in again.' }, { status: 404 });
+      }
       throw userError;
     }
 

@@ -1,79 +1,41 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { formatShortDate, isDateInPast } from '@/lib/date-utils';
-import { Invitation, RSVP } from '@/lib/supabase';
-
-interface InvitationWithRSVPs extends Invitation {
-  designs?: { id: string; name: string; image_url: string };
-  rsvps?: RSVP[];
-}
+import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-utils';
+import { copyInviteLink } from '@/lib/clipboard-utils';
+import { useInvitations } from '@/hooks/useInvitations';
 
 export default function Dashboard() {
-  const [invitations, setInvitations] = useState<InvitationWithRSVPs[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    invitations,
+    loading,
+    error,
+    fetchInvitations,
+    deleteInvitation,
+    deleteLoading,
+    deleteError,
+  } = useInvitations();
 
   useEffect(() => {
     fetchInvitations();
-  }, []);
+  }, [fetchInvitations]);
 
-  const fetchInvitations = async () => {
+  const handleDeleteInvitation = async (id: string) => {
     try {
-      const response = await fetch('/api/invitations');
-      if (!response.ok) {
-        throw new Error('Failed to fetch invitations');
-      }
-      const data = await response.json();
-      setInvitations(data.invitations);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteInvitation = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this invitation?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/invitations/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete invitation');
-      }
-
-      setInvitations(invitations.filter(inv => inv.id !== id));
+      await deleteInvitation(id);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to delete invitation');
     }
   };
 
-  const getRSVPStats = (rsvps: RSVP[]) => {
-    const stats = rsvps.reduce(
-      (acc, rsvp) => {
-        acc[rsvp.response]++;
-        return acc;
-      },
-      { yes: 0, no: 0, maybe: 0 }
-    );
-    return stats;
-  };
-
-  // Using formatShortDate from date-utils to avoid timezone issues
-
-  const copyInviteLink = (shareToken: string) => {
-    const url = `${window.location.origin}/invite/${shareToken}`;
-    navigator.clipboard.writeText(url);
-    alert('Invite link copied to clipboard!');
-  };
+  // Global stats across all invitations
+  const globalStats = getGlobalRSVPStats(invitations);
+  const totalInvitations = invitations.length;
+  const totalRSVPs = getTotalRSVPCount(invitations);
 
   if (loading) {
     return (
@@ -120,13 +82,14 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Invitations</h3>
-              <p className="text-3xl font-bold text-blue-600">{invitations.length}</p>
+              <p className="text-3xl font-bold text-blue-600">{totalInvitations}</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Total RSVPs</h3>
-              <p className="text-3xl font-bold text-green-600">
-                {invitations.reduce((acc, inv) => acc + (inv.rsvps?.length || 0), 0)}
-              </p>
+              <p className="text-3xl font-bold text-green-600">{totalRSVPs}</p>
+              <div className="text-sm text-gray-600 mt-1">
+                {globalStats.yes} Yes, {globalStats.maybe} Maybe, {globalStats.no} No
+              </div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Active Events</h3>
@@ -217,7 +180,7 @@ export default function Dashboard() {
                         View
                       </Link>
                       <button
-                        onClick={() => deleteInvitation(invitation.id)}
+                        onClick={() => handleDeleteInvitation(invitation.id)}
                         className="border border-red-300 text-red-700 px-3 py-2 rounded text-sm font-medium hover:bg-red-50 transition-colors"
                       >
                         Delete

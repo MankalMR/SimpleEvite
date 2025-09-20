@@ -1,10 +1,57 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function Home() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [hasInvitations, setHasInvitations] = useState(false);
+  const [checkedInvitations, setCheckedInvitations] = useState(false);
+
+  // Check if user has invitations and redirect to dashboard
+  useEffect(() => {
+    if (session && !checkedInvitations) {
+      checkUserInvitations();
+    }
+  }, [session, checkedInvitations]);
+
+  const checkUserInvitations = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/invitations');
+      if (response.ok) {
+        const data = await response.json();
+        const invitations = data.invitations || [];
+        setHasInvitations(invitations.length > 0);
+
+        // Redirect to dashboard if user has invitations
+        if (invitations.length > 0) {
+          router.push('/dashboard');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking invitations:', error);
+    } finally {
+      setLoading(false);
+      setCheckedInvitations(true);
+    }
+  };
+
+  // Show loading state while checking for existing invitations
+  if (session && loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your invitations...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -110,7 +157,14 @@ export default function Home() {
           <p className="text-xl text-blue-100 mb-8">
             Join thousands of users who trust Simple Evite for their events
           </p>
-          {!session && (
+          {session ? (
+            <Link
+              href="/create"
+              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
+            >
+              Create Your First Invite
+            </Link>
+          ) : (
             <Link
               href="/auth/signin"
               className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
