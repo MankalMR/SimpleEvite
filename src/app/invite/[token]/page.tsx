@@ -19,7 +19,6 @@ export default function PublicInvite() {
     loading,
     error,
     rsvpLoading,
-    rsvpError,
     fetchInvitation,
     submitRSVP,
   } = usePublicInvitation(token);
@@ -35,7 +34,6 @@ export default function PublicInvite() {
     response: '',
     comment: '',
   });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (token) {

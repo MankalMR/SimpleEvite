@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession, signIn } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,14 +14,7 @@ export default function Home() {
   const [, setHasInvitations] = useState(false);
   const [checkedInvitations, setCheckedInvitations] = useState(false);
 
-  // Check if user has invitations and redirect to dashboard
-  useEffect(() => {
-    if (session && !checkedInvitations) {
-      checkUserInvitations();
-    }
-  }, [session, checkedInvitations]); // checkUserInvitations is stable
-
-  const checkUserInvitations = async () => {
+  const checkUserInvitations = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch('/api/invitations');
@@ -41,7 +34,14 @@ export default function Home() {
       setLoading(false);
       setCheckedInvitations(true);
     }
-  };
+  }, [router, setHasInvitations]);
+
+  // Check if user has invitations and redirect to dashboard
+  useEffect(() => {
+    if (session && !checkedInvitations) {
+      checkUserInvitations();
+    }
+  }, [session, checkedInvitations, checkUserInvitations]);
 
   const handleGoogleSignIn = async () => {
     setSignInLoading(true);

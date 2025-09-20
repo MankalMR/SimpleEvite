@@ -27,7 +27,7 @@ interface InvitationPreviewProps {
   isEditing?: boolean;
 }
 
-export function InvitationPreview({ formData, selectedDesign, isEditing = false }: InvitationPreviewProps) {
+export function InvitationPreview({ formData, selectedDesign }: InvitationPreviewProps) {
   // Check if user has entered any meaningful data
   const hasContent = formData.title.trim() || formData.description.trim();
 
