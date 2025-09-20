@@ -10,7 +10,7 @@ import { RSVP } from '@/lib/supabase';
 import { getRSVPStats, sortRSVPsByDate, getRSVPResponseColorClasses } from '@/lib/rsvp-utils';
 import { copyInviteLink } from '@/lib/clipboard-utils';
 import { useInvitations } from '@/hooks/useInvitations';
-import { getTextOverlayConfig, getTextOverlayContainerClasses, getTextOverlayContentClasses, getTextOverlayTitleClasses, getTextOverlayDescriptionClasses, getTextOverlayBackgroundClasses, getTextOverlayBackgroundStyles } from '@/lib/text-overlay-utils';
+import { InvitationDisplay } from '@/components/invitation-display';
 
 export default function InvitationView() {
   const params = useParams();
@@ -182,61 +182,15 @@ export default function InvitationView() {
           {/* Complete Invitation Preview */}
           <div className="mb-6">
             <h3 className="font-semibold text-gray-900 mb-4">Invitation Preview</h3>
-            {invitation.designs?.image_url ? (
-              <div className="relative h-96 w-full rounded-lg overflow-hidden">
-                <Image
-                  src={invitation.designs.image_url}
-                  alt={invitation.title}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-                {/* Text overlay with customizable styling */}
-                {(() => {
-                  const textConfig = getTextOverlayConfig(invitation);
-                  const containerClasses = getTextOverlayContainerClasses(textConfig);
-                  const contentClasses = getTextOverlayContentClasses(textConfig);
-                  const titleClasses = getTextOverlayTitleClasses(textConfig);
-                  const descriptionClasses = getTextOverlayDescriptionClasses(textConfig);
-                  const backgroundClasses = getTextOverlayBackgroundClasses(textConfig);
-                  const backgroundStyles = getTextOverlayBackgroundStyles(textConfig);
-
-                  return (
-                    <div className={containerClasses}>
-                      {textConfig.background && (
-                        <div
-                          className={`absolute inset-0 ${backgroundClasses}`}
-                          style={backgroundStyles}
-                        />
-                      )}
-                      <div className={contentClasses}>
-                        <h1 className={titleClasses}>
-                          {invitation.title}
-                        </h1>
-                        {invitation.description && (
-                          <p className={descriptionClasses}>
-                            {invitation.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            ) : (
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16 rounded-lg">
-                <div className="text-center px-4">
-                  <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
-                    {invitation.title}
-                  </h1>
-                  {invitation.description && (
-                    <p className="text-lg md:text-xl max-w-2xl mx-auto text-gray-700">
-                      {invitation.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+            <InvitationDisplay
+              invitation={invitation}
+              design={invitation.designs ? {
+                id: invitation.designs.id,
+                name: invitation.designs.name,
+                image_url: invitation.designs.image_url
+              } : null}
+              className="h-96 w-full rounded-lg"
+            />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">

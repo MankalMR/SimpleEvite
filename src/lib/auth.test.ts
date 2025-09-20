@@ -17,7 +17,7 @@ describe('authOptions', () => {
     });
 
     it('should have correct pages configuration', () => {
-      expect(authOptions.pages?.signIn).toBe('/auth/signin');
+      expect(authOptions.pages?.signIn).toBe('/');
       expect(authOptions.pages?.error).toBe('/auth/error');
     });
 

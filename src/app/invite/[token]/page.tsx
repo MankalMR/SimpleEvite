@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { RSVP } from '@/lib/supabase';
 import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
-import { getTextOverlayConfig, getTextOverlayContainerClasses, getTextOverlayContentClasses, getTextOverlayTitleClasses, getTextOverlayDescriptionClasses, getTextOverlayBackgroundClasses, getTextOverlayBackgroundStyles } from '@/lib/text-overlay-utils';
+import { InvitationDisplay } from '@/components/invitation-display';
 import { getRSVPStats, sortRSVPsByDate, getRSVPResponseColorClasses } from '@/lib/rsvp-utils';
 import { validateRSVPForm } from '@/lib/form-utils';
 import { usePublicInvitation } from '@/hooks/usePublicInvitation';
@@ -123,113 +123,15 @@ export default function PublicInvite() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative">
-        {invitation.designs && invitation.designs.image_url ? (
-          <div className="h-64 md:h-96 relative overflow-hidden">
-            <Image
-              src={invitation.designs.image_url}
-              alt={invitation.title}
-              fill
-              className="object-cover"
-              onLoad={() => {
-                console.log('Image loaded successfully:', invitation.designs?.image_url);
-              }}
-              onError={(e) => {
-                console.error('Image failed to load:', invitation.designs?.image_url);
-                console.error('Error details:', e);
-              }}
-              priority
-              unoptimized={true}
-            />
-            {/* Text overlay with customizable styling */}
-            {(() => {
-              const textConfig = getTextOverlayConfig(invitation);
-              const containerClasses = getTextOverlayContainerClasses(textConfig);
-              const contentClasses = getTextOverlayContentClasses(textConfig);
-              const titleClasses = getTextOverlayTitleClasses(textConfig);
-              const descriptionClasses = getTextOverlayDescriptionClasses(textConfig);
-              const backgroundClasses = getTextOverlayBackgroundClasses(textConfig);
-              const backgroundStyles = getTextOverlayBackgroundStyles(textConfig);
-
-              return (
-                <div className={containerClasses}>
-                  {textConfig.background && (
-                    <div
-                      className={`absolute inset-0 ${backgroundClasses}`}
-                      style={backgroundStyles}
-                    />
-                  )}
-                  <div className={contentClasses}>
-                    <h1 className={titleClasses}>
-                      {invitation.title}
-                    </h1>
-                    {invitation.description && (
-                      <p className={descriptionClasses}>
-                        {invitation.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        ) : (
-          /* No Design - Beautiful Gradient Background with Text Overlay */
-          (() => {
-            // Create beautiful gradient backgrounds for when no design is selected
-            const gradientBackgrounds = [
-              'bg-gradient-to-br from-purple-400 via-pink-500 to-red-500',
-              'bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500',
-              'bg-gradient-to-br from-green-400 via-blue-500 to-purple-600',
-              'bg-gradient-to-br from-yellow-400 via-red-500 to-pink-500',
-              'bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500',
-              'bg-gradient-to-br from-teal-400 via-blue-500 to-indigo-600'
-            ];
-
-            // Select gradient based on text style for consistency
-            const getGradientForStyle = (style: string) => {
-              switch (style) {
-                case 'vibrant': return gradientBackgrounds[0]; // Purple-pink-red
-                case 'elegant': return gradientBackgrounds[1]; // Blue-purple-pink
-                case 'bold': return gradientBackgrounds[2]; // Green-blue-purple
-                case 'light': return gradientBackgrounds[4]; // Indigo-purple-pink
-                case 'dark': return gradientBackgrounds[5]; // Teal-blue-indigo
-                case 'muted': return gradientBackgrounds[3]; // Yellow-red-pink
-                default: return gradientBackgrounds[0];
-              }
-            };
-
-            const textConfig = getTextOverlayConfig(invitation);
-            const containerClasses = getTextOverlayContainerClasses(textConfig);
-            const contentClasses = getTextOverlayContentClasses(textConfig);
-            const titleClasses = getTextOverlayTitleClasses(textConfig);
-            const descriptionClasses = getTextOverlayDescriptionClasses(textConfig);
-            const backgroundClasses = getTextOverlayBackgroundClasses(textConfig);
-            const backgroundStyles = getTextOverlayBackgroundStyles(textConfig);
-
-            return (
-              <div className={`h-96 relative ${getGradientForStyle(invitation.text_overlay_style || 'vibrant')}`}>
-                <div className={containerClasses}>
-                  {textConfig.background && (
-                    <div
-                      className={`absolute inset-0 ${backgroundClasses}`}
-                      style={backgroundStyles}
-                    />
-                  )}
-                  <div className={contentClasses}>
-                    <h1 className={titleClasses}>
-                      {invitation.title}
-                    </h1>
-                    {invitation.description && (
-                      <p className={descriptionClasses}>
-                        {invitation.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })()
-        )}
+        <InvitationDisplay
+          invitation={invitation}
+          design={invitation.designs ? {
+            id: invitation.designs.id,
+            name: invitation.designs.name,
+            image_url: invitation.designs.image_url
+          } : null}
+          className="h-64 md:h-96"
+        />
       </div>
 
       {/* Event Details */}
@@ -337,8 +239,8 @@ export default function PublicInvite() {
                           : 'border-gray-300 text-gray-700 hover:border-gray-400'
                       }`}
                     >
-                      {response === 'yes' ? 'Yes, I&apos;ll be there!' :
-                       response === 'no' ? 'Sorry, can&apos;t make it' :
+                      {response === 'yes' ? "Yes, I'll be there!" :
+                       response === 'no' ? "Sorry, can't make it" :
                        'Maybe'}
                     </button>
                   ))}
