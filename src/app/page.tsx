@@ -10,7 +10,7 @@ export default function Home() {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [hasInvitations, setHasInvitations] = useState(false);
+  const [, setHasInvitations] = useState(false);
   const [checkedInvitations, setCheckedInvitations] = useState(false);
 
   // Check if user has invitations and redirect to dashboard
@@ -18,7 +18,7 @@ export default function Home() {
     if (session && !checkedInvitations) {
       checkUserInvitations();
     }
-  }, [session, checkedInvitations]);
+  }, [session, checkedInvitations]); // checkUserInvitations is stable
 
   const checkUserInvitations = async () => {
     setLoading(true);

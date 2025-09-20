@@ -2,6 +2,8 @@
  * Common form utilities and validation functions
  */
 
+import { Invitation } from './supabase';
+
 export interface FormValidationResult {
   isValid: boolean;
   errors: Record<string, string>;
@@ -71,7 +73,7 @@ export function validateRSVPForm(formData: {
 /**
  * Generic form validation helper
  */
-export function validateRequired(fields: Record<string, any>, requiredFields: string[]): FormValidationResult {
+export function validateRequired(fields: Record<string, unknown>, requiredFields: string[]): FormValidationResult {
   const errors: Record<string, string> = {};
 
   requiredFields.forEach(field => {
@@ -90,18 +92,21 @@ export function validateRequired(fields: Record<string, any>, requiredFields: st
 /**
  * Format form data for API submission
  */
-export function formatInvitationForSubmission(formData: any) {
+export function formatInvitationForSubmission(formData: Record<string, unknown>): Omit<Invitation, 'id' | 'created_at' | 'updated_at' | 'share_token'> {
   return {
-    ...formData,
-    title: formData.title.trim(),
-    description: formData.description.trim(),
-    location: formData.location.trim(),
+    user_id: formData.user_id as string,
+    title: (formData.title as string).trim(),
+    description: (formData.description as string).trim(),
+    event_date: formData.event_date as string,
+    event_time: formData.event_time as string,
+    location: (formData.location as string).trim(),
+    design_id: formData.design_id as string | undefined,
     // Ensure text overlay fields have default values
-    text_overlay_style: formData.text_overlay_style || 'light',
-    text_position: formData.text_position || 'center',
-    text_size: formData.text_size || 'large',
-    text_shadow: formData.text_shadow ?? true,
-    text_background: formData.text_background ?? false,
-    text_background_opacity: formData.text_background_opacity ?? 0.3,
+    text_overlay_style: (formData.text_overlay_style as Invitation['text_overlay_style']) || 'light',
+    text_position: (formData.text_position as Invitation['text_position']) || 'center',
+    text_size: (formData.text_size as Invitation['text_size']) || 'large',
+    text_shadow: (formData.text_shadow as boolean) ?? true,
+    text_background: (formData.text_background as boolean) ?? false,
+    text_background_opacity: (formData.text_background_opacity as number) ?? 0.3,
   };
 }

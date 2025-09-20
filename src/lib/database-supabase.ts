@@ -1,6 +1,12 @@
 import { supabaseAdmin } from './supabase';
 import { Invitation, Design, RSVP } from './supabase';
 
+// Extended Invitation interface for database operations with nested data
+export interface InvitationWithRSVPs extends Invitation {
+  rsvps?: RSVP[];
+  designs?: Design;
+}
+
 // Helper function to convert Supabase row to Invitation
 function rowToInvitation(row: Record<string, unknown>): Invitation {
   return {
@@ -26,11 +32,11 @@ function rowToInvitation(row: Record<string, unknown>): Invitation {
 }
 
 // Helper function to convert Supabase row with nested RSVPs and Designs to Invitation
-function rowToInvitationWithRSVPs(row: Record<string, unknown>): any {
+function rowToInvitationWithRSVPs(row: Record<string, unknown>): InvitationWithRSVPs {
   const invitation = rowToInvitation(row);
-  const result: any = {
+  const result: InvitationWithRSVPs = {
     ...invitation,
-    rsvps: (row.rsvps as any[])?.map(rowToRSVP) || [],
+    rsvps: (row.rsvps as Record<string, unknown>[])?.map(rowToRSVP) || [],
   };
 
   // Add designs if present
@@ -75,25 +81,7 @@ const INVITATION_BASE_SELECT = `
   text_background_opacity
 `;
 
-const INVITATION_WITH_RSVPS_SELECT = `
-  ${INVITATION_BASE_SELECT},
-  rsvps (
-    id,
-    name,
-    response,
-    comment,
-    created_at
-  )
-`;
-
-const INVITATION_WITH_DESIGNS_SELECT = `
-  ${INVITATION_BASE_SELECT},
-  designs!design_id (
-    id,
-    name,
-    image_url
-  )
-`;
+// Removed unused select constants - using INVITATION_FULL_SELECT instead
 
 const INVITATION_FULL_SELECT = `
   ${INVITATION_BASE_SELECT},

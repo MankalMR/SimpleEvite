@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { formatDisplayDate } from '@/lib/date-utils';
 import {
   getTextOverlayConfig,
@@ -127,23 +128,15 @@ export function InvitationPreview({ formData, selectedDesign, isEditing = false 
                 height: '100%'
               }}
             >
-              <img
+              <Image
                 src={selectedDesign.image_url}
                 alt={selectedDesign.name}
-                style={{
-                  zIndex: 1,
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block'
-                }}
+                fill
+                className="object-cover"
+                style={{ zIndex: 1 }}
+                unoptimized
                 onError={(e) => {
                   console.error('Image failed to load:', selectedDesign.image_url, e);
-                  // Hide the img if it fails to load
-                  (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />
 

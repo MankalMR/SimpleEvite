@@ -1,11 +1,7 @@
 import { useCallback } from 'react';
 import { useApiRequest } from './useApiRequest';
-import { Invitation, RSVP } from '@/lib/supabase';
-
-export interface InvitationWithRSVPs extends Invitation {
-  designs?: { id: string; name: string; image_url: string };
-  rsvps?: RSVP[];
-}
+import { Invitation } from '@/lib/supabase';
+import { InvitationWithRSVPs } from '@/lib/database-supabase';
 
 /**
  * Custom hook for managing invitations data

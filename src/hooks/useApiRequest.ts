@@ -6,25 +6,25 @@ export interface ApiRequestState<T> {
   error: string | null;
 }
 
-export interface UseApiRequestReturn<T> extends ApiRequestState<T> {
-  execute: (...args: any[]) => Promise<T>;
+export interface UseApiRequestReturn<T, TArgs extends readonly unknown[] = readonly unknown[]> extends ApiRequestState<T> {
+  execute: (...args: TArgs) => Promise<T>;
   reset: () => void;
 }
 
 /**
  * Generic hook for API requests with loading, error, and data state management
  */
-export function useApiRequest<T>(
-  apiFunction: (...args: any[]) => Promise<T>,
+export function useApiRequest<T, TArgs extends readonly unknown[] = readonly unknown[]>(
+  apiFunction: (...args: TArgs) => Promise<T>,
   initialData: T | null = null
-): UseApiRequestReturn<T> {
+): UseApiRequestReturn<T, TArgs> {
   const [state, setState] = useState<ApiRequestState<T>>({
     data: initialData,
     loading: false,
     error: null,
   });
 
-  const execute = useCallback(async (...args: any[]): Promise<T> => {
+  const execute = useCallback(async (...args: TArgs): Promise<T> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
