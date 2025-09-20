@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Simple Evite - Create Beautiful Invitations",
   description: "Create and share beautiful event invitations with RSVP tracking",
+  icons: {
+    icon: "/sEvite.png",
+    shortcut: "/sEvite.png",
+    apple: "/sEvite.png",
+  },
 };
 
 export default function RootLayout({

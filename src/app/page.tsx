@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -59,6 +60,15 @@ export default function Home() {
       <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/sEvite.png"
+                alt="Simple Evite Logo"
+                width={80}
+                height={80}
+                className="rounded-2xl shadow-lg"
+              />
+            </div>
             <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
               Create Beautiful
               <span className="block text-blue-600">Event Invitations</span>

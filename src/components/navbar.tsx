@@ -13,9 +13,13 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">E</span>
-              </div>
+              <Image
+                src="/sEvite.png"
+                alt="Simple Evite Logo"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
               <span className="font-semibold text-xl text-gray-900">
                 Simple Evite
               </span>
