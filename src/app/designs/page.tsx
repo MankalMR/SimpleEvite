@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
-import { Design } from '@/lib/supabase';
 import { useDesigns } from '@/hooks/useDesigns';
 
 export default function MyDesigns() {
@@ -13,8 +12,6 @@ export default function MyDesigns() {
     designs,
     loading,
     uploadLoading: uploading,
-    deleteLoading,
-    error,
     fetchDesigns,
     uploadDesign,
     deleteDesign,

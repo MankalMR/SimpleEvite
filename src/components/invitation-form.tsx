@@ -11,10 +11,11 @@ import { useDesigns } from '@/hooks/useDesigns';
 import { TemplateSelector } from '@/components/template-selector';
 import { DefaultTemplate, Invitation } from '@/lib/supabase';
 
+
 interface InvitationFormProps {
   mode: 'create' | 'edit';
   initialData?: Invitation;
-  onSubmit: (formData: any) => Promise<void>;
+  onSubmit: (formData: Record<string, unknown>) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -44,7 +45,6 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
 
   const {
     designs,
-    loading: designsLoading,
     fetchDesigns,
   } = useDesigns();
 

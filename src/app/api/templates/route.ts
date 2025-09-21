@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { DefaultTemplate } from '@/lib/supabase';
 
 // GET /api/templates - Get all active templates with optional filtering
 export async function GET(request: NextRequest) {

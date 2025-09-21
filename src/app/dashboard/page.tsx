@@ -17,8 +17,6 @@ export default function Dashboard() {
     error,
     fetchInvitations,
     deleteInvitation,
-    deleteLoading,
-    deleteError,
   } = useInvitations();
 
   useEffect(() => {

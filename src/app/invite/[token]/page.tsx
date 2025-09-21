@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Image from 'next/image';
 import { RSVP } from '@/lib/supabase';
 import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
 import { InvitationDisplay } from '@/components/invitation-display';
-import { getRSVPStats, sortRSVPsByDate, getRSVPResponseColorClasses } from '@/lib/rsvp-utils';
 import { validateRSVPForm } from '@/lib/form-utils';
 import { usePublicInvitation } from '@/hooks/usePublicInvitation';
 import { getInvitationDesign } from '@/lib/invitation-utils';
@@ -26,6 +24,7 @@ export default function PublicInvite() {
 
   const [showRSVPForm, setShowRSVPForm] = useState(false);
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [rsvpData, setRsvpData] = useState<{
     name: string;
     response: 'yes' | 'no' | 'maybe' | '';
@@ -212,6 +211,9 @@ export default function PublicInvite() {
                   className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
                   placeholder="Enter your name"
                 />
+                {formErrors.name && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+                )}
               </div>
 
               <div>
@@ -240,6 +242,9 @@ export default function PublicInvite() {
                     </button>
                   ))}
                 </div>
+                {formErrors.response && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.response}</p>
+                )}
               </div>
 
               <div>

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { InvitationForm } from '@/components/invitation-form';
 import { useInvitations } from '@/hooks/useInvitations';
+import { Invitation } from '@/lib/supabase';
 
 export default function EditInvitation() {
   const router = useRouter();
@@ -23,8 +24,8 @@ export default function EditInvitation() {
     }
   }, [id, fetchInvitation]);
 
-  const handleSubmit = async (formattedData: any) => {
-    await updateInvitation(id, formattedData);
+  const handleSubmit = async (formattedData: Record<string, unknown>) => {
+    await updateInvitation(id, formattedData as Partial<Invitation>);
     router.push(`/invitations/${id}`);
   };
 

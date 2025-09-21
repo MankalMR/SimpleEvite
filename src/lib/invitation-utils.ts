@@ -1,5 +1,11 @@
 import { Invitation, Design, DefaultTemplate } from '@/lib/supabase';
 
+// Type for public invitation data from the API
+interface PublicInvitationData extends Invitation {
+  designs?: { id: string; name: string; image_url: string };
+  default_templates?: DefaultTemplate;
+}
+
 // Type for the unified design/template object
 export interface InvitationDesign {
   id: string;
@@ -17,7 +23,7 @@ export interface InvitationWithDesignData extends Invitation {
  * Gets the design or template data for an invitation
  * Prioritizes custom designs over templates
  */
-export function getInvitationDesign(invitation: InvitationWithDesignData): InvitationDesign | null {
+export function getInvitationDesign(invitation: InvitationWithDesignData | PublicInvitationData): InvitationDesign | null {
   // First check for custom design
   if (invitation.designs) {
     return {

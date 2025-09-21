@@ -3,11 +3,9 @@
 import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { formatDisplayDate } from '@/lib/date-utils';
-import { RSVP } from '@/lib/supabase';
-import { getRSVPStats, sortRSVPsByDate, getRSVPResponseColorClasses } from '@/lib/rsvp-utils';
+import { getRSVPStats } from '@/lib/rsvp-utils';
 import { copyInviteLink } from '@/lib/clipboard-utils';
 import { useInvitations } from '@/hooks/useInvitations';
 import { InvitationDisplay } from '@/components/invitation-display';

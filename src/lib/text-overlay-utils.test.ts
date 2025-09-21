@@ -9,6 +9,7 @@ import {
   getTextOverlayTitleClasses,
   getTextOverlayDescriptionClasses,
   getTextOverlayBackgroundClasses,
+  getTextOverlayBackgroundStyles,
   getTextOverlayStyleOptions,
   getTextPositionOptions,
   getTextSizeOptions,
@@ -99,31 +100,31 @@ describe('Text Overlay Utils', () => {
     it('should return correct classes for center position', () => {
       const config = { ...DEFAULT_TEXT_OVERLAY, position: 'center' as const };
       const classes = getTextOverlayContainerClasses(config);
-      expect(classes).toBe('absolute inset-0 flex items-center justify-center z-20');
+      expect(classes).toBe('flex items-center justify-center');
     });
 
     it('should return correct classes for top position', () => {
       const config = { ...DEFAULT_TEXT_OVERLAY, position: 'top' as const };
       const classes = getTextOverlayContainerClasses(config);
-      expect(classes).toBe('absolute inset-0 flex items-start justify-center pt-8 z-20');
+      expect(classes).toBe('flex items-start justify-center pt-12');
     });
 
     it('should return correct classes for bottom position', () => {
       const config = { ...DEFAULT_TEXT_OVERLAY, position: 'bottom' as const };
       const classes = getTextOverlayContainerClasses(config);
-      expect(classes).toBe('absolute inset-0 flex items-end justify-center pb-8 z-20');
+      expect(classes).toBe('flex items-end justify-center pb-20');
     });
 
     it('should return correct classes for left position', () => {
       const config = { ...DEFAULT_TEXT_OVERLAY, position: 'left' as const };
       const classes = getTextOverlayContainerClasses(config);
-      expect(classes).toBe('absolute inset-0 flex items-center justify-start pl-8 z-20');
+      expect(classes).toBe('flex items-center justify-start pl-12 text-left');
     });
 
     it('should return correct classes for right position', () => {
       const config = { ...DEFAULT_TEXT_OVERLAY, position: 'right' as const };
       const classes = getTextOverlayContainerClasses(config);
-      expect(classes).toBe('absolute inset-0 flex items-center justify-end pr-8 z-20');
+      expect(classes).toBe('flex items-center justify-end pr-12 text-right');
     });
   });
 
@@ -192,13 +193,37 @@ describe('Text Overlay Utils', () => {
     it('should return correct classes for vibrant style with background', () => {
       const config = { ...DEFAULT_TEXT_OVERLAY, style: 'vibrant' as const, background: true, backgroundOpacity: 0.5 };
       const classes = getTextOverlayBackgroundClasses(config);
-      expect(classes).toBe('bg-gradient-to-r from-pink-500 to-purple-600 bg-opacity-50');
+      expect(classes).toBe('bg-gradient-to-r from-pink-500 to-purple-600');
     });
 
     it('should return correct classes for light style with background', () => {
       const config = { ...DEFAULT_TEXT_OVERLAY, style: 'light' as const, background: true, backgroundOpacity: 0.3 };
       const classes = getTextOverlayBackgroundClasses(config);
-      expect(classes).toBe('bg-black bg-opacity-30');
+      expect(classes).toBe('bg-black');
+    });
+  });
+
+  describe('getTextOverlayBackgroundStyles', () => {
+    it('should return empty object when background is disabled', () => {
+      const config = { ...DEFAULT_TEXT_OVERLAY, background: false };
+      const styles = getTextOverlayBackgroundStyles(config);
+      expect(styles).toEqual({});
+    });
+
+    it('should return correct inline styles with opacity', () => {
+      const config = { ...DEFAULT_TEXT_OVERLAY, background: true, backgroundOpacity: 0.5 };
+      const styles = getTextOverlayBackgroundStyles(config);
+      expect(styles).toEqual({
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      });
+    });
+
+    it('should return correct inline styles with different opacity', () => {
+      const config = { ...DEFAULT_TEXT_OVERLAY, background: true, backgroundOpacity: 0.3 };
+      const styles = getTextOverlayBackgroundStyles(config);
+      expect(styles).toEqual({
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      });
     });
   });
 

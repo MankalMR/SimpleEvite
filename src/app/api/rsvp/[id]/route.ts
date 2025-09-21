@@ -46,7 +46,7 @@ export async function DELETE(
     }
 
     // Check if the current user owns the invitation
-    const invitation = rsvp.invitations as { user_id: string };
+    const invitation = rsvp.invitations as unknown as { user_id: string };
 
     if (!invitation || invitation.user_id !== userData.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
