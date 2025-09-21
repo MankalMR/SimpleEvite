@@ -1,10 +1,11 @@
 import { supabaseAdmin } from './supabase';
-import { Invitation, Design, RSVP } from './supabase';
+import { Invitation, Design, RSVP, DefaultTemplate } from './supabase';
 
 // Extended Invitation interface for database operations with nested data
 export interface InvitationWithRSVPs extends Invitation {
   rsvps?: RSVP[];
   designs?: Design;
+  default_templates?: DefaultTemplate;
 }
 
 // Helper function to convert Supabase row to Invitation
@@ -32,16 +33,40 @@ function rowToInvitation(row: Record<string, unknown>): Invitation {
 }
 
 // Helper function to convert Supabase row with nested RSVPs and Designs to Invitation
-function rowToInvitationWithRSVPs(row: Record<string, unknown>): InvitationWithRSVPs {
+async function rowToInvitationWithRSVPs(row: Record<string, unknown>): Promise<InvitationWithRSVPs> {
   const invitation = rowToInvitation(row);
   const result: InvitationWithRSVPs = {
     ...invitation,
     rsvps: (row.rsvps as Record<string, unknown>[])?.map(rowToRSVP) || [],
   };
 
-  // Add designs if present
-  if (row.designs) {
-    result.designs = rowToDesign(row.designs as Record<string, unknown>);
+  // Handle design_id - manually fetch from designs table first, then templates table
+  if (invitation.design_id) {
+    try {
+      // Try to fetch from designs table first
+      const { data: designData, error: designError } = await supabaseAdmin
+        .from('designs')
+        .select('id, name, image_url')
+        .eq('id', invitation.design_id)
+        .single();
+
+      if (!designError && designData) {
+        result.designs = rowToDesign(designData);
+      } else {
+        // If no design found, try fetching from default_templates
+        const { data: templateData, error: templateError } = await supabaseAdmin
+          .from('default_templates')
+          .select('*')
+          .eq('id', invitation.design_id)
+          .single();
+
+        if (!templateError && templateData) {
+          result.default_templates = rowToDefaultTemplate(templateData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching design/template:', error);
+    }
   }
 
   return result;
@@ -55,6 +80,24 @@ function rowToDesign(row: Record<string, unknown>): Design {
     name: row.name as string,
     image_url: row.image_url as string,
     created_at: row.created_at as string,
+  };
+}
+
+// Helper function to convert Supabase row to DefaultTemplate
+function rowToDefaultTemplate(row: Record<string, unknown>): DefaultTemplate {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    occasion: row.occasion as 'birthday' | 'christmas' | 'new-year' | 'thanksgiving' | 'diwali' | 'satyanarayan' | 'housewarming',
+    theme: row.theme as 'elegant' | 'vibrant' | 'modern',
+    image_url: row.image_url as string,
+    thumbnail_url: row.thumbnail_url as string | undefined,
+    description: row.description as string | undefined,
+    tags: row.tags as string[] || [],
+    is_active: row.is_active as boolean,
+    sort_order: row.sort_order as number,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
   };
 }
 
@@ -91,17 +134,12 @@ const INVITATION_FULL_SELECT = `
     response,
     comment,
     created_at
-  ),
-  designs!design_id (
-    id,
-    name,
-    image_url
   )
 `;
 
 export const supabaseDb = {
   // Get all invitations for a user with RSVP data and designs
-  async getInvitations(userId: string): Promise<Invitation[]> {
+  async getInvitations(userId: string): Promise<InvitationWithRSVPs[]> {
     const { data, error } = await supabaseAdmin
       .from('invitations')
       .select(INVITATION_FULL_SELECT)
@@ -109,11 +147,11 @@ export const supabaseDb = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data.map(rowToInvitationWithRSVPs);
+    return Promise.all(data.map(rowToInvitationWithRSVPs));
   },
 
   // Get a single invitation by ID with RSVP data and designs (for owner)
-  async getInvitation(id: string, userId: string): Promise<Invitation | null> {
+  async getInvitation(id: string, userId: string): Promise<InvitationWithRSVPs | null> {
     const { data, error } = await supabaseAdmin
       .from('invitations')
       .select(INVITATION_FULL_SELECT)
@@ -127,11 +165,11 @@ export const supabaseDb = {
     }
 
     console.log('Raw invitation data from Supabase:', data);
-    return rowToInvitationWithRSVPs(data);
+    return await rowToInvitationWithRSVPs(data);
   },
 
   // Get invitation by share token (public) - with full data including designs and RSVPs
-  async getInvitationByToken(token: string): Promise<Invitation | null> {
+  async getInvitationByToken(token: string): Promise<InvitationWithRSVPs | null> {
     const { data, error } = await supabaseAdmin
       .from('invitations')
       .select(INVITATION_FULL_SELECT)
@@ -144,7 +182,7 @@ export const supabaseDb = {
     }
 
     console.log('Raw invitation data from Supabase (public):', data);
-    return rowToInvitationWithRSVPs(data);
+    return await rowToInvitationWithRSVPs(data);
   },
 
   // Create a new invitation

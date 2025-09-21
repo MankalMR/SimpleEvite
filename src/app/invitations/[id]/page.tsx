@@ -11,6 +11,7 @@ import { getRSVPStats, sortRSVPsByDate, getRSVPResponseColorClasses } from '@/li
 import { copyInviteLink } from '@/lib/clipboard-utils';
 import { useInvitations } from '@/hooks/useInvitations';
 import { InvitationDisplay } from '@/components/invitation-display';
+import { getInvitationDesign } from '@/lib/invitation-utils';
 
 export default function InvitationView() {
   const params = useParams();
@@ -138,36 +139,44 @@ export default function InvitationView() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{invitation.title}</h1>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{invitation.title}</h1>
                 <p className="text-gray-700 font-medium">
                   Created {new Date(invitation.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex gap-3">
-            <button
-              onClick={handleCopyInviteLink}
-              className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-            >
-              Copy Invite Link
-            </button>
-            <Link
-              href={`/invitations/${invitation.id}/edit`}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Edit
-            </Link>
-            <Link
-              href={`/invite/${invitation.share_token}`}
-              target="_blank"
-              className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-            >
-              Preview
-            </Link>
+
+              {/* Mobile: Stack actions vertically, Desktop: Horizontal */}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                {/* Primary actions - most important first on mobile */}
+                <button
+                  onClick={handleCopyInviteLink}
+                  className="bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors text-center"
+                >
+                  Copy Invite Link
+                </button>
+
+                <div className="flex gap-2">
+                  <Link
+                    href={`/invitations/${invitation.id}/edit`}
+                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center"
+                  >
+                    Edit
+                  </Link>
+                  <Link
+                    href={`/invite/${invitation.share_token}`}
+                    target="_blank"
+                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center"
+                  >
+                    Preview
+                  </Link>
+                </div>
+
+                {/* Destructive action - separated and less prominent on mobile */}
                 <button
                   onClick={deleteInvitation}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                  className="border border-red-300 text-red-700 px-4 py-2.5 rounded-lg font-medium hover:bg-red-50 transition-colors text-center"
                 >
                   Delete
                 </button>
@@ -184,11 +193,7 @@ export default function InvitationView() {
             <h3 className="font-semibold text-gray-900 mb-4">Invitation Preview</h3>
             <InvitationDisplay
               invitation={invitation}
-              design={invitation.designs ? {
-                id: invitation.designs.id,
-                name: invitation.designs.name,
-                image_url: invitation.designs.image_url
-              } : null}
+              design={getInvitationDesign(invitation)}
               className="h-96 w-full rounded-lg"
             />
           </div>

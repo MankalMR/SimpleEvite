@@ -8,6 +8,7 @@ import { formatShortDate, isDateInPast } from '@/lib/date-utils';
 import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-utils';
 import { copyInviteLink } from '@/lib/clipboard-utils';
 import { useInvitations } from '@/hooks/useInvitations';
+import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 
 export default function Dashboard() {
   const {
@@ -124,10 +125,10 @@ export default function Dashboard() {
 
               return (
                 <div key={invitation.id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                  {invitation.designs?.image_url && (
+                  {hasInvitationDesign(invitation) && (
                     <div className="h-48 bg-gray-100 relative">
                       <Image
-                        src={invitation.designs.image_url}
+                        src={getInvitationImageUrl(invitation) || ''}
                         alt={invitation.title}
                         fill
                         className="object-cover"

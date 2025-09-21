@@ -36,7 +36,7 @@ export interface Invitation {
   event_date: string;
   event_time: string;
   location: string;
-  design_id?: string;
+  design_id?: string; // UUID that references either designs.id or default_templates.id
   share_token: string;
   created_at: string;
   updated_at: string;
@@ -56,4 +56,19 @@ export interface RSVP {
   response: 'yes' | 'no' | 'maybe';
   comment?: string;
   created_at: string;
+}
+
+export interface DefaultTemplate {
+  id: string;
+  name: string;
+  occasion: 'birthday' | 'christmas' | 'new-year' | 'thanksgiving' | 'diwali' | 'satyanarayan' | 'housewarming';
+  theme: 'elegant' | 'vibrant' | 'modern';
+  image_url: string;
+  thumbnail_url?: string;
+  description?: string;
+  tags: string[];
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 }

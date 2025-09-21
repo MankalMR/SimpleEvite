@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user from database
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', session.user.email)
+      .single();
+
+    if (userError) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const formData = await request.formData();
@@ -32,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const fileExtension = file.name.split('.').pop() || 'jpg';
-    const fileName = `${session.user.id}/${uuidv4()}.${fileExtension}`;
+    const fileName = `${userData.id}/${uuidv4()}.${fileExtension}`;
 
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
@@ -65,7 +76,7 @@ export async function POST(request: NextRequest) {
     const { data: design, error: dbError } = await supabase
       .from('designs')
       .insert({
-        user_id: session.user.id,
+        user_id: userData.id,
         name: designName,
         image_url: urlData.publicUrl,
       })

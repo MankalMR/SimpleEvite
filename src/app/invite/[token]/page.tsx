@@ -9,6 +9,7 @@ import { InvitationDisplay } from '@/components/invitation-display';
 import { getRSVPStats, sortRSVPsByDate, getRSVPResponseColorClasses } from '@/lib/rsvp-utils';
 import { validateRSVPForm } from '@/lib/form-utils';
 import { usePublicInvitation } from '@/hooks/usePublicInvitation';
+import { getInvitationDesign } from '@/lib/invitation-utils';
 
 export default function PublicInvite() {
   const params = useParams();
@@ -123,11 +124,7 @@ export default function PublicInvite() {
       <div className="relative">
         <InvitationDisplay
           invitation={invitation}
-          design={invitation.designs ? {
-            id: invitation.designs.id,
-            name: invitation.designs.name,
-            image_url: invitation.designs.image_url
-          } : null}
+          design={getInvitationDesign(invitation)}
           className="h-64 md:h-96"
         />
       </div>
