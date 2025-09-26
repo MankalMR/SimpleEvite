@@ -8,6 +8,8 @@ import { InvitationDisplay } from '@/components/invitation-display';
 import { validateRSVPForm } from '@/lib/form-utils';
 import { usePublicInvitation } from '@/hooks/usePublicInvitation';
 import { getInvitationDesign } from '@/lib/invitation-utils';
+import { generateStructuredData } from '@/lib/seo';
+import Script from 'next/script';
 
 export default function PublicInvite() {
   const params = useParams();
@@ -118,6 +120,18 @@ export default function PublicInvite() {
       const eventPassed = isDateInPast(invitation.event_date);
 
   return (
+    <>
+      {/* Structured Data for SEO */}
+      {invitation && (
+        <Script
+          id="structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateStructuredData(invitation)),
+          }}
+        />
+      )}
+
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative">
@@ -320,5 +334,6 @@ export default function PublicInvite() {
         )}
       </div>
     </div>
+    </>
   );
 }

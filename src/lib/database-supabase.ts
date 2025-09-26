@@ -160,12 +160,11 @@ export const supabaseDb = {
       .single();
 
     if (error) {
-      console.error('Error fetching invitation:', error);
-      return null;
+      if (error.code === 'PGRST116') return null;
+      throw error;
     }
 
-    console.log('Raw invitation data from Supabase:', data);
-    return await rowToInvitationWithRSVPs(data);
+    return rowToInvitationWithRSVPs(data);
   },
 
   // Get invitation by share token (public) - with full data including designs and RSVPs

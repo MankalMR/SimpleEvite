@@ -71,7 +71,7 @@ RUN npm ci --only=production
 COPY . .
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 3008
 
 CMD ["npm", "start"]
 ```
@@ -79,7 +79,7 @@ CMD ["npm", "start"]
 Build and run:
 ```bash
 docker build -t simple-evite .
-docker run -p 3000:3000 simple-evite
+docker run -p 3008:3008 simple-evite
 ```
 
 ## 🔧 Post-Deployment Checklist

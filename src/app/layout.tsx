@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
+import { generateMetadata as generateSEOMetadata } from "@/lib/seo";
+import { getSiteName, getSiteKeywords } from "@/lib/url-utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,14 +16,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Simple Evite - Create Beautiful Invitations",
-  description: "Create and share beautiful event invitations with RSVP tracking",
-  icons: {
-    icon: "/sEvite.png",
-    shortcut: "/sEvite.png",
-    apple: "/sEvite.png",
-  },
+export const metadata: Metadata = generateSEOMetadata({
+  title: "Simple Evite - Create Beautiful Event Invitations",
+  description: "Create stunning, personalized event invitations with RSVP tracking. Perfect for weddings, birthdays, corporate events, and celebrations. Free to use with beautiful templates.",
+  keywords: getSiteKeywords(),
+});
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#2563eb',
 };
 
 export default function RootLayout({
