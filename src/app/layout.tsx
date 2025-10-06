@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
 import { generateMetadata as generateSEOMetadata } from "@/lib/seo";
-import { getSiteName, getSiteKeywords } from "@/lib/url-utils";
+import { getSiteKeywords } from "@/lib/url-utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

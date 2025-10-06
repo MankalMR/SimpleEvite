@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { getBaseUrl, getSiteName, getSiteDescription, getAuthorInfo, buildImageUrl } from '@/lib/url-utils';
 
 interface StructuredDataProps {
-  data: any;
+  data: Record<string, unknown>;
 }
 
 export default function StructuredData({ data }: StructuredDataProps) {
