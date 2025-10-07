@@ -132,6 +132,28 @@ export default function Home() {
                 </button>
               )}
             </div>
+
+            {/* Additional Navigation Links */}
+            <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm">
+              <Link
+                href="/features"
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                Features
+              </Link>
+              <Link
+                href="/about"
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                About
+              </Link>
+              <Link
+                href="/contact"
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                Contact
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -233,6 +255,52 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Simple Footer */}
+      <div className="bg-gray-900 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center mb-4 md:mb-0">
+              <Image
+                src="/sEvite.png"
+                alt="Simple Evite Logo"
+                width={32}
+                height={32}
+                className="rounded-lg mr-3"
+              />
+              <span className="text-white font-semibold">Simple Evite</span>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-6 text-sm">
+              <Link
+                href="/features"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Features
+              </Link>
+              <Link
+                href="/about"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                About
+              </Link>
+              <Link
+                href="/contact"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Contact
+              </Link>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 mt-6 pt-6 text-center">
+            <p className="text-gray-400 text-sm">
+              © 2024 Simple Evite. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
