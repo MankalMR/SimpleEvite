@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
   // Security Headers
   async headers() {
     const isProd = process.env.NODE_ENV === 'production';
-         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://evite.mankala.space';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://evite.mankala.space';
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 
     // Extract domains for CSP
@@ -67,20 +67,16 @@ const nextConfig: NextConfig = {
       '*.googleusercontent.com',
     ];
 
-    const supabaseDomains = supabaseHostname ?
-      [supabaseHostname, '*.supabase.co'] :
-      ['*.supabase.co'];
-
-    // Content Security Policy
+    // Content Security Policy - simplified and robust
     const csp = [
       "default-src 'self'",
-      `connect-src 'self' ${supabaseUrl} https://api.github.com https://*.google.com https://*.googleapis.com ${isProd ? '' : 'ws://localhost:* http://localhost:*'}`,
+      `connect-src 'self' ${supabaseUrl} https://api.github.com https://*.google.com https://*.googleapis.com https://*.supabase.co ${isProd ? '' : 'ws://localhost:* http://localhost:*'}`,
       `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com ${isProd ? '' : "'unsafe-eval'"}`,
       "script-src-elem 'self' 'unsafe-inline' https://accounts.google.com",
       `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
       `font-src 'self' https://fonts.gstatic.com data:`,
-      `img-src 'self' data: blob: https: ${supabaseDomains.map(d => `https://${d}`).join(' ')} ${googleDomains.map(d => `https://${d}`).join(' ')} https://images.unsplash.com`,
-      `media-src 'self' ${supabaseDomains.map(d => `https://${d}`).join(' ')}`,
+      `img-src 'self' data: blob: https: https://*.supabase.co https://accounts.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://images.unsplash.com`,
+      `media-src 'self' https://*.supabase.co`,
       "object-src 'none'",
       "base-uri 'self'",
       `form-action 'self' ${siteUrl}`,

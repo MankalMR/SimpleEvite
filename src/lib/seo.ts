@@ -109,29 +109,35 @@ export function generateMetadata(config: SEOConfig = {}): Metadata {
 }
 
 export function generateEventMetadata(invitation: {
-  title: string;
-  description: string;
-  event_date: string;
-  location: string;
-  share_token: string;
+  title?: string;
+  description?: string;
+  event_date?: string;
+  location?: string;
+  share_token?: string;
   designs?: { image_url: string } | null;
   default_templates?: { image_url: string } | null;
 }): Metadata {
-  const eventDate = new Date(invitation.event_date);
+  // Provide fallbacks for undefined values
+  const title = invitation.title || 'Event Invitation';
+  const description = invitation.description || '';
+  const eventDate = invitation.event_date ? new Date(invitation.event_date) : new Date();
+  const location = invitation.location || '';
+  const shareToken = invitation.share_token || '';
+
   const imageUrl = invitation.designs?.image_url ||
                    invitation.default_templates?.image_url ||
                    '/sEvite.png';
 
   return generateMetadata({
-    title: invitation.title,
-    description: `Join us for ${invitation.title} on ${eventDate.toLocaleDateString()}${invitation.location ? ` at ${invitation.location}` : ''}. ${invitation.description}`,
+    title,
+    description: `Join us for ${title} on ${eventDate.toLocaleDateString()}${location ? ` at ${location}` : ''}. ${description}`,
     image: imageUrl,
-    url: `/invite/${invitation.share_token}`,
+    url: `/invite/${shareToken}`,
     type: 'event',
     keywords: [
       'event invitation',
       'RSVP',
-      invitation.title.toLowerCase(),
+      title.toLowerCase(),
       'celebration',
       'party',
       'event',
@@ -140,25 +146,33 @@ export function generateEventMetadata(invitation: {
 }
 
 export function generateStructuredData(invitation: {
-  title: string;
-  description: string;
-  event_date: string;
-  event_time: string;
-  location: string;
-  share_token: string;
+  title?: string;
+  description?: string;
+  event_date?: string;
+  event_time?: string;
+  location?: string;
+  share_token?: string;
 }) {
-  const eventDateTime = `${invitation.event_date}T${invitation.event_time}`;
-  const eventUrl = `${SITE_CONFIG.url}/invite/${invitation.share_token}`;
+  // Provide fallbacks for undefined values
+  const title = invitation.title || 'Event Invitation';
+  const description = invitation.description || '';
+  const eventDate = invitation.event_date || new Date().toISOString().split('T')[0];
+  const eventTime = invitation.event_time || '18:00';
+  const location = invitation.location || '';
+  const shareToken = invitation.share_token || '';
+
+  const eventDateTime = `${eventDate}T${eventTime}`;
+  const eventUrl = `${SITE_CONFIG.url}/invite/${shareToken}`;
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
-    name: invitation.title,
-    description: invitation.description,
+    name: title,
+    description: description,
     startDate: eventDateTime,
-    location: invitation.location ? {
+    location: location ? {
       '@type': 'Place',
-      name: invitation.location,
+      name: location,
     } : undefined,
     url: eventUrl,
     image: `${SITE_CONFIG.url}/sEvite.png`,
