@@ -33,9 +33,10 @@ export function useDesigns() {
 
   // Upload new design
   const uploadDesign = useCallback(async (file: File, name: string): Promise<Design> => {
-    // First upload the file
+    // Upload the file - this also creates the design record in the database
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('name', name.trim());
 
     const uploadResponse = await fetch('/api/upload', {
       method: 'POST',
@@ -47,25 +48,7 @@ export function useDesigns() {
     }
 
     const uploadData = await uploadResponse.json();
-
-    // Then create the design record
-    const designResponse = await fetch('/api/designs', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: name.trim(),
-        image_url: uploadData.url,
-      }),
-    });
-
-    if (!designResponse.ok) {
-      throw new Error('Failed to create design');
-    }
-
-    const designData = await designResponse.json();
-    return designData.design;
+    return uploadData.design;
   }, []);
 
   const designsRequest = useApiRequest(fetchDesigns, []);
