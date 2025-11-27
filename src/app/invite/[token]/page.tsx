@@ -297,7 +297,7 @@ export default function PublicInvite() {
                         Get Event Reminders (Optional)
                       </h3>
                       <p className="text-sm text-gray-600">
-                        We'll send you a friendly reminder 2 days before the event
+                        We&apos;ll send you a friendly reminder 2 days before the event
                       </p>
                     </div>
                   </div>
@@ -336,7 +336,7 @@ export default function PublicInvite() {
                             Send me email reminders
                           </label>
                           <p className="text-xs text-gray-500 mt-0.5">
-                            You'll receive a notification 2 days before the event
+                            You&apos;ll receive a notification 2 days before the event
                           </p>
                         </div>
                       </div>
