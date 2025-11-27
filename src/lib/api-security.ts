@@ -148,16 +148,16 @@ export function withCORS(
 export async function validateRequestBody<T>(
   request: NextRequest,
   validator: (data: unknown) => { isValid: boolean; errors: Record<string, string>; sanitizedData?: T }
-): Promise<{ success: boolean; data?: T; errors?: Record<string, string> }> {
+): Promise<{ success: boolean; data?: T; errors?: Record<string, string>; rawData?: unknown }> {
   try {
     const body = await request.json();
     const validation = validator(body);
 
     if (!validation.isValid) {
-      return { success: false, errors: validation.errors };
+      return { success: false, errors: validation.errors, rawData: body };
     }
 
-    return { success: true, data: validation.sanitizedData };
+    return { success: true, data: validation.sanitizedData, rawData: body };
   } catch {
     return {
       success: false,

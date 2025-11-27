@@ -285,10 +285,71 @@ export default function InvitationView() {
                              rsvp.response === 'no' ? 'Not Attending' :
                              'Maybe'}
                           </span>
+
+                          {/* Notification Status Badge */}
+                          {rsvp.response === 'yes' && rsvp.email && (
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${
+                              rsvp.reminder_status === 'sent'
+                                ? 'bg-blue-100 text-blue-800'
+                                : rsvp.reminder_status === 'pending'
+                                ? 'bg-gray-100 text-gray-700'
+                                : rsvp.reminder_status === 'failed'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-gray-100 text-gray-500'
+                            }`}>
+                              {rsvp.reminder_status === 'sent' ? (
+                                <>
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                  </svg>
+                                  Reminder Sent
+                                </>
+                              ) : rsvp.reminder_status === 'pending' ? (
+                                <>
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                  </svg>
+                                  Reminder Pending
+                                </>
+                              ) : rsvp.reminder_status === 'failed' ? (
+                                <>
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                  </svg>
+                                  Send Failed
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                                  </svg>
+                                  No Reminder
+                                </>
+                              )}
+                            </span>
+                          )}
                         </div>
                       {rsvp.comment && (
                         <p className="text-gray-600 text-sm">&ldquo;{rsvp.comment}&rdquo;</p>
                       )}
+
+                        {/* Email and reminder info */}
+                        {rsvp.email && rsvp.response === 'yes' && (
+                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <span>{rsvp.email}</span>
+                            {rsvp.reminder_sent_at && (
+                              <span className="text-gray-500">
+                                • Reminded {new Date(rsvp.reminder_sent_at).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         <p className="text-xs text-gray-500 mt-2">
                           Responded {new Date(rsvp.created_at).toLocaleDateString()} at {new Date(rsvp.created_at).toLocaleTimeString()}
                         </p>

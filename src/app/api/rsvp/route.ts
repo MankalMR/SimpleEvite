@@ -26,9 +26,10 @@ export async function POST(request: NextRequest) {
           }, { status: 400 });
         }
 
+        // Get all data from validation result (body already parsed by validateRequestBody)
+        const body = validation.rawData as Record<string, unknown>;
         const { name, response, comment } = validation.data!;
-        const body = await req.json();
-        const { invitation_id } = body;
+        const { invitation_id, email, notification_preferences } = body;
 
         // Validate invitation_id separately as it's not in the RSVP data validation
         if (!invitation_id || typeof invitation_id !== 'string') {
@@ -46,6 +47,22 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
         }
 
+        // Validate email if provided
+        let sanitizedEmail = undefined;
+        if (email && typeof email === 'string') {
+          const emailTrimmed = email.trim();
+          // Basic email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (emailRegex.test(emailTrimmed)) {
+            sanitizedEmail = emailTrimmed;
+          }
+        }
+
+        // Validate notification preferences
+        const sanitizedNotificationPrefs = notification_preferences && typeof notification_preferences === 'object'
+          ? { email: notification_preferences.email === true }
+          : { email: true };
+
         // Create RSVP with sanitized data
         const { data: rsvp, error } = await supabase
           .from('rsvps')
@@ -54,6 +71,9 @@ export async function POST(request: NextRequest) {
             name,
             response,
             comment: comment || null,
+            email: sanitizedEmail || null,
+            notification_preferences: sanitizedNotificationPrefs,
+            reminder_status: sanitizedEmail && response === 'yes' && sanitizedNotificationPrefs.email ? 'pending' : 'skipped',
           })
           .select()
           .single();

@@ -31,10 +31,14 @@ export default function PublicInvite() {
     name: string;
     response: 'yes' | 'no' | 'maybe' | '';
     comment: string;
+    email: string;
+    emailNotifications: boolean;
   }>({
     name: '',
     response: '',
     comment: '',
+    email: '',
+    emailNotifications: true,
   });
 
   useEffect(() => {
@@ -62,11 +66,15 @@ export default function PublicInvite() {
         name: rsvpData.name.trim(),
         response: rsvpData.response as 'yes' | 'no' | 'maybe',
         comment: rsvpData.comment.trim() || undefined,
+        email: rsvpData.email.trim() || undefined,
+        notification_preferences: {
+          email: rsvpData.emailNotifications,
+        },
       });
 
       setRsvpSubmitted(true);
       setShowRSVPForm(false);
-      setRsvpData({ name: '', response: '', comment: '' });
+      setRsvpData({ name: '', response: '', comment: '', email: '', emailNotifications: true });
     } catch (error) {
       console.error('RSVP submission error:', error);
       alert(error instanceof Error ? error.message : 'Failed to submit RSVP');
@@ -274,6 +282,68 @@ export default function PublicInvite() {
                   placeholder="Any message for the host?"
                 />
               </div>
+
+              {/* Email Notification Section - Only show if RSVP is "yes" */}
+              {rsvpData.response === 'yes' && (
+                <div className="border-t border-gray-200 pt-6 mt-2">
+                  <div className="flex items-start mb-4">
+                    <div className="flex-shrink-0">
+                      <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                        Get Event Reminders (Optional)
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        We'll send you a friendly reminder 2 days before the event
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        value={rsvpData.email}
+                        onChange={(e) => setRsvpData({ ...rsvpData, email: e.target.value })}
+                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                        placeholder="your.email@example.com"
+                      />
+                      <p className="mt-1.5 text-xs text-gray-500">
+                        Your email will only be used for event reminders
+                      </p>
+                    </div>
+
+                    {rsvpData.email && (
+                      <div className="flex items-start">
+                        <div className="flex items-center h-5">
+                          <input
+                            id="emailNotifications"
+                            type="checkbox"
+                            checked={rsvpData.emailNotifications}
+                            onChange={(e) => setRsvpData({ ...rsvpData, emailNotifications: e.target.checked })}
+                            className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                          />
+                        </div>
+                        <div className="ml-3">
+                          <label htmlFor="emailNotifications" className="text-sm font-medium text-gray-700">
+                            Send me email reminders
+                          </label>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            You'll receive a notification 2 days before the event
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <button

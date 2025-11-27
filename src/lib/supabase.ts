@@ -55,6 +55,27 @@ export interface RSVP {
   name: string;
   response: 'yes' | 'no' | 'maybe';
   comment?: string;
+  email?: string;
+  notification_preferences?: {
+    email: boolean;
+  };
+  reminder_sent_at?: string;
+  reminder_status?: 'pending' | 'sent' | 'failed' | 'skipped';
+  created_at: string;
+}
+
+export interface NotificationLog {
+  id: string;
+  rsvp_id: string;
+  invitation_id: string;
+  notification_type: 'email' | 'sms';
+  recipient: string;
+  status: 'sent' | 'failed' | 'delivered' | 'bounced' | 'opened';
+  provider_response?: Record<string, unknown>;
+  error_message?: string;
+  sent_at: string;
+  delivered_at?: string;
+  opened_at?: string;
   created_at: string;
 }
 
