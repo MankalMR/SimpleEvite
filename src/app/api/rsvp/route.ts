@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
         // Validate notification preferences
         const sanitizedNotificationPrefs = notification_preferences && typeof notification_preferences === 'object'
-          ? { email: notification_preferences.email === true }
+          ? { email: (notification_preferences as { email?: boolean }).email === true }
           : { email: true };
 
         // Create RSVP with sanitized data

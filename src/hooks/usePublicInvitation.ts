@@ -30,6 +30,8 @@ export function usePublicInvitation(token: string) {
     name: string;
     response: 'yes' | 'no' | 'maybe';
     comment?: string;
+    email?: string;
+    notification_preferences?: { email: boolean };
   }): Promise<RSVP> => {
     const response = await fetch('/api/rsvp', {
       method: 'POST',
