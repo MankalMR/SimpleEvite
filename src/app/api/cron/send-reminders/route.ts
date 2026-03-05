@@ -54,11 +54,6 @@ export async function GET(request: NextRequest) {
     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
     threeDaysFromNow.setHours(23, 59, 59, 999);
 
-    console.log('Looking for events between:', {
-      start: twoDaysFromNow.toISOString(),
-      end: threeDaysFromNow.toISOString(),
-    });
-
     // Fetch invitations with events happening in 2-3 days
     const { data: invitations, error: invitationsError } = await supabaseAdmin
       .from('invitations')
