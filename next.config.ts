@@ -16,6 +16,7 @@ const getSupabaseHostname = () => {
 const supabaseHostname = getSupabaseHostname();
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {
@@ -123,11 +124,6 @@ const nextConfig: NextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()',
-          },
-          // Remove server information
-          {
-            key: 'X-Powered-By',
-            value: 'Simple Evite',
           },
           // DNS Prefetch Control
           {
