@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
@@ -32,9 +32,15 @@ export default function Dashboard() {
   };
 
   // Global stats across all invitations
-  const globalStats = getGlobalRSVPStats(invitations);
-  const totalInvitations = invitations.length;
-  const totalRSVPs = getTotalRSVPCount(invitations);
+  const stats = useMemo(() => {
+    const now = new Date();
+    return {
+      globalStats: getGlobalRSVPStats(invitations),
+      totalInvitations: invitations.length,
+      totalRSVPs: getTotalRSVPCount(invitations),
+      activeEventsCount: invitations.filter(inv => new Date(inv.event_date) >= now).length
+    };
+  }, [invitations]);
 
   if (loading) {
     return (
@@ -81,19 +87,19 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Invitations</h3>
-              <p className="text-3xl font-bold text-blue-600">{totalInvitations}</p>
+              <p className="text-3xl font-bold text-blue-600">{stats.totalInvitations}</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Total RSVPs</h3>
-              <p className="text-3xl font-bold text-green-600">{totalRSVPs}</p>
+              <p className="text-3xl font-bold text-green-600">{stats.totalRSVPs}</p>
               <div className="text-sm text-gray-600 mt-1">
-                {globalStats.yes} Yes, {globalStats.maybe} Maybe, {globalStats.no} No
+                {stats.globalStats.yes} Yes, {stats.globalStats.maybe} Maybe, {stats.globalStats.no} No
               </div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Active Events</h3>
               <p className="text-3xl font-bold text-purple-600">
-                {invitations.filter(inv => new Date(inv.event_date) >= new Date()).length}
+                {stats.activeEventsCount}
               </p>
             </div>
           </div>
