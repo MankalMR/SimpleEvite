@@ -18,10 +18,6 @@ export function useDesigns() {
 
   // Delete design
   const deleteDesign = useCallback(async (id: string): Promise<void> => {
-    if (!confirm('Are you sure you want to delete this design?')) {
-      throw new Error('Deletion cancelled');
-    }
-
     const response = await fetch(`/api/designs/${id}`, {
       method: 'DELETE',
     });

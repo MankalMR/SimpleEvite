@@ -32,10 +32,6 @@ export function useInvitations() {
 
   // Delete invitation
   const deleteInvitation = useCallback(async (id: string): Promise<void> => {
-    if (!confirm('Are you sure you want to delete this invitation?')) {
-      throw new Error('Deletion cancelled');
-    }
-
     const response = await fetch(`/api/invitations/${id}`, {
       method: 'DELETE',
     });

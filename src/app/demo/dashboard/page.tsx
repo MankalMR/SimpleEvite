@@ -8,6 +8,7 @@ import { formatShortDate, isDateInPast } from '@/lib/date-utils';
 import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-utils';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
+import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 
 export default function DemoDashboard() {
     const [sessionId, setSessionId] = useState<string | null>(null);
@@ -64,7 +65,6 @@ export default function DemoDashboard() {
 
     const handleDeleteInvitation = async (id: string) => {
         if (!sessionId) return;
-        if (!confirm('Are you sure you want to delete this invitation?')) return;
 
         try {
             await fetch(`/api/demo/invitations/${id}`, {
@@ -239,12 +239,9 @@ export default function DemoDashboard() {
                                                 >
                                                     Preview
                                                 </Link>
-                                                <button
-                                                    onClick={() => handleDeleteInvitation(invitation.id)}
-                                                    className="border border-red-300 text-red-700 px-3 py-2 rounded text-sm font-medium hover:bg-red-50 transition-colors"
-                                                >
-                                                    Delete
-                                                </button>
+                                                <ConfirmDeleteButton
+                                                    onConfirm={() => handleDeleteInvitation(invitation.id)}
+                                                />
                                             </div>
                                         </div>
                                     </div>

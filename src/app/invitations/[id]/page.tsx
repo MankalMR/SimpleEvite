@@ -9,6 +9,7 @@ import { getRSVPStats } from '@/lib/rsvp-utils';
 import { useInvitations } from '@/hooks/useInvitations';
 import { InvitationDisplay } from '@/components/invitation-display';
 import { getInvitationDesign } from '@/lib/invitation-utils';
+import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 
 export default function InvitationView() {
   const params = useParams();
@@ -38,10 +39,6 @@ export default function InvitationView() {
   };
 
   const deleteRSVP = async (rsvpId: string) => {
-    if (!confirm('Are you sure you want to delete this RSVP?')) {
-      return;
-    }
-
     try {
       const response = await fetch(`/api/rsvp/${rsvpId}`, {
         method: 'DELETE',
@@ -54,14 +51,12 @@ export default function InvitationView() {
       // Refresh invitation data to get updated RSVP list
       await fetchInvitation(id);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to delete RSVP');
+      console.error(error instanceof Error ? error.message : 'Failed to delete RSVP');
     }
   };
 
   const deleteInvitation = async () => {
-    if (!invitation || !confirm('Are you sure you want to delete this invitation? This action cannot be undone.')) {
-      return;
-    }
+    if (!invitation) return;
 
     try {
       const response = await fetch(`/api/invitations/${invitation.id}`, {
@@ -73,11 +68,10 @@ export default function InvitationView() {
         throw new Error(errorData.error || 'Failed to delete invitation');
       }
 
-      alert('Invitation deleted successfully!');
       // Redirect to dashboard
       window.location.href = '/dashboard';
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'An unexpected error occurred.');
+      console.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
     }
   };
 
@@ -154,11 +148,10 @@ export default function InvitationView() {
                 {/* Primary actions - most important first on mobile */}
                 <button
                   onClick={handleCopyInviteLink}
-                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center ${
-                    copySuccess
+                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center ${copySuccess
                       ? 'bg-green-600 text-white hover:bg-green-700'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
+                    }`}
                   aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
                 >
                   {copySuccess ? 'Copied!' : 'Copy Invite Link'}
@@ -181,220 +174,214 @@ export default function InvitationView() {
                 </div>
 
                 {/* Destructive action - separated and less prominent on mobile */}
-                <button
-                  onClick={deleteInvitation}
-                  className="border border-red-300 text-red-700 px-4 py-2.5 rounded-lg font-medium hover:bg-red-50 transition-colors text-center"
-                >
-                  Delete
-                </button>
+                <ConfirmDeleteButton
+                  onConfirm={deleteInvitation}
+                  confirmLabel="Delete permanently?"
+                />
               </div>
             </div>
           </div>
 
-        {/* Event Details */}
-        <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
+          {/* Event Details */}
+          <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
 
-          {/* Complete Invitation Preview */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Invitation Preview</h3>
-            <InvitationDisplay
-              invitation={invitation}
-              design={getInvitationDesign(invitation)}
-              className="h-96 w-full rounded-lg"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Date</h3>
-              <p className="text-gray-800 mb-4 font-medium">{formatDisplayDate(invitation.event_date)}</p>
-
-              {invitation.event_time && (
-                <>
-                  <h3 className="font-semibold text-gray-900 mb-2">Time</h3>
-                  <p className="text-gray-800 mb-4 font-medium">{formatTime(invitation.event_time)}</p>
-                </>
-              )}
-
-              {invitation.location && (
-                <>
-                  <h3 className="font-semibold text-gray-900 mb-2">Location</h3>
-                  <p className="text-gray-800 font-medium">{invitation.location}</p>
-                </>
-              )}
+            {/* Complete Invitation Preview */}
+            <div className="mb-6">
+              <h3 className="font-semibold text-gray-900 mb-4">Invitation Preview</h3>
+              <InvitationDisplay
+                invitation={invitation}
+                design={getInvitationDesign(invitation)}
+                className="h-96 w-full rounded-lg"
+              />
             </div>
 
-            <div>
-              {invitation.description && (
-                <>
-                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-800 font-medium">{invitation.description}</p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Date</h3>
+                <p className="text-gray-800 mb-4 font-medium">{formatDisplayDate(invitation.event_date)}</p>
 
-        {/* RSVP Stats */}
-        <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">RSVP Summary</h2>
+                {invitation.event_time && (
+                  <>
+                    <h3 className="font-semibold text-gray-900 mb-2">Time</h3>
+                    <p className="text-gray-800 mb-4 font-medium">{formatTime(invitation.event_time)}</p>
+                  </>
+                )}
 
-          <div className="grid grid-cols-3 gap-6 mb-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">{rsvpStats.yes}</div>
-              <div className="text-sm text-gray-800 font-medium">Yes</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-2">{rsvpStats.maybe}</div>
-              <div className="text-sm text-gray-800 font-medium">Maybe</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-red-600 mb-2">{rsvpStats.no}</div>
-              <div className="text-sm text-gray-800 font-medium">No</div>
+                {invitation.location && (
+                  <>
+                    <h3 className="font-semibold text-gray-900 mb-2">Location</h3>
+                    <p className="text-gray-800 font-medium">{invitation.location}</p>
+                  </>
+                )}
+              </div>
+
+              <div>
+                {invitation.description && (
+                  <>
+                    <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+                    <p className="text-gray-800 font-medium">{invitation.description}</p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="text-center text-sm text-gray-800 font-medium">
-            Total Responses: {(invitation.rsvps || []).length}
+          {/* RSVP Stats */}
+          <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">RSVP Summary</h2>
+
+            <div className="grid grid-cols-3 gap-6 mb-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">{rsvpStats.yes}</div>
+                <div className="text-sm text-gray-800 font-medium">Yes</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-yellow-600 mb-2">{rsvpStats.maybe}</div>
+                <div className="text-sm text-gray-800 font-medium">Maybe</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-red-600 mb-2">{rsvpStats.no}</div>
+                <div className="text-sm text-gray-800 font-medium">No</div>
+              </div>
+            </div>
+
+            <div className="text-center text-sm text-gray-800 font-medium">
+              Total Responses: {(invitation.rsvps || []).length}
+            </div>
           </div>
-        </div>
 
-        {/* RSVP List */}
-        {invitation.rsvps && invitation.rsvps.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">All RSVPs</h2>
+          {/* RSVP List */}
+          {invitation.rsvps && invitation.rsvps.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm border p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">All RSVPs</h2>
 
-            <div className="space-y-4">
-              {invitation.rsvps
-                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .map((rsvp) => (
-                  <div
-                    key={rsvp.id}
-                    className={`p-4 rounded-lg border-l-4 ${
-                      rsvp.response === 'yes'
-                        ? 'bg-green-50 border-green-500'
-                        : rsvp.response === 'no'
-                        ? 'bg-red-50 border-red-500'
-                        : 'bg-yellow-50 border-yellow-500'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            rsvp.response === 'yes'
-                              ? 'bg-green-100 text-green-800'
-                              : rsvp.response === 'no'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {rsvp.response === 'yes' ? 'Attending' :
-                             rsvp.response === 'no' ? 'Not Attending' :
-                             'Maybe'}
-                          </span>
-
-                          {/* Notification Status Badge */}
-                          {rsvp.response === 'yes' && rsvp.email && (
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${
-                              rsvp.reminder_status === 'sent'
-                                ? 'bg-blue-100 text-blue-800'
-                                : rsvp.reminder_status === 'pending'
-                                ? 'bg-gray-100 text-gray-700'
-                                : rsvp.reminder_status === 'failed'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-gray-100 text-gray-500'
-                            }`}>
-                              {rsvp.reminder_status === 'sent' ? (
-                                <>
-                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                                  </svg>
-                                  Reminder Sent
-                                </>
-                              ) : rsvp.reminder_status === 'pending' ? (
-                                <>
-                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                  </svg>
-                                  Reminder Pending
-                                </>
-                              ) : rsvp.reminder_status === 'failed' ? (
-                                <>
-                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                  </svg>
-                                  Send Failed
-                                </>
-                              ) : (
-                                <>
-                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
-                                  </svg>
-                                  No Reminder
-                                </>
-                              )}
+              <div className="space-y-4">
+                {invitation.rsvps
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .map((rsvp) => (
+                    <div
+                      key={rsvp.id}
+                      className={`p-4 rounded-lg border-l-4 ${rsvp.response === 'yes'
+                          ? 'bg-green-50 border-green-500'
+                          : rsvp.response === 'no'
+                            ? 'bg-red-50 border-red-500'
+                            : 'bg-yellow-50 border-yellow-500'
+                        }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${rsvp.response === 'yes'
+                                ? 'bg-green-100 text-green-800'
+                                : rsvp.response === 'no'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                              {rsvp.response === 'yes' ? 'Attending' :
+                                rsvp.response === 'no' ? 'Not Attending' :
+                                  'Maybe'}
                             </span>
-                          )}
-                        </div>
-                      {rsvp.comment && (
-                        <p className="text-gray-600 text-sm">&ldquo;{rsvp.comment}&rdquo;</p>
-                      )}
 
-                        {/* Email and reminder info */}
-                        {rsvp.email && rsvp.response === 'yes' && (
-                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                            </svg>
-                            <span>{rsvp.email}</span>
-                            {rsvp.reminder_sent_at && (
-                              <span className="text-gray-500">
-                                • Reminded {new Date(rsvp.reminder_sent_at).toLocaleDateString()}
+                            {/* Notification Status Badge */}
+                            {rsvp.response === 'yes' && rsvp.email && (
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${rsvp.reminder_status === 'sent'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : rsvp.reminder_status === 'pending'
+                                    ? 'bg-gray-100 text-gray-700'
+                                    : rsvp.reminder_status === 'failed'
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-500'
+                                }`}>
+                                {rsvp.reminder_status === 'sent' ? (
+                                  <>
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                    </svg>
+                                    Reminder Sent
+                                  </>
+                                ) : rsvp.reminder_status === 'pending' ? (
+                                  <>
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                    </svg>
+                                    Reminder Pending
+                                  </>
+                                ) : rsvp.reminder_status === 'failed' ? (
+                                  <>
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                    Send Failed
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                                    </svg>
+                                    No Reminder
+                                  </>
+                                )}
                               </span>
                             )}
                           </div>
-                        )}
+                          {rsvp.comment && (
+                            <p className="text-gray-600 text-sm">&ldquo;{rsvp.comment}&rdquo;</p>
+                          )}
 
-                        <p className="text-xs text-gray-500 mt-2">
-                          Responded {new Date(rsvp.created_at).toLocaleDateString()} at {new Date(rsvp.created_at).toLocaleTimeString()}
-                        </p>
+                          {/* Email and reminder info */}
+                          {rsvp.email && rsvp.response === 'yes' && (
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                              </svg>
+                              <span>{rsvp.email}</span>
+                              {rsvp.reminder_sent_at && (
+                                <span className="text-gray-500">
+                                  • Reminded {new Date(rsvp.reminder_sent_at).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          <p className="text-xs text-gray-500 mt-2">
+                            Responded {new Date(rsvp.created_at).toLocaleDateString()} at {new Date(rsvp.created_at).toLocaleTimeString()}
+                          </p>
+                        </div>
+                        <ConfirmDeleteButton
+                          onConfirm={() => deleteRSVP(rsvp.id)}
+                          label="Remove"
+                          confirmLabel="Remove?"
+                          size="sm"
+                        />
                       </div>
-                      <button
-                        onClick={() => deleteRSVP(rsvp.id)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium ml-4"
-                      >
-                        Remove
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {invitation.rsvps && invitation.rsvps.length === 0 && (
-          <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">No RSVPs Yet</h2>
-            <p className="text-gray-600 mb-6">
-              Share your invitation link to start receiving responses.
-            </p>
-            <button
-              onClick={handleCopyInviteLink}
-                className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 ${
-                  copySuccess
+          {invitation.rsvps && invitation.rsvps.length === 0 && (
+            <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">No RSVPs Yet</h2>
+              <p className="text-gray-600 mb-6">
+                Share your invitation link to start receiving responses.
+              </p>
+              <button
+                onClick={handleCopyInviteLink}
+                className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 ${copySuccess
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                  }`}
                 aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-            >
+              >
                 {copySuccess ? 'Copied!' : 'Copy Invite Link'}
-            </button>
-          </div>
-        )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </ProtectedRoute>

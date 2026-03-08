@@ -86,9 +86,18 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
           setSelectedDesign(design);
           setDesignTab('custom');
         } else {
-          // If not found in designs, it's likely a template
-          // We'll let the template selector component handle finding it
+          // It's a default template — restore it from the invitation's attached template data
           setDesignTab('template');
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const templateData = (initialData as any).default_templates as { id: string; name: string; image_url: string } | undefined;
+          if (templateData) {
+            setSelectedDesign({
+              id: templateData.id,
+              name: templateData.name,
+              image_url: templateData.image_url,
+            });
+            setSelectedTemplate(templateData as DefaultTemplate);
+          }
         }
       }
     }
@@ -98,7 +107,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     e.preventDefault();
 
     // Validate form
-    const validation = validateInvitationForm(formData);
+    const validation = validateInvitationForm(formData, mode);
     if (!validation.isValid) {
       setFormErrors(validation.errors);
       return;
@@ -313,8 +322,8 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                           type="button"
                           onClick={() => setDesignTab('template')}
                           className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${designTab === 'template'
-                              ? 'border-blue-500 text-blue-600'
-                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-blue-500 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                         >
                           Choose Template
@@ -323,8 +332,8 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                           type="button"
                           onClick={() => setDesignTab('custom')}
                           className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${designTab === 'custom'
-                              ? 'border-blue-500 text-blue-600'
-                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-blue-500 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                         >
                           Upload Custom
@@ -352,8 +361,8 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         {/* No Design Option */}
                         <div
                           className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${formData.design_id === ''
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-300 hover:border-gray-400'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-300 hover:border-gray-400'
                             }`}
                           onClick={() => handleDesignSelect('')}
                         >
@@ -370,8 +379,8 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                           <div
                             key={design.id}
                             className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${formData.design_id === design.id
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-300 hover:border-gray-400'
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-300 hover:border-gray-400'
                               }`}
                             onClick={() => handleDesignSelect(design.id)}
                           >

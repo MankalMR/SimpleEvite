@@ -18,7 +18,7 @@ export function validateInvitationForm(formData: {
   event_date: string;
   event_time: string;
   location: string;
-}): FormValidationResult {
+}, mode: 'create' | 'edit' = 'create'): FormValidationResult {
   const errors: Record<string, string> = {};
 
   if (!formData.title.trim()) {
@@ -27,7 +27,7 @@ export function validateInvitationForm(formData: {
 
   if (!formData.event_date) {
     errors.event_date = 'Event date is required';
-  } else {
+  } else if (mode === 'create') {
     const eventDate = new Date(formData.event_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -101,12 +101,17 @@ export function formatInvitationForSubmission(formData: Record<string, unknown>)
     event_time: formData.event_time as string,
     location: (formData.location as string).trim(),
     design_id: formData.design_id as string | undefined,
-    // Ensure text overlay fields have default values
+    // Text overlay fields
     text_overlay_style: (formData.text_overlay_style as Invitation['text_overlay_style']) || 'light',
     text_position: (formData.text_position as Invitation['text_position']) || 'center',
     text_size: (formData.text_size as Invitation['text_size']) || 'large',
     text_shadow: (formData.text_shadow as boolean) ?? true,
     text_background: (formData.text_background as boolean) ?? false,
     text_background_opacity: (formData.text_background_opacity as number) ?? 0.3,
+    // New invitation enhancement fields
+    hide_title: (formData.hide_title as boolean) ?? false,
+    hide_description: (formData.hide_description as boolean) ?? false,
+    organizer_notes: (formData.organizer_notes as string) || undefined,
+    text_font_family: (formData.text_font_family as Invitation['text_font_family']) || 'inter',
   };
 }
