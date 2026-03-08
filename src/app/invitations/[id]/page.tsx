@@ -149,8 +149,8 @@ export default function InvitationView() {
                 <button
                   onClick={handleCopyInviteLink}
                   className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center ${copySuccess
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
                   aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
                 >
@@ -199,32 +199,39 @@ export default function InvitationView() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Date</h3>
-                <p className="text-gray-800 mb-4 font-medium">{formatDisplayDate(invitation.event_date)}</p>
-
-                {invitation.event_time && (
-                  <>
-                    <h3 className="font-semibold text-gray-900 mb-2">Time</h3>
-                    <p className="text-gray-800 mb-4 font-medium">{formatTime(invitation.event_time)}</p>
-                  </>
-                )}
-
-                {invitation.location && (
-                  <>
-                    <h3 className="font-semibold text-gray-900 mb-2">Location</h3>
-                    <p className="text-gray-800 font-medium">{invitation.location}</p>
-                  </>
-                )}
+                <p className="text-gray-800 font-medium">{formatDisplayDate(invitation.event_date)}</p>
               </div>
 
-              <div>
-                {invitation.description && (
-                  <>
-                    <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                    <p className="text-gray-800 font-medium">{invitation.description}</p>
-                  </>
-                )}
-              </div>
+              {invitation.event_time && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Time</h3>
+                  <p className="text-gray-800 font-medium">{formatTime(invitation.event_time)}</p>
+                </div>
+              )}
+
+              {invitation.location && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Location</h3>
+                  <p className="text-gray-800 font-medium">{invitation.location}</p>
+                </div>
+              )}
+
+              {invitation.description && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+                  <p className="text-gray-800 font-medium">{invitation.description}</p>
+                </div>
+              )}
             </div>
+
+            {invitation.organizer_notes && (
+              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  📝 Organizer&apos;s Notes
+                </h3>
+                <p className="text-gray-700 whitespace-pre-wrap">{invitation.organizer_notes}</p>
+              </div>
+            )}
           </div>
 
           {/* RSVP Stats */}
@@ -263,10 +270,10 @@ export default function InvitationView() {
                     <div
                       key={rsvp.id}
                       className={`p-4 rounded-lg border-l-4 ${rsvp.response === 'yes'
-                          ? 'bg-green-50 border-green-500'
-                          : rsvp.response === 'no'
-                            ? 'bg-red-50 border-red-500'
-                            : 'bg-yellow-50 border-yellow-500'
+                        ? 'bg-green-50 border-green-500'
+                        : rsvp.response === 'no'
+                          ? 'bg-red-50 border-red-500'
+                          : 'bg-yellow-50 border-yellow-500'
                         }`}
                     >
                       <div className="flex justify-between items-start">
@@ -274,10 +281,10 @@ export default function InvitationView() {
                           <div className="flex items-center space-x-3 mb-2">
                             <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${rsvp.response === 'yes'
-                                ? 'bg-green-100 text-green-800'
-                                : rsvp.response === 'no'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-green-100 text-green-800'
+                              : rsvp.response === 'no'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
                               }`}>
                               {rsvp.response === 'yes' ? 'Attending' :
                                 rsvp.response === 'no' ? 'Not Attending' :
@@ -287,12 +294,12 @@ export default function InvitationView() {
                             {/* Notification Status Badge */}
                             {rsvp.response === 'yes' && rsvp.email && (
                               <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${rsvp.reminder_status === 'sent'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : rsvp.reminder_status === 'pending'
-                                    ? 'bg-gray-100 text-gray-700'
-                                    : rsvp.reminder_status === 'failed'
-                                      ? 'bg-red-100 text-red-700'
-                                      : 'bg-gray-100 text-gray-500'
+                                ? 'bg-blue-100 text-blue-800'
+                                : rsvp.reminder_status === 'pending'
+                                  ? 'bg-gray-100 text-gray-700'
+                                  : rsvp.reminder_status === 'failed'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-gray-100 text-gray-500'
                                 }`}>
                                 {rsvp.reminder_status === 'sent' ? (
                                   <>
@@ -373,8 +380,8 @@ export default function InvitationView() {
               <button
                 onClick={handleCopyInviteLink}
                 className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 ${copySuccess
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
               >
