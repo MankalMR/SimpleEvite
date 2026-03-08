@@ -117,7 +117,7 @@ export default function InvitationView() {
             </p>
             <Link
               href="/dashboard"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
             >
               Return to Dashboard
             </Link>
@@ -148,7 +148,7 @@ export default function InvitationView() {
                 {/* Primary actions - most important first on mobile */}
                 <button
                   onClick={handleCopyInviteLink}
-                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center ${copySuccess
+                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${copySuccess
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
@@ -160,14 +160,14 @@ export default function InvitationView() {
                 <div className="flex gap-2">
                   <Link
                     href={`/invitations/${invitation.id}/edit`}
-                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center"
+                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                   >
                     Edit
                   </Link>
                   <Link
                     href={`/invite/${invitation.share_token}`}
                     target="_blank"
-                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center"
+                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                   >
                     Preview
                   </Link>
@@ -379,7 +379,7 @@ export default function InvitationView() {
               </p>
               <button
                 onClick={handleCopyInviteLink}
-                className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 ${copySuccess
+                className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${copySuccess
                   ? 'bg-green-600 text-white hover:bg-green-700'
                   : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
