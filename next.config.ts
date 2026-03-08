@@ -55,6 +55,17 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // Redirects
+  async redirects() {
+    return [
+      {
+        source: '/demo',
+        destination: '/demo/dashboard',
+        permanent: false,
+      },
+    ];
+  },
+
   // Security Headers
   async headers() {
     const isProd = process.env.NODE_ENV === 'production';
@@ -75,7 +86,7 @@ const nextConfig: NextConfig = {
       `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com ${isProd ? '' : "'unsafe-eval'"}`,
       "script-src-elem 'self' 'unsafe-inline' https://accounts.google.com",
       `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
-      `font-src 'self' https://fonts.gstatic.com data:`,
+      `font-src 'self' https://fonts.gstatic.com data: https://r2cdn.perplexity.ai`,
       `img-src 'self' data: blob: https: https://*.supabase.co https://accounts.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://images.unsplash.com`,
       `media-src 'self' https://*.supabase.co`,
       "object-src 'none'",

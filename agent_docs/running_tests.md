@@ -30,4 +30,7 @@ npm run type-check
 
 ## Testing Strategy
 - **Unit Tests**: Focus on `src/lib/*` utilities (e.g., `security.test.ts`, `data-utils.test.ts`).
-- **Integration Tests**: Currently limited; manual verification of API routes is common practice for this stage.
+- **Integration & UI Validation**: ALWAYS use the **Demo App** for manual validation.
+  - Navigate to `http://localhost:3008/demo/dashboard` when the dev server is running.
+  - This mode bypasses Google Sign-In and uses an isolated, in-memory data store with realistic seed data.
+  - Test all UI flows (creating invites, RSVPing, etc.) here before assuming a feature is complete.

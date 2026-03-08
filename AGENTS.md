@@ -55,6 +55,7 @@ simple-evite/
 - **Use the DAL**: All DB operations must go through `src/lib/database-supabase.ts`.
 - **Sanitize**: Use the `escapeHTML` or `sanitizeText` helpers for all user-generated content.
 - **Read Specs**: Check `agent_docs/code_conventions.md` before refactoring.
+- **Use Demo Mode for UI Testing**: ALWAYS use the Demo App at `http://localhost:3008/demo/dashboard` to test UI changes or basic flows. It bypasses Google Sign-In and uses isolated, in-memory seed data.
 
 ### DON'T
 - **Don't** add `supabase-js` calls inside Client Components (`.tsx`).
