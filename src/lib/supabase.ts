@@ -38,12 +38,16 @@ export interface Invitation {
   location: string;
   design_id?: string; // UUID that references either designs.id or default_templates.id
   share_token: string;
+  hide_title?: boolean;
+  hide_description?: boolean;
+  organizer_notes?: string;
+  text_font_family?: 'inter' | 'playfair' | 'lora' | 'pacifico' | 'oswald';
   created_at: string;
   updated_at: string;
   // Text overlay styling options
   text_overlay_style?: 'light' | 'dark' | 'vibrant' | 'muted' | 'elegant' | 'bold';
   text_position?: 'center' | 'top' | 'bottom' | 'left' | 'right';
-  text_size?: 'small' | 'medium' | 'large' | 'extra-large';
+  text_size?: 'extra-small' | 'small' | 'medium' | 'large' | 'extra-large';
   text_shadow?: boolean;
   text_background?: boolean;
   text_background_opacity?: number;

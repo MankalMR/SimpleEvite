@@ -262,13 +262,13 @@ describe('Text Overlay Utils', () => {
     it('should return all size options with correct structure', () => {
       const options = getTextSizeOptions();
 
-      expect(options).toHaveLength(4);
+      expect(options).toHaveLength(5);
       expect(options[0]).toEqual({
-        value: 'small',
-        label: 'Small',
-        description: 'Compact text size'
+        value: 'extra-small',
+        label: 'Extra Small',
+        description: 'Very compact text size'
       });
-      expect(options[3]).toEqual({
+      expect(options[4]).toEqual({
         value: 'extra-large',
         label: 'Extra Large',
         description: 'Maximum impact text size'
@@ -299,7 +299,7 @@ describe('Text Overlay Utils', () => {
     });
 
     it('should have all text sizes defined', () => {
-      const expectedSizes = ['small', 'medium', 'large', 'extra-large'];
+      const expectedSizes = ['extra-small', 'small', 'medium', 'large', 'extra-large'];
       expect(Object.keys(TEXT_SIZES)).toEqual(expectedSizes);
     });
   });

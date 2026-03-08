@@ -123,32 +123,44 @@ describe('security', () => {
         description: 'Join us for our special day',
         event_date: '2024-12-25',
         location: 'Grand Ballroom',
+        hide_title: true,
+        organizer_notes: 'Please park in the rear.',
+        text_font_family: 'pacifico'
       };
       const result = validateInvitationData(data);
       expect(result.isValid).toBe(true);
       expect(result.sanitizedData.title).toBe('Wedding Party');
+      expect(result.sanitizedData.hide_title).toBe(true);
+      expect(result.sanitizedData.organizer_notes).toBe('Please park in the rear.');
+      expect(result.sanitizedData.text_font_family).toBe('pacifico');
     });
 
     it('should return errors for invalid invitation data', () => {
       const data = {
         title: 'A', // Too short
         event_date: 'invalid-date',
+        organizer_notes: 'A'.repeat(1001), // Too long
+        text_font_family: 'comic-sans' // Invalid font
       };
       const result = validateInvitationData(data);
       expect(result.isValid).toBe(false);
       expect(result.errors.title).toBeDefined();
       expect(result.errors.event_date).toBeDefined();
+      expect(result.errors.organizer_notes).toBeDefined();
+      expect(result.errors.text_font_family).toBeDefined();
     });
 
-    it('should sanitize title and description', () => {
+    it('should sanitize title, description and organizer notes', () => {
       const data = {
         title: 'Party <script>',
         description: 'Cool party <b>!',
         event_date: '2024-12-25',
+        organizer_notes: 'Notes <iframe>'
       };
       const result = validateInvitationData(data);
       expect(result.sanitizedData.title).toBe('Party script');
       expect(result.sanitizedData.description).toBe('Cool party b!');
+      expect(result.sanitizedData.organizer_notes).toBe('Notes iframe');
     });
   });
 

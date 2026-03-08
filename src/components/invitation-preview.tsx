@@ -14,10 +14,14 @@ interface InvitationPreviewProps {
     design_id: string;
     text_overlay_style: 'light' | 'dark' | 'vibrant' | 'muted' | 'elegant' | 'bold';
     text_position: 'center' | 'top' | 'bottom' | 'left' | 'right';
-    text_size: 'small' | 'medium' | 'large' | 'extra-large';
+    text_size: 'extra-small' | 'small' | 'medium' | 'large' | 'extra-large';
     text_shadow: boolean;
     text_background: boolean;
     text_background_opacity: number;
+    hide_title?: boolean;
+    hide_description?: boolean;
+    organizer_notes?: string;
+    text_font_family?: string;
   };
   selectedDesign?: {
     id: string;
@@ -50,6 +54,10 @@ export function InvitationPreview({ formData, selectedDesign }: InvitationPrevie
     text_shadow: formData.text_shadow,
     text_background: formData.text_background,
     text_background_opacity: formData.text_background_opacity,
+    hide_title: formData.hide_title ?? false,
+    hide_description: formData.hide_description ?? false,
+    organizer_notes: formData.organizer_notes,
+    text_font_family: (formData.text_font_family as 'inter' | 'playfair' | 'lora' | 'pacifico' | 'oswald') || 'inter',
   };
 
   // Show empty state when no content has been entered
@@ -90,7 +98,7 @@ export function InvitationPreview({ formData, selectedDesign }: InvitationPrevie
       </div>
 
       {/* Event details section - positioned at bottom like actual invitation */}
-      {(formData.event_date || formData.event_time || formData.location) && (
+      {(formData.event_date || formData.event_time || formData.location || formData.organizer_notes) && (
         <div className="flex-shrink-0 bg-white/95 backdrop-blur-sm p-4 border-t border-gray-200 rounded-b-lg">
           <div className="space-y-2">
             {formData.event_date && (
@@ -116,6 +124,18 @@ export function InvitationPreview({ formData, selectedDesign }: InvitationPrevie
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <span className="font-medium">{formData.location}</span>
+              </div>
+            )}
+
+            {formData.organizer_notes && (
+              <div className="flex items-start text-sm text-gray-700 mt-3 pt-3 border-t border-gray-100">
+                <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <span className="font-semibold block mb-0.5">Organizer&apos;s Notes</span>
+                  <p className="whitespace-pre-wrap">{formData.organizer_notes}</p>
+                </div>
               </div>
             )}
           </div>

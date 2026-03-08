@@ -48,21 +48,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-          const body = await request.json();
-          const {
-            title,
-            description,
-            event_date,
-            event_time,
-            location,
-            design_id,
-            text_overlay_style,
-            text_position,
-            text_size,
-            text_shadow,
-            text_background,
-            text_background_opacity
-          } = body;
+    const body = await request.json();
+    const {
+      title,
+      description,
+      event_date,
+      event_time,
+      location,
+      design_id,
+      text_overlay_style,
+      text_position,
+      text_size,
+      text_shadow,
+      text_background,
+      text_background_opacity,
+      hide_title,
+      hide_description,
+      organizer_notes,
+      text_font_family
+    } = body;
 
     // Validate required fields
     if (!title || !event_date) {
@@ -84,34 +88,38 @@ export async function POST(request: NextRequest) {
       throw userError;
     }
 
-          // Debug logging
-          console.log('Creating invitation with text overlay settings:', {
-            text_overlay_style: text_overlay_style || 'light',
-            text_position: text_position || 'center',
-            text_size: text_size || 'large',
-            text_shadow: text_shadow ?? true,
-            text_background: text_background ?? false,
-            text_background_opacity: text_background_opacity ?? 0.3,
-          });
+    // Debug logging
+    console.log('Creating invitation with text overlay settings:', {
+      text_overlay_style: text_overlay_style || 'light',
+      text_position: text_position || 'center',
+      text_size: text_size || 'large',
+      text_shadow: text_shadow ?? true,
+      text_background: text_background ?? false,
+      text_background_opacity: text_background_opacity ?? 0.3,
+    });
 
-          // Create invitation using the database layer
-          const shareToken = uuidv4();
-          const invitation = await supabaseDb.createInvitation({
-            user_id: userData.id,
-            title,
-            description,
-            event_date,
-            event_time,
-            location,
-            design_id: design_id || null,
-            share_token: shareToken,
-            text_overlay_style: text_overlay_style || 'light',
-            text_position: text_position || 'center',
-            text_size: text_size || 'large',
-            text_shadow: text_shadow ?? true,
-            text_background: text_background ?? false,
-            text_background_opacity: text_background_opacity ?? 0.3,
-          }, userData.id);
+    // Create invitation using the database layer
+    const shareToken = uuidv4();
+    const invitation = await supabaseDb.createInvitation({
+      user_id: userData.id,
+      title,
+      description,
+      event_date,
+      event_time,
+      location,
+      design_id: design_id || null,
+      share_token: shareToken,
+      text_overlay_style: text_overlay_style || 'light',
+      text_position: text_position || 'center',
+      text_size: text_size || 'large',
+      text_shadow: text_shadow ?? true,
+      text_background: text_background ?? false,
+      text_background_opacity: text_background_opacity ?? 0.3,
+      hide_title: hide_title ?? false,
+      hide_description: hide_description ?? false,
+      organizer_notes: organizer_notes || undefined,
+      text_font_family: text_font_family || 'inter',
+    }, userData.id);
 
     return NextResponse.json({ invitation }, { status: 201 });
   } catch (error) {

@@ -64,6 +64,10 @@ export function InvitationDisplay({
   const backgroundClasses = getTextOverlayBackgroundClasses(textConfig);
   const backgroundStyles = getTextOverlayBackgroundStyles(textConfig);
 
+  const fontStyle = {
+    fontFamily: `var(--font-${invitation.text_font_family || 'inter'})`
+  };
+
   return (
     <div className={`relative w-full rounded-lg overflow-hidden ${className}`}>
       {design?.image_url ? (
@@ -89,15 +93,17 @@ export function InvitationDisplay({
                 style={backgroundStyles}
               />
             )}
-            <div className={contentClasses}>
-              <h1 className={titleClasses}>
-                {invitation.title || (showPlaceholder ? (
-                  <span style={{ opacity: 0.6, fontStyle: 'italic' }}>
-                    Enter your event title...
-                  </span>
-                ) : '')}
-              </h1>
-              {(invitation.description || showPlaceholder) && (
+            <div className={contentClasses} style={fontStyle}>
+              {!invitation.hide_title && (
+                <h1 className={titleClasses}>
+                  {invitation.title || (showPlaceholder ? (
+                    <span style={{ opacity: 0.6, fontStyle: 'italic' }}>
+                      Enter your event title...
+                    </span>
+                  ) : '')}
+                </h1>
+              )}
+              {!invitation.hide_description && (invitation.description || showPlaceholder) && (
                 <p className={descriptionClasses}>
                   {invitation.description || (showPlaceholder ? (
                     <span style={{ opacity: 0.6, fontStyle: 'italic' }}>
@@ -120,15 +126,17 @@ export function InvitationDisplay({
                 style={backgroundStyles}
               />
             )}
-            <div className={contentClasses}>
-              <h1 className={titleClasses}>
-                {invitation.title || (showPlaceholder ? (
-                  <span style={{ opacity: 0.6, fontStyle: 'italic' }}>
-                    Enter your event title...
-                  </span>
-                ) : '')}
-              </h1>
-              {(invitation.description || showPlaceholder) && (
+            <div className={contentClasses} style={fontStyle}>
+              {!invitation.hide_title && (
+                <h1 className={titleClasses}>
+                  {invitation.title || (showPlaceholder ? (
+                    <span style={{ opacity: 0.6, fontStyle: 'italic' }}>
+                      Enter your event title...
+                    </span>
+                  ) : '')}
+                </h1>
+              )}
+              {!invitation.hide_description && (invitation.description || showPlaceholder) && (
                 <p className={descriptionClasses}>
                   {invitation.description || (showPlaceholder ? (
                     <span style={{ opacity: 0.6, fontStyle: 'italic' }}>

@@ -50,6 +50,10 @@ export async function POST(request: NextRequest) {
         text_shadow: body.text_shadow ?? true,
         text_background: body.text_background ?? false,
         text_background_opacity: body.text_background_opacity ?? 0.3,
+        hide_title: body.hide_title ?? false,
+        hide_description: body.hide_description ?? false,
+        organizer_notes: body.organizer_notes || undefined,
+        text_font_family: body.text_font_family || 'inter',
         rsvps: [],
     };
 

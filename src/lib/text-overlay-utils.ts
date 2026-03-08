@@ -2,7 +2,7 @@ import { Invitation } from './supabase';
 
 export type TextOverlayStyle = 'light' | 'dark' | 'vibrant' | 'muted' | 'elegant' | 'bold';
 export type TextPosition = 'center' | 'top' | 'bottom' | 'left' | 'right';
-export type TextSize = 'small' | 'medium' | 'large' | 'extra-large';
+export type TextSize = 'extra-small' | 'small' | 'medium' | 'large' | 'extra-large';
 
 export interface TextOverlayConfig {
   style: TextOverlayStyle;
@@ -84,6 +84,10 @@ export const TEXT_SIZES: Record<TextSize, {
   title: string;
   description: string;
 }> = {
+  'extra-small': {
+    title: 'text-xl md:text-2xl',
+    description: 'text-xs md:text-sm',
+  },
   small: {
     title: 'text-2xl md:text-3xl',
     description: 'text-sm md:text-base',
@@ -132,7 +136,7 @@ export function getTextOverlayContentClasses(config: TextOverlayConfig): string 
 
   // Determine text alignment based on position
   const textAlign = config.position === 'left' ? 'text-left' :
-                   config.position === 'right' ? 'text-right' : 'text-center';
+    config.position === 'right' ? 'text-right' : 'text-center';
 
   let classes = `${textAlign} px-4 ${style.textColor} ${style.fontWeight} ${style.letterSpacing}`;
 
@@ -229,6 +233,7 @@ export function getTextSizeOptions(): Array<{
   description: string;
 }> {
   return [
+    { value: 'extra-small', label: 'Extra Small', description: 'Very compact text size' },
     { value: 'small', label: 'Small', description: 'Compact text size' },
     { value: 'medium', label: 'Medium', description: 'Standard text size' },
     { value: 'large', label: 'Large', description: 'Prominent text size' },

@@ -85,6 +85,21 @@ export function validateInvitationData(data: Record<string, unknown>) {
     }
   }
 
+  // Organizer notes validation
+  if (data.organizer_notes && typeof data.organizer_notes === 'string') {
+    if (data.organizer_notes.length > 1000) {
+      errors.organizer_notes = 'Organizer notes must be less than 1000 characters';
+    }
+  }
+
+  // Font family validation
+  const validFonts = ['inter', 'playfair', 'lora', 'pacifico', 'oswald'];
+  if (data.text_font_family && typeof data.text_font_family === 'string') {
+    if (!validFonts.includes(data.text_font_family)) {
+      errors.text_font_family = 'Invalid font family selected';
+    }
+  }
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
@@ -94,6 +109,10 @@ export function validateInvitationData(data: Record<string, unknown>) {
       location: sanitizeText((data.location as string) || ''),
       event_date: data.event_date,
       event_time: data.event_time,
+      hide_title: !!data.hide_title,
+      hide_description: !!data.hide_description,
+      organizer_notes: data.organizer_notes ? sanitizeText(data.organizer_notes as string) : undefined,
+      text_font_family: validFonts.includes(data.text_font_family as string) ? data.text_font_family : 'inter',
     },
   };
 }

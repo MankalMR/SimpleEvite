@@ -48,7 +48,7 @@ graph TD
     *   Consumes the BFF (`/api/*`) rather than talking to Supabase directly.
 *   **Key Modules**:
     *   `page.tsx`: Landing page with conditional rendering based on Session state.
-    *   `invitation-form.tsx`: Complex multi-step form for creating events.
+    *   `invitation-form.tsx`: Complex multi-step form for creating events. Supports rich customization including Google Font selection, Title/Description visibility toggles, and Organizer Notes.
     *   `invitation-display.tsx`: Public-facing view for guests (consumes `share_token`).
 *   **Patterns**:
     *   **Client Components**: Heavy use of `useClient` for interactive forms.

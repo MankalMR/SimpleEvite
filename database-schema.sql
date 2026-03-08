@@ -51,6 +51,10 @@ CREATE TABLE IF NOT EXISTS public.invitations (
   location TEXT,
   design_id UUID REFERENCES public.designs(id) ON DELETE SET NULL,
   share_token UUID DEFAULT uuid_generate_v4() UNIQUE NOT NULL,
+  hide_title BOOLEAN DEFAULT false,
+  hide_description BOOLEAN DEFAULT false,
+  organizer_notes TEXT,
+  text_font_family TEXT DEFAULT 'inter',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -105,3 +109,12 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER set_updated_at
   BEFORE UPDATE ON public.invitations
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+-- Note: If you are upgrading an existing database, run these lines:
+-- ALTER TABLE public.invitations 
+--   ADD COLUMN IF NOT EXISTS hide_title BOOLEAN DEFAULT false,
+--   ADD COLUMN IF NOT EXISTS hide_description BOOLEAN DEFAULT false,
+--   ADD COLUMN IF NOT EXISTS organizer_notes TEXT,
+--   ADD COLUMN IF NOT EXISTS text_font_family TEXT DEFAULT 'inter',
+--   ADD COLUMN IF NOT EXISTS text_size TEXT DEFAULT 'large';
+

@@ -56,21 +56,25 @@ export async function PUT(
     }
 
     const resolvedParams = await params;
-          const body = await request.json();
-          const {
-            title,
-            description,
-            event_date,
-            event_time,
-            location,
-            design_id,
-            text_overlay_style,
-            text_position,
-            text_size,
-            text_shadow,
-            text_background,
-            text_background_opacity
-          } = body;
+    const body = await request.json();
+    const {
+      title,
+      description,
+      event_date,
+      event_time,
+      location,
+      design_id,
+      text_overlay_style,
+      text_position,
+      text_size,
+      text_shadow,
+      text_background,
+      text_background_opacity,
+      hide_title,
+      hide_description,
+      organizer_notes,
+      text_font_family
+    } = body;
 
     // Validate required fields
     if (!title || !event_date) {
@@ -88,21 +92,25 @@ export async function PUT(
       throw userError;
     }
 
-          // Update invitation using the database layer
-          const invitation = await supabaseDb.updateInvitation(resolvedParams.id, {
-            title,
-            description,
-            event_date,
-            event_time,
-            location,
-            design_id: design_id || null,
-            text_overlay_style,
-            text_position,
-            text_size,
-            text_shadow,
-            text_background,
-            text_background_opacity,
-          }, userData.id);
+    // Update invitation using the database layer
+    const invitation = await supabaseDb.updateInvitation(resolvedParams.id, {
+      title,
+      description,
+      event_date,
+      event_time,
+      location,
+      design_id: design_id || null,
+      text_overlay_style,
+      text_position,
+      text_size,
+      text_shadow,
+      text_background,
+      text_background_opacity,
+      hide_title,
+      hide_description,
+      organizer_notes,
+      text_font_family,
+    }, userData.id);
 
     if (!invitation) {
       return NextResponse.json({ error: 'Invitation not found or unauthorized' }, { status: 404 });

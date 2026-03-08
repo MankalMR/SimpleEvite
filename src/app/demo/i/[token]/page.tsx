@@ -213,6 +213,18 @@ export default function DemoPublicInvite() {
                                     </div>
                                 </div>
                             )}
+
+                            {invitation.organizer_notes && (
+                                <div className="flex items-start space-x-3 md:col-span-2 mt-2 pt-6 border-t border-gray-100">
+                                    <svg className="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-gray-900">Organizer&apos;s Notes</h3>
+                                        <p className="text-gray-600 whitespace-pre-wrap mt-1">{invitation.organizer_notes}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -268,12 +280,12 @@ export default function DemoPublicInvite() {
                                                 type="button"
                                                 onClick={() => setRsvpData({ ...rsvpData, response })}
                                                 className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${rsvpData.response === response
-                                                        ? response === 'yes'
-                                                            ? 'border-green-500 bg-green-50 text-green-700'
-                                                            : response === 'no'
-                                                                ? 'border-red-500 bg-red-50 text-red-700'
-                                                                : 'border-yellow-500 bg-yellow-50 text-yellow-700'
-                                                        : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                                                    ? response === 'yes'
+                                                        ? 'border-green-500 bg-green-50 text-green-700'
+                                                        : response === 'no'
+                                                            ? 'border-red-500 bg-red-50 text-red-700'
+                                                            : 'border-yellow-500 bg-yellow-50 text-yellow-700'
+                                                    : 'border-gray-300 text-gray-700 hover:border-gray-400'
                                                     }`}
                                             >
                                                 {response === 'yes' ? "Yes, I'll be there!" :

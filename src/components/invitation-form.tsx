@@ -40,6 +40,10 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     text_shadow: true,
     text_background: false,
     text_background_opacity: 0.3,
+    hide_title: false,
+    hide_description: false,
+    organizer_notes: '',
+    text_font_family: 'inter',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -69,6 +73,10 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
         text_shadow: initialData.text_shadow ?? true,
         text_background: initialData.text_background ?? false,
         text_background_opacity: initialData.text_background_opacity ?? 0.3,
+        hide_title: initialData.hide_title ?? false,
+        hide_description: initialData.hide_description ?? false,
+        organizer_notes: initialData.organizer_notes || '',
+        text_font_family: initialData.text_font_family || 'inter',
       });
 
       // Set selected design/template if invitation has one
@@ -107,9 +115,10 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     });
   };
 
@@ -190,6 +199,16 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         placeholder="Enter event title"
                       />
                       {formErrors.title && <p className="text-red-600 text-sm mt-1">{formErrors.title}</p>}
+                      <label className="flex items-center mt-2">
+                        <input
+                          type="checkbox"
+                          name="hide_title"
+                          checked={formData.hide_title}
+                          onChange={handleChange}
+                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-600">Hide Title on Invitation</span>
+                      </label>
                     </div>
 
                     <div>
@@ -205,6 +224,16 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Describe your event"
                       />
+                      <label className="flex items-center mt-2">
+                        <input
+                          type="checkbox"
+                          name="hide_description"
+                          checked={formData.hide_description}
+                          onChange={handleChange}
+                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
+                      </label>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
@@ -253,6 +282,22 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         placeholder="Enter event location"
                       />
                     </div>
+
+                    <div>
+                      <label htmlFor="organizer_notes" className="block text-sm font-semibold text-gray-900 mb-2">
+                        Organizer&apos;s Notes
+                      </label>
+                      <textarea
+                        id="organizer_notes"
+                        name="organizer_notes"
+                        rows={3}
+                        value={formData.organizer_notes}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Additional details (parking, gifts, attire) to show below location"
+                      />
+                      <p className="mt-1 text-sm text-gray-500">This will be displayed below the Location field.</p>
+                    </div>
                   </div>
                 </div>
 
@@ -267,22 +312,20 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         <button
                           type="button"
                           onClick={() => setDesignTab('template')}
-                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                            designTab === 'template'
+                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${designTab === 'template'
                               ? 'border-blue-500 text-blue-600'
                               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           Choose Template
                         </button>
                         <button
                           type="button"
                           onClick={() => setDesignTab('custom')}
-                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                            designTab === 'custom'
+                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${designTab === 'custom'
                               ? 'border-blue-500 text-blue-600'
                               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           Upload Custom
                         </button>
@@ -308,11 +351,10 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {/* No Design Option */}
                         <div
-                          className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${
-                            formData.design_id === ''
+                          className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${formData.design_id === ''
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-300 hover:border-gray-400'
-                          }`}
+                            }`}
                           onClick={() => handleDesignSelect('')}
                         >
                           <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 flex items-center justify-center">
@@ -327,11 +369,10 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         {designs.map((design) => (
                           <div
                             key={design.id}
-                            className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${
-                              formData.design_id === design.id
+                            className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${formData.design_id === design.id
                                 ? 'border-blue-500 bg-blue-50'
                                 : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                              }`}
                             onClick={() => handleDesignSelect(design.id)}
                           >
                             <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
@@ -369,6 +410,25 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                 {/* Text Overlay Styling */}
                 <div className="bg-white rounded-lg shadow-sm border p-8">
                   <h2 className="text-xl font-bold text-gray-900 mb-6">Text Overlay Styling</h2>
+
+                  <div className="mb-6">
+                    <label htmlFor="text_font_family" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Font Family
+                    </label>
+                    <select
+                      id="text_font_family"
+                      name="text_font_family"
+                      value={formData.text_font_family}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="inter">Inter (Clean & Modern)</option>
+                      <option value="playfair">Playfair Display (Elegant Serif)</option>
+                      <option value="lora">Lora (Classic Serif)</option>
+                      <option value="pacifico">Pacifico (Playful Script)</option>
+                      <option value="oswald">Oswald (Strong Sans)</option>
+                    </select>
+                  </div>
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>

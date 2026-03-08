@@ -22,10 +22,14 @@ function rowToInvitation(row: Record<string, unknown>): Invitation {
     share_token: row.share_token as string,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
+    hide_title: row.hide_title as boolean | undefined,
+    hide_description: row.hide_description as boolean | undefined,
+    organizer_notes: row.organizer_notes as string | undefined,
+    text_font_family: row.text_font_family as 'inter' | 'playfair' | 'lora' | 'pacifico' | 'oswald' | undefined,
     // Text overlay styling options
     text_overlay_style: row.text_overlay_style as 'light' | 'dark' | 'vibrant' | 'muted' | 'elegant' | 'bold' | undefined,
     text_position: row.text_position as 'center' | 'top' | 'bottom' | 'left' | 'right' | undefined,
-    text_size: row.text_size as 'small' | 'medium' | 'large' | 'extra-large' | undefined,
+    text_size: row.text_size as 'extra-small' | 'small' | 'medium' | 'large' | 'extra-large' | undefined,
     text_shadow: row.text_shadow as boolean | undefined,
     text_background: row.text_background as boolean | undefined,
     text_background_opacity: row.text_background_opacity as number | undefined,
@@ -114,15 +118,7 @@ function rowToRSVP(row: Record<string, unknown>): RSVP {
 }
 
 // Reusable query fragments
-const INVITATION_BASE_SELECT = `
-  *,
-  text_overlay_style,
-  text_position,
-  text_size,
-  text_shadow,
-  text_background,
-  text_background_opacity
-`;
+const INVITATION_BASE_SELECT = `*`;
 
 // Removed unused select constants - using INVITATION_FULL_SELECT instead
 
@@ -200,6 +196,10 @@ export const supabaseDb = {
         location: invitation.location,
         design_id: invitation.design_id,
         share_token: invitation.share_token,
+        hide_title: invitation.hide_title ?? false,
+        hide_description: invitation.hide_description ?? false,
+        organizer_notes: invitation.organizer_notes,
+        text_font_family: invitation.text_font_family || 'inter',
         text_overlay_style: invitation.text_overlay_style || 'light',
         text_position: invitation.text_position || 'center',
         text_size: invitation.text_size || 'large',
@@ -229,6 +229,10 @@ export const supabaseDb = {
         event_time: updates.event_time,
         location: updates.location,
         design_id: updates.design_id,
+        hide_title: updates.hide_title,
+        hide_description: updates.hide_description,
+        organizer_notes: updates.organizer_notes,
+        text_font_family: updates.text_font_family,
         text_overlay_style: updates.text_overlay_style,
         text_position: updates.text_position,
         text_size: updates.text_size,
