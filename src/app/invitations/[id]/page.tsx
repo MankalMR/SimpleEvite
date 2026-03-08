@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/protected-route';
 import { formatDisplayDate } from '@/lib/date-utils';
 import { getRSVPStats } from '@/lib/rsvp-utils';
-import { copyInviteLink } from '@/lib/clipboard-utils';
 import { useInvitations } from '@/hooks/useInvitations';
 import { InvitationDisplay } from '@/components/invitation-display';
 import { getInvitationDesign } from '@/lib/invitation-utils';
@@ -14,6 +13,7 @@ import { getInvitationDesign } from '@/lib/invitation-utils';
 export default function InvitationView() {
   const params = useParams();
   const id = params.id as string;
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const {
     invitation,
@@ -30,7 +30,11 @@ export default function InvitationView() {
 
   const handleCopyInviteLink = () => {
     if (!invitation) return;
-    copyInviteLink(invitation.share_token);
+    const url = `${window.location.origin}/invite/${invitation.share_token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    });
   };
 
   const deleteRSVP = async (rsvpId: string) => {
@@ -150,9 +154,14 @@ export default function InvitationView() {
                 {/* Primary actions - most important first on mobile */}
                 <button
                   onClick={handleCopyInviteLink}
-                  className="bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors text-center"
+                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center ${
+                    copySuccess
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                  aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
                 >
-                  Copy Invite Link
+                  {copySuccess ? 'Copied!' : 'Copy Invite Link'}
                 </button>
 
                 <div className="flex gap-2">
@@ -375,9 +384,14 @@ export default function InvitationView() {
             </p>
             <button
               onClick={handleCopyInviteLink}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 ${
+                  copySuccess
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+                aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
             >
-              Copy Invite Link
+                {copySuccess ? 'Copied!' : 'Copy Invite Link'}
             </button>
           </div>
         )}

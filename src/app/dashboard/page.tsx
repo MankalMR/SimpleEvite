@@ -1,16 +1,17 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { formatShortDate, isDateInPast } from '@/lib/date-utils';
 import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-utils';
-import { copyInviteLink } from '@/lib/clipboard-utils';
 import { useInvitations } from '@/hooks/useInvitations';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 
 export default function Dashboard() {
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
+
   const {
     invitations,
     loading,
@@ -29,6 +30,14 @@ export default function Dashboard() {
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to delete invitation');
     }
+  };
+
+  const handleCopyLink = (shareToken: string) => {
+    const url = `${window.location.origin}/invite/${shareToken}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopySuccess(shareToken);
+      setTimeout(() => setCopySuccess(null), 2000);
+    });
   };
 
   // Global stats across all invitations
@@ -173,10 +182,15 @@ export default function Dashboard() {
 
                     <div className="flex gap-2">
                       <button
-                        onClick={() => copyInviteLink(invitation.share_token)}
-                        className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors"
+                        onClick={() => handleCopyLink(invitation.share_token)}
+                        className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                          copySuccess === invitation.share_token
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                        aria-label={copySuccess === invitation.share_token ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
                       >
-                        Copy Link
+                        {copySuccess === invitation.share_token ? 'Copied!' : 'Copy Link'}
                       </button>
                       <Link
                         href={`/invitations/${invitation.id}`}
