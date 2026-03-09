@@ -107,12 +107,12 @@ export function validateInvitationData(data: Record<string, unknown>) {
       title: sanitizeText(data.title as string),
       description: sanitizeText((data.description as string) || ''),
       location: sanitizeText((data.location as string) || ''),
-      event_date: data.event_date,
-      event_time: data.event_time,
+      event_date: data.event_date as string,
+      event_time: (data.event_time as string) || '',
       hide_title: !!data.hide_title,
       hide_description: !!data.hide_description,
       organizer_notes: data.organizer_notes ? sanitizeText(data.organizer_notes as string) : undefined,
-      text_font_family: validFonts.includes(data.text_font_family as string) ? data.text_font_family : 'inter',
+      text_font_family: validFonts.includes(data.text_font_family as string) ? data.text_font_family as 'inter' | 'playfair' | 'lora' | 'pacifico' | 'oswald' : 'inter',
     },
   };
 }
