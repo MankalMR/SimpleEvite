@@ -10,6 +10,7 @@ import { usePublicInvitation } from '@/hooks/usePublicInvitation';
 import { getInvitationDesign } from '@/lib/invitation-utils';
 import { generateStructuredData } from '@/lib/seo';
 import Script from 'next/script';
+import { Spinner } from '@/components/spinner';
 
 export default function PublicInvite() {
   const params = useParams();
@@ -367,8 +368,9 @@ export default function PublicInvite() {
                   <button
                     type="submit"
                     disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                   >
+                    {rsvpLoading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
                     {rsvpLoading ? 'Submitting...' : 'Submit RSVP'}
                   </button>
                 </div>
