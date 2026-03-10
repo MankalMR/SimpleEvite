@@ -1,0 +1,1 @@
+## 2025-03-10 - Missing Auth in Admin Template Routes | **Learning:** API routes utilizing supabaseAdmin bypass RLS and must have manual getServerSession checks for mutation endpoints to prevent unauthenticated access. | **Prevention:** Always verify getServerSession in POST/PUT/DELETE handlers when using supabaseAdmin for database interactions.
