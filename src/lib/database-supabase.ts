@@ -338,6 +338,17 @@ export const supabaseDb = {
   },
 
   // Get RSVPs for an invitation
+    // Check if an invitation exists by ID
+  async checkInvitationExists(id: string): Promise<boolean> {
+    const { data, error } = await supabaseAdmin
+      .from('invitations')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    return !error && !!data;
+  },
+
   async getRSVPs(invitationId: string): Promise<RSVP[]> {
     const { data, error } = await supabaseAdmin
       .from('rsvps')
@@ -361,6 +372,9 @@ export const supabaseDb = {
         name: rsvp.name,
         response: rsvp.response,
         comment: rsvp.comment,
+        email: rsvp.email,
+        notification_preferences: rsvp.notification_preferences,
+        reminder_status: rsvp.reminder_status,
       })
       .select()
       .single();
