@@ -124,7 +124,7 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
         <div className="text-red-600 mb-4">{error}</div>
         <button
           onClick={fetchAllTemplates}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Try Again
         </button>
@@ -180,7 +180,7 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
               setSelectedOccasion('');
               setSelectedTheme('');
             }}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
           >
             Clear Filters
           </button>
