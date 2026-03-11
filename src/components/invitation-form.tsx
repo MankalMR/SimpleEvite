@@ -185,7 +185,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                 </h1>
                 <button
                   onClick={onCancel}
-                  className="text-gray-600 hover:text-gray-800 transition-colors"
+                  className="text-gray-600 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 rounded px-2 py-1"
                 >
                   Cancel
                 </button>
@@ -325,7 +325,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         <button
                           type="button"
                           onClick={() => setDesignTab('template')}
-                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${designTab === 'template'
+                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${designTab === 'template'
                             ? 'border-blue-500 text-blue-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
@@ -335,7 +335,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         <button
                           type="button"
                           onClick={() => setDesignTab('custom')}
-                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${designTab === 'custom'
+                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${designTab === 'custom'
                             ? 'border-blue-500 text-blue-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
@@ -410,7 +410,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                           <button
                             type="button"
                             onClick={() => router.push('/designs')}
-                            className="text-blue-600 hover:text-blue-700 font-medium"
+                            className="text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-1"
                           >
                             Upload your first design →
                           </button>
@@ -541,7 +541,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         step="0.1"
                         value={formData.text_background_opacity}
                         onChange={(e) => setFormData({ ...formData, text_background_opacity: parseFloat(e.target.value) })}
-                        className="w-full"
+                        className="w-full focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                       />
                     </div>
                   )}
@@ -554,14 +554,14 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                     <button
                       type="button"
                     onClick={onCancel}
-                    className="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                   >
                     Cancel
                   </button>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                       {loading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
                       {loading ? `${mode === 'create' ? 'Creating' : 'Updating'}...` : `${mode === 'create' ? 'Create' : 'Update'} Invitation`}
