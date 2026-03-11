@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { supabaseAdmin } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
+import { validateInvitationData } from '@/lib/security';
 
 // GET /api/invitations - Get user's invitations
 export async function GET() {
@@ -49,12 +50,29 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    // Validate and sanitize request body
+    const validation = validateInvitationData(body);
+    if (!validation.isValid) {
+      return NextResponse.json({
+        error: 'Invalid input',
+        details: validation.errors
+      }, { status: 400 });
+    }
+
     const {
       title,
       description,
       event_date,
       event_time,
       location,
+      hide_title,
+      hide_description,
+      organizer_notes,
+      text_font_family
+    } = validation.sanitizedData!;
+
+    const {
       design_id,
       text_overlay_style,
       text_position,
@@ -62,16 +80,7 @@ export async function POST(request: NextRequest) {
       text_shadow,
       text_background,
       text_background_opacity,
-      hide_title,
-      hide_description,
-      organizer_notes,
-      text_font_family
     } = body;
-
-    // Validate required fields
-    if (!title || !event_date) {
-      return NextResponse.json({ error: 'Title and event date are required' }, { status: 400 });
-    }
 
     // Get user from database
     const { data: userData, error: userError } = await supabaseAdmin
