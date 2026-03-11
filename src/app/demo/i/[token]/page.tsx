@@ -10,6 +10,7 @@ import { getInvitationDesign } from '@/lib/invitation-utils';
 import { DemoBanner } from '@/components/DemoBanner';
 import { Spinner } from '@/components/spinner';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
+import { InlineError } from '@/components/inline-error';
 
 export default function DemoPublicInvite() {
     const params = useParams();
@@ -23,6 +24,7 @@ export default function DemoPublicInvite() {
     const [showRSVPForm, setShowRSVPForm] = useState(false);
     const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [submissionError, setSubmissionError] = useState<string | null>(null);
     const [rsvpData, setRsvpData] = useState<{
         name: string;
         response: 'yes' | 'no' | 'maybe' | '';
@@ -80,6 +82,7 @@ export default function DemoPublicInvite() {
 
     const handleRSVPSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmissionError(null);
         if (!invitation || !sessionId || !rsvpData.response) return;
 
         const validation = validateRSVPForm(rsvpData);
@@ -91,7 +94,7 @@ export default function DemoPublicInvite() {
         setRsvpLoading(true);
         setFormErrors({});
         try {
-            await fetch('/api/demo/rsvp', {
+            const res = await fetch('/api/demo/rsvp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,13 +108,17 @@ export default function DemoPublicInvite() {
                 }),
             });
 
+            if (!res.ok) {
+                throw new Error('Failed to submit RSVP');
+            }
+
             setRsvpSubmitted(true);
             setShowRSVPForm(false);
             setRsvpData({ name: '', response: '', comment: '' });
             // Refresh to see new RSVP
             fetchInvitation();
         } catch {
-            alert('Failed to submit RSVP');
+            setSubmissionError('Failed to submit RSVP');
         } finally {
             setRsvpLoading(false);
         }
@@ -312,6 +319,7 @@ export default function DemoPublicInvite() {
                                     />
                                 </div>
 
+                                <InlineError error={submissionError} className="mb-4" />
                                 <div className="flex gap-3">
                                     <button
                                         type="button"

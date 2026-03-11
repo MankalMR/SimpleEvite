@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useDesigns } from '@/hooks/useDesigns';
+import { InlineError } from '@/components/inline-error';
 
 export default function MyDesigns() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const {
     designs,
@@ -22,18 +24,19 @@ export default function MyDesigns() {
   }, [fetchDesigns]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setActionError(null);
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      setActionError('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      setActionError('File size must be less than 5MB');
       return;
     }
 
@@ -47,7 +50,7 @@ export default function MyDesigns() {
       }
     } catch (error) {
       console.error('Upload design error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to upload design');
+      setActionError(error instanceof Error ? error.message : 'Failed to upload design');
     }
   };
 
@@ -55,11 +58,12 @@ export default function MyDesigns() {
   // Users can delete and re-upload designs if needed
 
   const handleDeleteDesign = async (id: string) => {
+    setActionError(null);
     try {
       await deleteDesign(id);
     } catch (error) {
       console.error('Delete design error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete design');
+      setActionError(error instanceof Error ? error.message : 'Failed to delete design');
     }
   };
 
@@ -87,7 +91,7 @@ export default function MyDesigns() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">My Designs</h1>
             <p className="text-gray-700 font-medium">
@@ -111,6 +115,8 @@ export default function MyDesigns() {
             </button>
           </div>
         </div>
+
+        <InlineError error={actionError} onDismiss={() => setActionError(null)} />
 
         {designs.length === 0 ? (
           <div className="text-center py-12">
