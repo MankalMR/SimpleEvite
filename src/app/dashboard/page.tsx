@@ -81,7 +81,7 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <Link
               href="/create"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
             >
               Create New Invite
             </Link>
@@ -126,7 +126,7 @@ export default function Dashboard() {
               <p className="text-gray-800 mb-6 font-medium">Get started by creating your first event invitation.</p>
               <Link
                 href="/create"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
               >
                 Create Your First Invite
               </Link>
@@ -183,7 +183,7 @@ export default function Dashboard() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleCopyLink(invitation.share_token)}
-                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${copySuccess === invitation.share_token
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${copySuccess === invitation.share_token
                               ? 'bg-green-600 text-white hover:bg-green-700'
                               : 'bg-blue-600 text-white hover:bg-blue-700'
                             }`}
@@ -193,7 +193,7 @@ export default function Dashboard() {
                         </button>
                         <Link
                           href={`/invitations/${invitation.id}`}
-                          className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors"
+                          className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                         >
                           View
                         </Link>
