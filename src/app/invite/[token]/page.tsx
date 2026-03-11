@@ -261,7 +261,7 @@ export default function PublicInvite() {
                         key={response}
                         type="button"
                         onClick={() => setRsvpData({ ...rsvpData, response })}
-                        className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${rsvpData.response === response
+                        className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${rsvpData.response === response
                             ? response === 'yes'
                               ? 'border-green-500 bg-green-50 text-green-700'
                               : response === 'no'
@@ -361,7 +361,7 @@ export default function PublicInvite() {
                   <button
                     type="button"
                     onClick={() => setShowRSVPForm(false)}
-                    className="flex-1 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                    className="flex-1 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                   >
                     Cancel
                   </button>
