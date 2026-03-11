@@ -12,6 +12,7 @@ import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 
 export default function Dashboard() {
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const {
     invitations,
@@ -26,10 +27,11 @@ export default function Dashboard() {
   }, [fetchInvitations]);
 
   const handleDeleteInvitation = async (id: string) => {
+    setActionError(null);
     try {
       await deleteInvitation(id);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete invitation');
+      setActionError(err instanceof Error ? err.message : 'Failed to delete invitation');
     }
   };
 
@@ -88,8 +90,17 @@ export default function Dashboard() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6" role="alert">
               {error}
+            </div>
+          )}
+
+          {actionError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 flex justify-between items-center" role="alert">
+              <span>{actionError}</span>
+              <button onClick={() => setActionError(null)} className="text-red-700 hover:text-red-900 focus:outline-none" aria-label="Close error message">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
             </div>
           )}
 

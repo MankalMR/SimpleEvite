@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useDesigns } from '@/hooks/useDesigns';
 
 export default function MyDesigns() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const {
     designs,
@@ -22,18 +23,19 @@ export default function MyDesigns() {
   }, [fetchDesigns]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setActionError(null);
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      setActionError('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      setActionError('File size must be less than 5MB');
       return;
     }
 
@@ -47,7 +49,7 @@ export default function MyDesigns() {
       }
     } catch (error) {
       console.error('Upload design error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to upload design');
+      setActionError(error instanceof Error ? error.message : 'Failed to upload design');
     }
   };
 
@@ -55,11 +57,12 @@ export default function MyDesigns() {
   // Users can delete and re-upload designs if needed
 
   const handleDeleteDesign = async (id: string) => {
+    setActionError(null);
     try {
       await deleteDesign(id);
     } catch (error) {
       console.error('Delete design error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete design');
+      setActionError(error instanceof Error ? error.message : 'Failed to delete design');
     }
   };
 
@@ -87,7 +90,7 @@ export default function MyDesigns() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">My Designs</h1>
             <p className="text-gray-700 font-medium">
@@ -111,6 +114,15 @@ export default function MyDesigns() {
             </button>
           </div>
         </div>
+
+        {actionError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 flex justify-between items-center" role="alert">
+            <span>{actionError}</span>
+            <button onClick={() => setActionError(null)} className="text-red-700 hover:text-red-900 focus:outline-none" aria-label="Close error message">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        )}
 
         {designs.length === 0 ? (
           <div className="text-center py-12">

@@ -47,6 +47,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     text_font_family: 'inter',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const {
     designs,
@@ -106,6 +107,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmissionError(null);
 
     // Validate form
     const validation = validateInvitationForm(formData, mode);
@@ -120,7 +122,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
       await onSubmit(formattedData);
     } catch (error) {
       console.error(`${mode} invitation error:`, error);
-      alert(error instanceof Error ? error.message : `Failed to ${mode} invitation`);
+      setSubmissionError(error instanceof Error ? error.message : `Failed to ${mode} invitation`);
     }
   };
 
@@ -545,22 +547,29 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-end">
-                  <button
-                    type="button"
+                <div className="flex flex-col gap-4">
+                  {submissionError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-2" role="alert">
+                      {submissionError}
+                    </div>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                    <button
+                      type="button"
                     onClick={onCancel}
                     className="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                  >
-                    {loading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
-                    {loading ? `${mode === 'create' ? 'Creating' : 'Updating'}...` : `${mode === 'create' ? 'Create' : 'Update'} Invitation`}
-                  </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                    >
+                      {loading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
+                      {loading ? `${mode === 'create' ? 'Creating' : 'Updating'}...` : `${mode === 'create' ? 'Create' : 'Update'} Invitation`}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

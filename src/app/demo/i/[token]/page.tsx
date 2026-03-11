@@ -23,6 +23,7 @@ export default function DemoPublicInvite() {
     const [showRSVPForm, setShowRSVPForm] = useState(false);
     const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [submissionError, setSubmissionError] = useState<string | null>(null);
     const [rsvpData, setRsvpData] = useState<{
         name: string;
         response: 'yes' | 'no' | 'maybe' | '';
@@ -80,6 +81,7 @@ export default function DemoPublicInvite() {
 
     const handleRSVPSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmissionError(null);
         if (!invitation || !sessionId || !rsvpData.response) return;
 
         const validation = validateRSVPForm(rsvpData);
@@ -91,7 +93,7 @@ export default function DemoPublicInvite() {
         setRsvpLoading(true);
         setFormErrors({});
         try {
-            await fetch('/api/demo/rsvp', {
+            const res = await fetch('/api/demo/rsvp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,13 +107,17 @@ export default function DemoPublicInvite() {
                 }),
             });
 
+            if (!res.ok) {
+                throw new Error('Failed to submit RSVP');
+            }
+
             setRsvpSubmitted(true);
             setShowRSVPForm(false);
             setRsvpData({ name: '', response: '', comment: '' });
             // Refresh to see new RSVP
             fetchInvitation();
         } catch {
-            alert('Failed to submit RSVP');
+            setSubmissionError('Failed to submit RSVP');
         } finally {
             setRsvpLoading(false);
         }
@@ -312,6 +318,11 @@ export default function DemoPublicInvite() {
                                     />
                                 </div>
 
+                                {submissionError && (
+                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-4" role="alert">
+                                        {submissionError}
+                                    </div>
+                                )}
                                 <div className="flex gap-3">
                                     <button
                                         type="button"

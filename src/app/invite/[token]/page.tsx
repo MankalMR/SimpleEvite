@@ -28,6 +28,7 @@ export default function PublicInvite() {
   const [showRSVPForm, setShowRSVPForm] = useState(false);
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [rsvpData, setRsvpData] = useState<{
     name: string;
     response: 'yes' | 'no' | 'maybe' | '';
@@ -50,6 +51,7 @@ export default function PublicInvite() {
 
   const handleRSVPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmissionError(null);
 
     // Validate form
     const validation = validateRSVPForm(rsvpData);
@@ -78,7 +80,7 @@ export default function PublicInvite() {
       setRsvpData({ name: '', response: '', comment: '', email: '', emailNotifications: true });
     } catch (error) {
       console.error('RSVP submission error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to submit RSVP');
+      setSubmissionError(error instanceof Error ? error.message : 'Failed to submit RSVP');
     }
   };
 
@@ -357,6 +359,11 @@ export default function PublicInvite() {
                   </div>
                 )}
 
+                {submissionError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-4" role="alert">
+                    {submissionError}
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <button
                     type="button"
