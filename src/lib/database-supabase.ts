@@ -36,6 +36,34 @@ function rowToInvitation(row: Record<string, unknown>): Invitation {
   };
 }
 
+
+// ⚡ Bolt: Synchronous mapper that uses pre-fetched designs and templates to avoid N+1 queries
+function rowToInvitationWithRSVPsSync(
+  row: Record<string, unknown>,
+  designsMap: Map<string, Design>,
+  templatesMap: Map<string, DefaultTemplate>
+): InvitationWithRSVPs {
+  const invitation = rowToInvitation(row);
+  const result: InvitationWithRSVPs = {
+    ...invitation,
+    rsvps: (row.rsvps as Record<string, unknown>[])?.map(rowToRSVP) || [],
+  };
+
+  if (invitation.design_id) {
+    const design = designsMap.get(invitation.design_id);
+    if (design) {
+      result.designs = design;
+    } else {
+      const template = templatesMap.get(invitation.design_id);
+      if (template) {
+        result.default_templates = template;
+      }
+    }
+  }
+
+  return result;
+}
+
 // Helper function to convert Supabase row with nested RSVPs and Designs to Invitation
 async function rowToInvitationWithRSVPs(row: Record<string, unknown>): Promise<InvitationWithRSVPs> {
   const invitation = rowToInvitation(row);
@@ -134,7 +162,7 @@ const INVITATION_FULL_SELECT = `
 `;
 
 export const supabaseDb = {
-  // Get all invitations for a user with RSVP data and designs
+  // ⚡ Bolt: Optimized getInvitations to use O(1) bulk queries instead of O(N) queries for designs/templates
   async getInvitations(userId: string): Promise<InvitationWithRSVPs[]> {
     const { data, error } = await supabaseAdmin
       .from('invitations')
@@ -143,7 +171,34 @@ export const supabaseDb = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return Promise.all(data.map(rowToInvitationWithRSVPs));
+    if (!data || data.length === 0) return [];
+
+    // Extract unique design IDs
+    const designIds = [...new Set(data
+      .map(row => row.design_id as string | undefined)
+      .filter((id): id is string => Boolean(id))
+    )];
+
+    const designsMap = new Map<string, Design>();
+    const templatesMap = new Map<string, DefaultTemplate>();
+
+    if (designIds.length > 0) {
+      // Bulk fetch designs and templates in parallel
+      const [designsResult, templatesResult] = await Promise.all([
+        supabaseAdmin.from('designs').select('*').in('id', designIds),
+        supabaseAdmin.from('default_templates').select('*').in('id', designIds)
+      ]);
+
+      if (designsResult.data) {
+        designsResult.data.forEach(d => designsMap.set(d.id, rowToDesign(d)));
+      }
+
+      if (templatesResult.data) {
+        templatesResult.data.forEach(t => templatesMap.set(t.id, rowToDefaultTemplate(t)));
+      }
+    }
+
+    return data.map(row => rowToInvitationWithRSVPsSync(row, designsMap, templatesMap));
   },
 
   // Get a single invitation by ID with RSVP data and designs (for owner)
