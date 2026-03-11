@@ -4,11 +4,13 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: [
-    '**/__tests__/**/*.test.ts',
-    '**/?(*.)+(spec|test).ts'
+    '**/__tests__/**/*.test.(ts|tsx)',
+    '**/?(*.)+(spec|test).(ts|tsx)'
   ],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      tsconfig: 'tsconfig.jest.json'
+    }],
   },
   collectCoverageFrom: [
     'src/lib/**/*.ts',

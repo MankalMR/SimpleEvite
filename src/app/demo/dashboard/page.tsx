@@ -9,12 +9,14 @@ import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
+import { InlineError } from '@/components/inline-error';
 
 export default function DemoDashboard() {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [invitations, setInvitations] = useState<InvitationWithRSVPs[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
     // Initialize session
@@ -65,6 +67,7 @@ export default function DemoDashboard() {
 
     const handleDeleteInvitation = async (id: string) => {
         if (!sessionId) return;
+        setActionError(null);
 
         try {
             await fetch(`/api/demo/invitations/${id}`, {
@@ -73,7 +76,7 @@ export default function DemoDashboard() {
             });
             setInvitations(prev => prev.filter(i => i.id !== id));
         } catch {
-            alert('Failed to delete invitation');
+            setActionError('Failed to delete invitation');
         }
     };
 
@@ -144,11 +147,8 @@ export default function DemoDashboard() {
                         </Link>
                     </div>
 
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-                            {error}
-                        </div>
-                    )}
+                    <InlineError error={error} />
+                    <InlineError error={actionError} onDismiss={() => setActionError(null)} />
 
                     <div className="mb-8">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

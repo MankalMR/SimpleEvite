@@ -16,7 +16,15 @@ export async function GET(
       return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ invitation });
+    // ⚡ Bolt: Added Cache-Control to reduce DB load and improve TTFB for public invites
+    return NextResponse.json(
+      { invitation },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error in GET /api/invite/[token]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

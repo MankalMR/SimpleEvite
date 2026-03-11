@@ -11,6 +11,7 @@ import { getInvitationDesign } from '@/lib/invitation-utils';
 import { generateStructuredData } from '@/lib/seo';
 import Script from 'next/script';
 import { Spinner } from '@/components/spinner';
+import { InlineError } from '@/components/inline-error';
 
 export default function PublicInvite() {
   const params = useParams();
@@ -28,6 +29,7 @@ export default function PublicInvite() {
   const [showRSVPForm, setShowRSVPForm] = useState(false);
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [rsvpData, setRsvpData] = useState<{
     name: string;
     response: 'yes' | 'no' | 'maybe' | '';
@@ -50,6 +52,7 @@ export default function PublicInvite() {
 
   const handleRSVPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmissionError(null);
 
     // Validate form
     const validation = validateRSVPForm(rsvpData);
@@ -78,7 +81,7 @@ export default function PublicInvite() {
       setRsvpData({ name: '', response: '', comment: '', email: '', emailNotifications: true });
     } catch (error) {
       console.error('RSVP submission error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to submit RSVP');
+      setSubmissionError(error instanceof Error ? error.message : 'Failed to submit RSVP');
     }
   };
 
@@ -357,6 +360,7 @@ export default function PublicInvite() {
                   </div>
                 )}
 
+                <InlineError error={submissionError} className="mb-4" />
                 <div className="flex gap-3">
                   <button
                     type="button"

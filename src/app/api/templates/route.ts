@@ -2,8 +2,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 
 // GET /api/templates - Get all active templates with optional filtering
 export async function GET(request: NextRequest) {

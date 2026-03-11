@@ -9,9 +9,11 @@ import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-
 import { useInvitations } from '@/hooks/useInvitations';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
+import { InlineError } from '@/components/inline-error';
 
 export default function Dashboard() {
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const {
     invitations,
@@ -26,10 +28,11 @@ export default function Dashboard() {
   }, [fetchInvitations]);
 
   const handleDeleteInvitation = async (id: string) => {
+    setActionError(null);
     try {
       await deleteInvitation(id);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete invitation');
+      setActionError(err instanceof Error ? err.message : 'Failed to delete invitation');
     }
   };
 
@@ -87,11 +90,8 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-              {error}
-            </div>
-          )}
+          <InlineError error={error} />
+          <InlineError error={actionError} onDismiss={() => setActionError(null)} />
 
           <div className="mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
