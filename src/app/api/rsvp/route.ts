@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
 import { withSecurity, validateRequestBody, addSecurityHeaders, RATE_LIMIT_PRESETS, logSecurityEvent } from '@/lib/api-security';
 import { validateRSVPData } from '@/lib/security';
 
@@ -37,13 +37,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if invitation exists
-        const { data: invitation, error: invitationError } = await supabase
-          .from('invitations')
-          .select('id')
-          .eq('id', invitation_id)
-          .single();
+        const invitationExists = await supabaseDb.checkInvitationExists(invitation_id);
 
-        if (invitationError || !invitation) {
+        if (!invitationExists) {
           return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
         }
 
@@ -64,28 +60,30 @@ export async function POST(request: NextRequest) {
           : { email: true };
 
         // Create RSVP with sanitized data
-        const { data: rsvp, error } = await supabase
-          .from('rsvps')
-          .insert({
+        let rsvp;
+        let createError;
+        try {
+          rsvp = await supabaseDb.createRSVP({
             invitation_id,
             name,
-            response,
-            comment: comment || null,
-            email: sanitizedEmail || null,
+            response: response as 'yes' | 'no' | 'maybe',
+            comment: comment || undefined,
+            email: sanitizedEmail || undefined,
             notification_preferences: sanitizedNotificationPrefs,
             reminder_status: sanitizedEmail && response === 'yes' && sanitizedNotificationPrefs.email ? 'pending' : 'skipped',
-          })
-          .select()
-          .single();
+          }, invitation_id);
+        } catch (e) {
+          createError = e;
+        }
 
-        if (error) {
-          console.error('Error creating RSVP:', error);
+        if (createError) {
+          console.error('Error creating RSVP:', createError);
           const clientIP = req.headers.get('x-forwarded-for') ||
                           req.headers.get('x-real-ip') ||
                           'unknown';
           logSecurityEvent('rsvp_creation_failed', {
             invitation_id,
-            error: error.message,
+            error: createError instanceof Error ? createError.message : String(createError),
             ip: clientIP,
           });
           return NextResponse.json({ error: 'Failed to create RSVP' }, { status: 500 });
