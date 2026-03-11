@@ -9,6 +9,7 @@ import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-
 import { useInvitations } from '@/hooks/useInvitations';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
+import { InlineError } from '@/components/inline-error';
 
 export default function Dashboard() {
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -89,20 +90,8 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6" role="alert">
-              {error}
-            </div>
-          )}
-
-          {actionError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 flex justify-between items-center" role="alert">
-              <span>{actionError}</span>
-              <button onClick={() => setActionError(null)} className="text-red-700 hover:text-red-900 focus:outline-none" aria-label="Close error message">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-          )}
+          <InlineError error={error} />
+          <InlineError error={actionError} onDismiss={() => setActionError(null)} />
 
           <div className="mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

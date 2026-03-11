@@ -11,6 +11,7 @@ import { getInvitationDesign } from '@/lib/invitation-utils';
 import { generateStructuredData } from '@/lib/seo';
 import Script from 'next/script';
 import { Spinner } from '@/components/spinner';
+import { InlineError } from '@/components/inline-error';
 
 export default function PublicInvite() {
   const params = useParams();
@@ -359,11 +360,7 @@ export default function PublicInvite() {
                   </div>
                 )}
 
-                {submissionError && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-4" role="alert">
-                    {submissionError}
-                  </div>
-                )}
+                <InlineError error={submissionError} className="mb-4" />
                 <div className="flex gap-3">
                   <button
                     type="button"

@@ -11,6 +11,7 @@ import { useDesigns } from '@/hooks/useDesigns';
 import { TemplateSelector } from '@/components/template-selector';
 import { DefaultTemplate, Invitation } from '@/lib/supabase';
 import { Spinner } from '@/components/spinner';
+import { InlineError } from '@/components/inline-error';
 
 
 interface InvitationFormProps {
@@ -548,11 +549,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
 
                 {/* Form Actions */}
                 <div className="flex flex-col gap-4">
-                  {submissionError && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-2" role="alert">
-                      {submissionError}
-                    </div>
-                  )}
+                  <InlineError error={submissionError} className="mb-2" />
                   <div className="flex flex-col sm:flex-row gap-4 justify-end">
                     <button
                       type="button"
