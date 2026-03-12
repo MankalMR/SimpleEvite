@@ -280,12 +280,14 @@ export default function DemoPublicInvite() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-900 mb-3">Will you attend? *</label>
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <label id="rsvp-attend-label" className="block text-sm font-semibold text-gray-900 mb-3">Will you attend? *</label>
+                                    <div role="radiogroup" aria-labelledby="rsvp-attend-label" className="grid grid-cols-3 gap-3">
                                         {(['yes', 'no', 'maybe'] as const).map((response) => (
                                             <button
                                                 key={response}
                                                 type="button"
+                                                role="radio"
+                                                aria-checked={rsvpData.response === response}
                                                 onClick={() => setRsvpData({ ...rsvpData, response })}
                                                 className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${rsvpData.response === response
                                                     ? response === 'yes'
