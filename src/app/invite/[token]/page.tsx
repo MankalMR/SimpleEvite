@@ -9,6 +9,7 @@ import { validateRSVPForm } from '@/lib/form-utils';
 import { usePublicInvitation } from '@/hooks/usePublicInvitation';
 import { getInvitationDesign } from '@/lib/invitation-utils';
 import { generateStructuredData } from '@/lib/seo';
+import { serializeJsonLd } from '@/lib/security';
 import Script from 'next/script';
 import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
@@ -139,7 +140,7 @@ export default function PublicInvite() {
           id="structured-data"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateStructuredData(invitation)),
+            __html: serializeJsonLd(generateStructuredData(invitation)),
           }}
         />
       )}
