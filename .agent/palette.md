@@ -2,3 +2,7 @@
 ## 2024-05-19 - Standardized Interactive Element Focus States
 **Learning:** This Next.js app's existing utility buttons ("Copy Link", "Edit", "Preview", etc.) had hover states but frequently lacked visible keyboard focus states (`focus:ring`), making keyboard navigation difficult for users with accessibility needs.
 **Action:** Added `focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1` across dashboard buttons, invitation preview buttons, and RSVP selection buttons. Moving forward, ensure all custom interactive elements in this app use these ring utility classes by default.
+
+## 2026-03-12 - Custom Radio Button Group Accessibility
+**Learning:** Custom interactive elements that function as radio buttons (like the mutually exclusive RSVP selection: Yes/No/Maybe) often lack inherent semantic meaning, presenting them simply as disconnected buttons to screen readers. This breaks expectations for how users navigate choices.
+**Action:** When building custom single-choice selections, always group them semantically. Apply `role="radiogroup"` to the container with `aria-labelledby` pointing to the group's label. Apply `role="radio"` and the appropriate `aria-checked` boolean state to each individual button. This correctly communicates the grouping and active state to assistive technologies.
