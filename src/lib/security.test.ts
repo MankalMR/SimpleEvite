@@ -12,7 +12,8 @@ import {
   containsDangerousContent,
   escapeHTML,
   checkRateLimit,
-  cleanupRateLimitStore
+  cleanupRateLimitStore,
+  serializeJsonLd
 } from './security';
 
 describe('security', () => {
