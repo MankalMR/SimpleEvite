@@ -143,7 +143,48 @@ export const supabaseDb = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return Promise.all(data.map(rowToInvitationWithRSVPs));
+
+    if (!data || data.length === 0) return [];
+
+    // ⚡ Bolt: Fix N+1 queries. O(1) bulk fetch instead of sequential O(N) calls per row.
+    const uniqueDesignIds = [...new Set(data.map(row => row.design_id).filter(Boolean))] as string[];
+
+    const designsMap = new Map<string, Design>();
+    const templatesMap = new Map<string, DefaultTemplate>();
+
+    if (uniqueDesignIds.length > 0) {
+      // Fetch matching custom designs and default templates in parallel
+      const [designsRes, templatesRes] = await Promise.all([
+        supabaseAdmin.from('designs').select('*').in('id', uniqueDesignIds),
+        supabaseAdmin.from('default_templates').select('*').in('id', uniqueDesignIds)
+      ]);
+
+      if (!designsRes.error && designsRes.data) {
+        designsRes.data.forEach(d => designsMap.set(d.id, rowToDesign(d)));
+      }
+      if (!templatesRes.error && templatesRes.data) {
+        templatesRes.data.forEach(t => templatesMap.set(t.id, rowToDefaultTemplate(t)));
+      }
+    }
+
+    // Synchronously construct the final array
+    return data.map(row => {
+      const invitation = rowToInvitation(row);
+      const result: InvitationWithRSVPs = {
+        ...invitation,
+        rsvps: (row.rsvps as Record<string, unknown>[])?.map(rowToRSVP) || [],
+      };
+
+      if (invitation.design_id) {
+        if (designsMap.has(invitation.design_id)) {
+          result.designs = designsMap.get(invitation.design_id);
+        } else if (templatesMap.has(invitation.design_id)) {
+          result.default_templates = templatesMap.get(invitation.design_id);
+        }
+      }
+
+      return result;
+    });
   },
 
   // Get a single invitation by ID with RSVP data and designs (for owner)
