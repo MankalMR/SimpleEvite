@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { supabaseAdmin } from '@/lib/supabase';
+import { validateInvitationData } from '@/lib/security';
 
 // GET /api/invitations/[id] - Get invitation by ID (for owner)
 export async function GET(
@@ -57,12 +58,30 @@ export async function PUT(
 
     const resolvedParams = await params;
     const body = await request.json();
+
+    // Validate and sanitize data
+    const validation = validateInvitationData(body);
+    if (!validation.isValid) {
+      return NextResponse.json({
+        error: 'Invalid input',
+        details: validation.errors
+      }, { status: 400 });
+    }
+
     const {
       title,
       description,
       event_date,
       event_time,
       location,
+      hide_title,
+      hide_description,
+      organizer_notes,
+      text_font_family
+    } = validation.sanitizedData!;
+
+    // Non-sanitized fields that don't need escaping
+    const {
       design_id,
       text_overlay_style,
       text_position,
@@ -70,16 +89,7 @@ export async function PUT(
       text_shadow,
       text_background,
       text_background_opacity,
-      hide_title,
-      hide_description,
-      organizer_notes,
-      text_font_family
     } = body;
-
-    // Validate required fields
-    if (!title || !event_date) {
-      return NextResponse.json({ error: 'Title and event date are required' }, { status: 400 });
-    }
 
     // Get user from database
     const { data: userData, error: userError } = await supabaseAdmin
