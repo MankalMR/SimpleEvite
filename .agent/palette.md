@@ -6,3 +6,7 @@
 ## 2026-03-12 - Custom Radio Button Group Accessibility
 **Learning:** Custom interactive elements that function as radio buttons (like the mutually exclusive RSVP selection: Yes/No/Maybe) often lack inherent semantic meaning, presenting them simply as disconnected buttons to screen readers. This breaks expectations for how users navigate choices.
 **Action:** When building custom single-choice selections, always group them semantically. Apply `role="radiogroup"` to the container with `aria-labelledby` pointing to the group's label. Apply `role="radio"` and the appropriate `aria-checked` boolean state to each individual button. This correctly communicates the grouping and active state to assistive technologies.
+
+## 2026-03-20 - Keyboard Navigation for RSVP Forms
+**Learning:** Interactive forms like RSVP selection and submission forms often lack explicit focus indicators, making it very difficult to navigate them using a keyboard. The default focus styling on active elements is often insufficient or entirely absent in some Tailwind configurations.
+**Action:** Consistently apply explicit focus states using `focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1` across all form elements (buttons, inputs) to ensure keyboard navigation remains accessible.
