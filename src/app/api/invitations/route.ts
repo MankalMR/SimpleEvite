@@ -114,8 +114,9 @@ export async function POST(request: NextRequest) {
       user_id: userData.id,
       title,
       description,
-      event_date,
-      event_time,
+      event_date: event_date as string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      event_time: event_time as string | any,
       location,
       design_id: design_id || null,
       share_token: shareToken,
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       hide_title: hide_title ?? false,
       hide_description: hide_description ?? false,
       organizer_notes: organizer_notes || undefined,
-      text_font_family: text_font_family || 'inter',
+      text_font_family: text_font_family as "inter" | "playfair" | "lora" | "pacifico" | "oswald" | undefined || 'inter',
     }, userData.id);
 
     return NextResponse.json({ invitation }, { status: 201 });

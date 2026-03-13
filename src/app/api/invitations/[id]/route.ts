@@ -106,8 +106,9 @@ export async function PUT(
     const invitation = await supabaseDb.updateInvitation(resolvedParams.id, {
       title,
       description,
-      event_date,
-      event_time,
+      event_date: event_date as string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      event_time: event_time as string | any,
       location,
       design_id: design_id || null,
       text_overlay_style,
@@ -119,7 +120,7 @@ export async function PUT(
       hide_title,
       hide_description,
       organizer_notes,
-      text_font_family,
+      text_font_family: text_font_family as "inter" | "playfair" | "lora" | "pacifico" | "oswald" | undefined,
     }, userData.id);
 
     if (!invitation) {
