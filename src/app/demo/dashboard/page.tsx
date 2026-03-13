@@ -9,12 +9,14 @@ import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
+import { InlineError } from '@/components/inline-error';
 
 export default function DemoDashboard() {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [invitations, setInvitations] = useState<InvitationWithRSVPs[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
     // Initialize session
@@ -65,6 +67,7 @@ export default function DemoDashboard() {
 
     const handleDeleteInvitation = async (id: string) => {
         if (!sessionId) return;
+        setActionError(null);
 
         try {
             await fetch(`/api/demo/invitations/${id}`, {
@@ -73,7 +76,7 @@ export default function DemoDashboard() {
             });
             setInvitations(prev => prev.filter(i => i.id !== id));
         } catch {
-            alert('Failed to delete invitation');
+            setActionError('Failed to delete invitation');
         }
     };
 
@@ -138,17 +141,14 @@ export default function DemoDashboard() {
                         <h1 className="text-3xl font-bold text-gray-900">Demo Dashboard</h1>
                         <Link
                             href="/demo/create"
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                         >
                             Create New Invite
                         </Link>
                     </div>
 
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-                            {error}
-                        </div>
-                    )}
+                    <InlineError error={error} />
+                    <InlineError error={actionError} onDismiss={() => setActionError(null)} />
 
                     <div className="mb-8">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -181,7 +181,7 @@ export default function DemoDashboard() {
                             </div>
                             <h3 className="text-xl font-semibold text-gray-900 mb-2">No invitations yet</h3>
                             <p className="text-gray-800 mb-6 font-medium">Get started by creating your first event invitation.</p>
-                            <Link href="/demo/create" className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            <Link href="/demo/create" className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1">
                                 Create Your First Invite
                             </Link>
                         </div>
@@ -229,13 +229,14 @@ export default function DemoDashboard() {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleCopyLink(invitation.share_token)}
-                                                    className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors"
+                                                    className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${copySuccess === invitation.share_token ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                                    aria-label={copySuccess === invitation.share_token ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
                                                 >
                                                     {copySuccess === invitation.share_token ? 'Copied!' : 'Copy Link'}
                                                 </button>
                                                 <Link
                                                     href={`/demo/i/${invitation.share_token}`}
-                                                    className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors"
+                                                    className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                                                 >
                                                     Preview
                                                 </Link>

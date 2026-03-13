@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DemoBanner } from '@/components/DemoBanner';
 import { InvitationPreview } from '@/components/invitation-preview';
 import { DefaultTemplate } from '@/lib/supabase';
+import { Spinner } from '@/components/spinner';
 import { getTextOverlayStyleOptions, getTextPositionOptions, getTextSizeOptions, TextOverlayStyle, TextPosition, TextSize } from '@/lib/text-overlay-utils';
 
 export default function DemoCreateInvitation() {
@@ -447,8 +448,9 @@ export default function DemoCreateInvitation() {
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                     >
+                                        {submitting && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
                                         {submitting ? 'Creating...' : 'Create Invitation'}
                                     </button>
                                 </div>
