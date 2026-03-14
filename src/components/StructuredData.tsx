@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { getBaseUrl, getSiteName, getSiteDescription, getAuthorInfo, buildImageUrl } from '@/lib/url-utils';
+import { serializeJsonLd } from '@/lib/security';
 
 interface StructuredDataProps {
   data: Record<string, unknown>;
@@ -18,7 +19,7 @@ export default function StructuredData({ data }: StructuredDataProps) {
     // Add new structured data
     const script = document.createElement('script');
     script.type = 'application/ld+json';
-    script.text = JSON.stringify(data);
+    script.text = serializeJsonLd(data);
     document.head.appendChild(script);
 
     return () => {

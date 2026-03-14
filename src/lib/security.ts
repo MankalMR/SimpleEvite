@@ -199,9 +199,29 @@ export function containsDangerousContent(input: string): boolean {
  * Escape special characters for safe HTML output
  */
 export function escapeHTML(text: string): string {
+  if (typeof window === 'undefined') {
+    // Basic regex fallback for server-side
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+/**
+ * Safely serialize data for JSON-LD script tags
+ * Prevents XSS via </script> tag breakout by escaping <, >, and & characters.
+ */
+export function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
 }
 
 /**
