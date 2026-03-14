@@ -50,7 +50,7 @@ describe('rsvp-utils', () => {
   ];
 
   describe('getRSVPStats', () => {
-    it('should calculate statistics correctly', () => {
+    it('should calculate statistics correctly from an array of RSVPs', () => {
       const stats = getRSVPStats(mockRSVPs);
       expect(stats).toEqual({
         yes: 2,
@@ -60,7 +60,7 @@ describe('rsvp-utils', () => {
       });
     });
 
-    it('should return zeros for an empty array', () => {
+    it('should return all zeros for an empty array', () => {
       const stats = getRSVPStats([]);
       expect(stats).toEqual({
         yes: 0,
@@ -68,6 +68,14 @@ describe('rsvp-utils', () => {
         maybe: 0,
         total: 0,
       });
+    });
+
+    it('should correctly sum counts with only one type of response', () => {
+      const allYes: RSVP[] = [
+        { id: '1', invitation_id: 'inv1', name: 'A', response: 'yes', created_at: '2024-01-01T10:00:00Z' },
+        { id: '2', invitation_id: 'inv1', name: 'B', response: 'yes', created_at: '2024-01-02T10:00:00Z' },
+      ];
+      expect(getRSVPStats(allYes)).toEqual({ yes: 2, no: 0, maybe: 0, total: 2 });
     });
   });
 
@@ -91,7 +99,7 @@ describe('rsvp-utils', () => {
   });
 
   describe('getFormattedRSVPCounts', () => {
-    it('should return formatted strings', () => {
+    it('should return formatted strings based on counts', () => {
       const formatted = getFormattedRSVPCounts(mockRSVPs);
       expect(formatted).toEqual({
         yesCount: '2 Yes',
@@ -99,10 +107,19 @@ describe('rsvp-utils', () => {
         noCount: '1 No',
       });
     });
+
+    it('should return 0 formatted strings for an empty array', () => {
+      const formatted = getFormattedRSVPCounts([]);
+      expect(formatted).toEqual({
+        yesCount: '0 Yes',
+        maybeCount: '0 Maybe',
+        noCount: '0 No',
+      });
+    });
   });
 
   describe('hasRSVPs', () => {
-    it('should return true if there are RSVPs', () => {
+    it('should return true if there are RSVPs present in invitation', () => {
       expect(hasRSVPs({ rsvps: mockRSVPs })).toBe(true);
     });
 
@@ -113,11 +130,11 @@ describe('rsvp-utils', () => {
   });
 
   describe('getRSVPResponseColor', () => {
-    it('should return correct color classes', () => {
+    it('should return correct color classes for each response', () => {
       expect(getRSVPResponseColor('yes')).toBe('text-green-600');
       expect(getRSVPResponseColor('no')).toBe('text-red-600');
       expect(getRSVPResponseColor('maybe')).toBe('text-yellow-600');
-      // @ts-expect-error - testing default case
+      // @ts-expect-error - testing default case / edge case not typed
       expect(getRSVPResponseColor('unknown')).toBe('text-gray-600');
     });
   });
@@ -129,10 +146,16 @@ describe('rsvp-utils', () => {
       expect(sorted[3].name).toBe('Alice');
       expect(new Date(sorted[0].created_at).getTime()).toBeGreaterThan(new Date(sorted[1].created_at).getTime());
     });
+
+    it('should not mutate original array', () => {
+      const original = [...mockRSVPs];
+      sortRSVPsByDate(mockRSVPs);
+      expect(mockRSVPs).toEqual(original);
+    });
   });
 
   describe('getGlobalRSVPStats', () => {
-    it('should aggregate stats across invitations', () => {
+    it('should aggregate stats across multiple invitations', () => {
       const invitations = [
         { rsvps: [mockRSVPs[0]] }, // Alice (yes)
         { rsvps: [mockRSVPs[1], mockRSVPs[2]] }, // Bob (no), Charlie (maybe)
@@ -145,10 +168,25 @@ describe('rsvp-utils', () => {
         total: 3,
       });
     });
+
+    it('should handle invitations without rsvps gracefully', () => {
+      const invitations = [
+        { rsvps: [mockRSVPs[0]] },
+        {}, // missing rsvps property
+        { rsvps: [] } // empty rsvps array
+      ];
+      const stats = getGlobalRSVPStats(invitations);
+      expect(stats).toEqual({
+        yes: 1,
+        no: 0,
+        maybe: 0,
+        total: 1,
+      });
+    });
   });
 
   describe('filterRSVPsByResponse', () => {
-    it('should filter correctly', () => {
+    it('should filter RSVPs properly by response type', () => {
       expect(filterRSVPsByResponse(mockRSVPs, 'yes').length).toBe(2);
       expect(filterRSVPsByResponse(mockRSVPs, 'no').length).toBe(1);
       expect(filterRSVPsByResponse(mockRSVPs, 'maybe').length).toBe(1);
@@ -167,18 +205,18 @@ describe('rsvp-utils', () => {
   });
 
   describe('hasPendingResponses', () => {
-    it('should return true if no RSVPs', () => {
+    it('should return true if no RSVPs exist yet', () => {
       expect(hasPendingResponses({ rsvps: [] })).toBe(true);
       expect(hasPendingResponses({})).toBe(true);
     });
 
-    it('should return false if there are RSVPs', () => {
+    it('should return false if there are RSVPs present', () => {
       expect(hasPendingResponses({ rsvps: mockRSVPs })).toBe(false);
     });
   });
 
   describe('getRSVPResponseColorClasses', () => {
-    it('should return correct class objects', () => {
+    it('should return correct complex class objects for response types', () => {
       expect(getRSVPResponseColorClasses('yes')).toEqual({
         text: 'text-green-600',
         bg: 'bg-green-50',
