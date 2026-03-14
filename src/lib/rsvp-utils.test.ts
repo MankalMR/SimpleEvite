@@ -99,6 +99,28 @@ describe('rsvp-utils', () => {
         noCount: '1 No',
       });
     });
+
+    it('should return zeros for an empty array', () => {
+      const formatted = getFormattedRSVPCounts([]);
+      expect(formatted).toEqual({
+        yesCount: '0 Yes',
+        maybeCount: '0 Maybe',
+        noCount: '0 No',
+      });
+    });
+
+    it('should handle arrays with only a single type of response', () => {
+      const allYesRSVPs: RSVP[] = [
+        { ...mockRSVPs[0], response: 'yes' },
+        { ...mockRSVPs[1], response: 'yes' },
+      ];
+      const formatted = getFormattedRSVPCounts(allYesRSVPs);
+      expect(formatted).toEqual({
+        yesCount: '2 Yes',
+        maybeCount: '0 Maybe',
+        noCount: '0 No',
+      });
+    });
   });
 
   describe('hasRSVPs', () => {
