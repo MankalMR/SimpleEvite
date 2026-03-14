@@ -412,4 +412,33 @@ export const supabaseDb = {
 
     return !error;
   },
+
+  // Upload a design image to storage
+  async uploadDesignImage(
+    fileName: string,
+    buffer: Uint8Array,
+    contentType: string
+  ): Promise<{ error: unknown }> {
+    return await supabaseAdmin.storage
+      .from('designs')
+      .upload(fileName, buffer, {
+        contentType,
+        upsert: false,
+      });
+  },
+
+  // Get public URL for a design image
+  getDesignPublicUrl(fileName: string): string | null {
+    const { data } = supabaseAdmin.storage
+      .from('designs')
+      .getPublicUrl(fileName);
+    return data?.publicUrl || null;
+  },
+
+  // Delete a design image from storage
+  async deleteDesignImage(fileName: string): Promise<void> {
+    await supabaseAdmin.storage
+      .from('designs')
+      .remove([fileName]);
+  },
 };
