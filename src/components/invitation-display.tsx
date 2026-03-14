@@ -80,6 +80,7 @@ export function InvitationDisplay({
             className="object-cover"
             style={{ zIndex: 1 }}
             unoptimized
+            priority={true} // ⚡ Bolt: Added priority for LCP optimization
             onError={(e) => {
               console.error('Image failed to load:', design.image_url, e);
             }}
