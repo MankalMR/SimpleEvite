@@ -7,4 +7,8 @@
 **Action:** Add a Next.js `Cache-Control` header (e.g. `s-maxage=60, stale-while-revalidate=300`) to the public API route.
 ## 2024-03-10 - O(N) queries in Data Access Layer
 **Learning:** `rowToInvitationWithRSVPs` resolves the polymorphic `design_id` relation by firing a sequential query for every single invitation (either to `designs` or `default_templates`). This results in an N+1 query problem, especially painful in `getInvitations`.
-**Action:** Extract unique missing design IDs, perform an O(1) bulk fetch using `.in('id', array)`, and use synchronous mapping instead of sequential `Promise.all` database calls. Include `designs` in `INVITATION_FULL_SELECT` to handle the explicit FK case without extra queries.
+**Action:** Extract unique missing design IDs, perform an O(1) bulk fetch using `.in('id', array)`, and use synchronous mapping instead of sequential `Promise.all` database calls.
+
+## 2026-03-14 - Supabase PGRST200 Foreign Key Error
+**Learning:** When trying to optimize N+1 queries by embedding nested selects in Supabase (e.g. `designs:designs(...)`), PostgREST will throw a `PGRST200` error ("Could not find a relationship...") and crash the API route (returning a 500 status) if the underlying Postgres table lacks an explicit Foreign Key constraint. The `invitations` table does NOT have a strict foreign key to `designs` or `default_templates`.
+**Action:** Do NOT use nested `.select('*, relation(*)')` syntax in Supabase for relationships that aren't strictly defined by Postgres Foreign Keys. Always fallback to manual `O(1)` bulk filtering (`.in('id', ids)`) in the application layer to resolve these soft-relations safely without crashing.
