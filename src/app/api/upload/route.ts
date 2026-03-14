@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      logger.error({ uploadError }, 'Upload error:');
       return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
     }
 
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (dbError) {
-      console.error('Database error:', dbError);
+      logger.error({ dbError }, 'Database error:');
 
       // Clean up uploaded file if database insert fails
       await supabase.storage
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ design }, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/upload:', error);
+    logger.error({ error }, 'Error in POST /api/upload:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

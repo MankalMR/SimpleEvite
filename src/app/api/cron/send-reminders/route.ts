@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendEventReminderEmail, prepareReminderData } from '@/lib/email-service';
 import type { Invitation, RSVP } from '@/lib/supabase';
+import { logger } from "@/lib/logger";
 
 /**
  * Cron job endpoint to send event reminders
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret) {
-      console.error('CRON_SECRET environment variable not set');
+      logger.error('CRON_SECRET environment variable not set');
       return NextResponse.json(
         { error: 'Server misconfiguration' },
         { status: 500 }
@@ -36,14 +37,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${cronSecret}`) {
-      console.warn('Unauthorized cron request');
+      logger.warn('Unauthorized cron request');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    console.log('Starting reminder notification job...');
+    logger.info('Starting reminder notification job...');
 
     // Calculate date range: 2-3 days from now
     const twoDaysFromNow = new Date();
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       .lte('event_date', threeDaysFromNow.toISOString().split('T')[0]);
 
     if (invitationsError) {
-      console.error('Error fetching invitations:', invitationsError);
+      logger.error({ invitationsError }, 'Error fetching invitations:');
       return NextResponse.json(
         { error: 'Failed to fetch invitations', details: invitationsError.message },
         { status: 500 }
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!invitations || invitations.length === 0) {
-      console.log('No upcoming events found in the 2-3 day window');
+      logger.info('No upcoming events found in the 2-3 day window');
       return NextResponse.json({
         success: true,
         message: 'No events requiring reminders',
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`Found ${invitations.length} upcoming events`);
+    logger.info(`Found ${invitations.length} upcoming events`);
 
     const results = {
       totalInvitations: invitations.length,
@@ -97,7 +98,7 @@ export async function GET(request: NextRequest) {
 
     // Process each invitation
     for (const invitation of invitations) {
-      console.log(`Processing invitation: ${invitation.title} (${invitation.id})`);
+      logger.info(`Processing invitation: ${invitation.title} (${invitation.id})`);
 
       // Fetch RSVPs for this invitation that need reminders
       const { data: rsvps, error: rsvpsError } = await supabaseAdmin
@@ -109,17 +110,17 @@ export async function GET(request: NextRequest) {
         .not('email', 'is', null);
 
       if (rsvpsError) {
-        console.error(`Error fetching RSVPs for invitation ${invitation.id}:`, rsvpsError);
+        logger.error({ rsvpsError }, `Error fetching RSVPs for invitation ${invitation.id}:`);
         continue;
       }
 
       if (!rsvps || rsvps.length === 0) {
-        console.log(`No pending reminders for invitation ${invitation.id}`);
+        logger.info(`No pending reminders for invitation ${invitation.id}`);
         continue;
       }
 
       results.totalRSVPs += rsvps.length;
-      console.log(`Found ${rsvps.length} RSVPs needing reminders`);
+      logger.info(`Found ${rsvps.length} RSVPs needing reminders`);
 
       // Send reminder to each guest
       for (const rsvp of rsvps) {
@@ -132,7 +133,7 @@ export async function GET(request: NextRequest) {
           );
 
           if (!reminderData) {
-            console.log(`Skipping RSVP ${rsvp.id} - no email or notifications disabled`);
+            logger.info(`Skipping RSVP ${rsvp.id} - no email or notifications disabled`);
             results.skippedCount++;
 
             // Update status to skipped
@@ -145,7 +146,7 @@ export async function GET(request: NextRequest) {
           }
 
           // Send email
-          console.log(`Sending reminder to ${reminderData.guestName} <${reminderData.to}>`);
+          logger.info(`Sending reminder to ${reminderData.guestName} <${reminderData.to}>`);
           const emailResult = await sendEventReminderEmail(reminderData);
 
           if (emailResult.success) {
@@ -170,7 +171,7 @@ export async function GET(request: NextRequest) {
               provider_response: emailResult.response,
             });
 
-            console.log(`✓ Successfully sent reminder to ${reminderData.to}`);
+            logger.info(`✓ Successfully sent reminder to ${reminderData.to}`);
           } else {
             results.failedCount++;
             results.errors.push({
@@ -194,7 +195,7 @@ export async function GET(request: NextRequest) {
               error_message: emailResult.error,
             });
 
-            console.error(`✗ Failed to send reminder to ${reminderData.to}:`, emailResult.error);
+            logger.error({ err: emailResult.error }, `✗ Failed to send reminder to ${reminderData.to}:`);
           }
         } catch (error) {
           results.failedCount++;
@@ -204,7 +205,7 @@ export async function GET(request: NextRequest) {
             error: errorMessage,
           });
 
-          console.error(`Error processing RSVP ${rsvp.id}:`, error);
+          logger.error({ error }, `Error processing RSVP ${rsvp.id}:`);
 
           // Update RSVP status
           await supabaseAdmin
@@ -215,7 +216,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('Reminder notification job complete:', results);
+    logger.info({ results }, 'Reminder notification job complete:');
 
     return NextResponse.json({
       success: true,
@@ -223,7 +224,7 @@ export async function GET(request: NextRequest) {
       results,
     });
   } catch (error) {
-    console.error('Critical error in send-reminders cron job:', error);
+    logger.error({ error }, 'Critical error in send-reminders cron job:');
     return NextResponse.json(
       {
         error: 'Internal server error',

@@ -5,6 +5,7 @@ import { supabaseDb } from '@/lib/database-supabase';
 import { supabaseAdmin } from '@/lib/supabase';
 import { validateInvitationData } from '@/lib/security';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from "@/lib/logger";
 
 // GET /api/invitations - Get user's invitations
 export async function GET() {
@@ -35,7 +36,7 @@ export async function GET() {
 
     return NextResponse.json({ invitations });
   } catch (error) {
-    console.error('Error in GET /api/invitations:', error);
+    logger.error({ error }, 'Error in GET /api/invitations:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -99,14 +100,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Debug logging
-    console.log('Creating invitation with text overlay settings:', {
-      text_overlay_style: text_overlay_style || 'light',
-      text_position: text_position || 'center',
-      text_size: text_size || 'large',
-      text_shadow: text_shadow ?? true,
-      text_background: text_background ?? false,
-      text_background_opacity: text_background_opacity ?? 0.3,
-    });
+    logger.info({ data0: {
+            text_overlay_style: text_overlay_style || 'light',
+            text_position: text_position || 'center',
+            text_size: text_size || 'large',
+            text_shadow: text_shadow ?? true,
+            text_background: text_background ?? false,
+            text_background_opacity: text_background_opacity ?? 0.3,
+          } }, 'Creating invitation with text overlay settings:');
 
     // Create invitation using the database layer
     const shareToken = uuidv4();
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ invitation }, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/invitations:', error);
+    logger.error({ error }, 'Error in POST /api/invitations:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

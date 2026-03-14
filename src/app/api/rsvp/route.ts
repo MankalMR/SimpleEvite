@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { withSecurity, validateRequestBody, addSecurityHeaders, RATE_LIMIT_PRESETS, logSecurityEvent } from '@/lib/api-security';
 import { validateRSVPData } from '@/lib/security';
+import { logger } from "@/lib/logger";
 
 // POST /api/rsvp - Create RSVP (public endpoint)
 export async function POST(request: NextRequest) {
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (error) {
-          console.error('Error creating RSVP:', error);
+          logger.error({ error }, 'Error creating RSVP:');
           const clientIP = req.headers.get('x-forwarded-for') ||
                           req.headers.get('x-real-ip') ||
                           'unknown';
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
         const apiResponse = NextResponse.json({ rsvp }, { status: 201 });
         return addSecurityHeaders(apiResponse);
       } catch (error) {
-        console.error('Error in POST /api/rsvp:', error);
+        logger.error({ error }, 'Error in POST /api/rsvp:');
         const clientIP = req.headers.get('x-forwarded-for') ||
                         req.headers.get('x-real-ip') ||
                         'unknown';

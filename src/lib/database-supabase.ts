@@ -1,5 +1,6 @@
 import { supabaseAdmin } from './supabase';
 import { Invitation, Design, RSVP, DefaultTemplate } from './supabase';
+import { logger } from "@/lib/logger";
 
 // Extended Invitation interface for database operations with nested data
 export interface InvitationWithRSVPs extends Invitation {
@@ -73,7 +74,7 @@ async function enrichInvitationsWithTemplates(invitations: InvitationWithRSVPs[]
       .in('id', missingTemplateIds);
 
     if (templateError) {
-      console.error('Error fetching default_templates:', templateError);
+      logger.error({ templateError }, 'Error fetching default_templates:');
       return invitations; // Fail gracefully
     }
 
@@ -94,7 +95,7 @@ async function enrichInvitationsWithTemplates(invitations: InvitationWithRSVPs[]
       return inv;
     });
   } catch (error) {
-    console.error('Unexpected error enriching templates:', error);
+    logger.error({ error }, 'Unexpected error enriching templates:');
     return invitations;
   }
 }
@@ -208,11 +209,11 @@ export const supabaseDb = {
       .single();
 
     if (error) {
-      console.error('Error fetching invitation by token:', error);
+      logger.error({ error }, 'Error fetching invitation by token:');
       return null;
     }
 
-    console.log('Raw invitation data from Supabase (public):', data);
+    logger.info({ data }, 'Raw invitation data from Supabase (public):');
 
     // ⚡ Bolt: Map synchronously, wrap in array to enrich, return single
     const baseInvitation = rowToInvitationWithRSVPsSync(data);

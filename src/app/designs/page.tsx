@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useDesigns } from '@/hooks/useDesigns';
 import { InlineError } from '@/components/inline-error';
+import { logger } from "@/lib/logger";
 
 export default function MyDesigns() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +50,7 @@ export default function MyDesigns() {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      console.error('Upload design error:', error);
+      logger.error({ error }, 'Upload design error:');
       setActionError(error instanceof Error ? error.message : 'Failed to upload design');
     }
   };
@@ -62,7 +63,7 @@ export default function MyDesigns() {
     try {
       await deleteDesign(id);
     } catch (error) {
-      console.error('Delete design error:', error);
+      logger.error({ error }, 'Delete design error:');
       setActionError(error instanceof Error ? error.message : 'Failed to delete design');
     }
   };

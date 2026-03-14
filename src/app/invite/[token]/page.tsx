@@ -13,6 +13,7 @@ import { serializeJsonLd } from '@/lib/security';
 import Script from 'next/script';
 import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
+import { logger } from "@/lib/logger";
 
 export default function PublicInvite() {
   const params = useParams();
@@ -81,7 +82,7 @@ export default function PublicInvite() {
       setShowRSVPForm(false);
       setRsvpData({ name: '', response: '', comment: '', email: '', emailNotifications: true });
     } catch (error) {
-      console.error('RSVP submission error:', error);
+      logger.error({ error }, 'RSVP submission error:');
       setSubmissionError(error instanceof Error ? error.message : 'Failed to submit RSVP');
     }
   };

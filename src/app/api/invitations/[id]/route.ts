@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { supabaseAdmin } from '@/lib/supabase';
 import { validateInvitationData } from '@/lib/security';
+import { logger } from "@/lib/logger";
 
 // GET /api/invitations/[id] - Get invitation by ID (for owner)
 export async function GET(
@@ -39,7 +40,7 @@ export async function GET(
 
     return NextResponse.json({ invitation });
   } catch (error) {
-    console.error('Error in GET /api/invitations/[id]:', error);
+    logger.error({ error }, 'Error in GET /api/invitations/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -129,7 +130,7 @@ export async function PUT(
 
     return NextResponse.json({ invitation });
   } catch (error) {
-    console.error('Error in PUT /api/invitations/[id]:', error);
+    logger.error({ error }, 'Error in PUT /api/invitations/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -168,7 +169,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Invitation deleted successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/invitations/[id]:', error);
+    logger.error({ error }, 'Error in DELETE /api/invitations/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
