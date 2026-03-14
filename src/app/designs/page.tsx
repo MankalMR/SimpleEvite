@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useDesigns } from '@/hooks/useDesigns';
 import { InlineError } from '@/components/inline-error';
+import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
+import { Spinner } from '@/components/spinner';
 
 export default function MyDesigns() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,8 +111,9 @@ export default function MyDesigns() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
             >
+              {uploading && <Spinner className="w-5 h-5" />}
               {uploading ? 'Uploading...' : 'Upload Design'}
             </button>
           </div>
@@ -132,8 +135,9 @@ export default function MyDesigns() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
             >
+              {uploading && <Spinner className="w-5 h-5" />}
               {uploading ? 'Uploading...' : 'Upload Your First Design'}
             </button>
           </div>
@@ -159,12 +163,10 @@ export default function MyDesigns() {
                       Created {new Date(design.created_at).toLocaleDateString()}
                     </p>
                     <div className="flex justify-end">
-                      <button
-                        onClick={() => handleDeleteDesign(design.id)}
-                        className="border border-red-300 text-red-700 px-3 py-1 rounded text-xs font-medium hover:bg-red-50 transition-colors"
-                      >
-                        Delete
-                      </button>
+                      <ConfirmDeleteButton
+                        onConfirm={() => handleDeleteDesign(design.id)}
+                        size="sm"
+                      />
                     </div>
                   </div>
                 </div>
