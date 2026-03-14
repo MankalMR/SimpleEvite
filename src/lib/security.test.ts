@@ -11,9 +11,9 @@ import {
   generateSecureToken,
   containsDangerousContent,
   escapeHTML,
+  serializeJsonLd,
   checkRateLimit,
-  cleanupRateLimitStore,
-  serializeJsonLd
+  cleanupRateLimitStore
 } from './security';
 
 describe('security', () => {

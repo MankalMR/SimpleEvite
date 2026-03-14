@@ -36,44 +36,67 @@ function rowToInvitation(row: Record<string, unknown>): Invitation {
   };
 }
 
-// Helper function to convert Supabase row with nested RSVPs and Designs to Invitation
-async function rowToInvitationWithRSVPs(row: Record<string, unknown>): Promise<InvitationWithRSVPs> {
+// Helper function to convert Supabase row with nested RSVPs and Designs to Invitation (Synchronous)
+function rowToInvitationWithRSVPsSync(row: Record<string, unknown>): InvitationWithRSVPs {
   const invitation = rowToInvitation(row);
   const result: InvitationWithRSVPs = {
     ...invitation,
     rsvps: (row.rsvps as Record<string, unknown>[])?.map(rowToRSVP) || [],
   };
 
-  // Handle design_id - manually fetch from designs table first, then templates table
-  if (invitation.design_id) {
-    try {
-      // Try to fetch from designs table first
-      const { data: designData, error: designError } = await supabaseAdmin
-        .from('designs')
-        .select('id, name, image_url')
-        .eq('id', invitation.design_id)
-        .single();
-
-      if (!designError && designData) {
-        result.designs = rowToDesign(designData);
-      } else {
-        // If no design found, try fetching from default_templates
-        const { data: templateData, error: templateError } = await supabaseAdmin
-          .from('default_templates')
-          .select('*')
-          .eq('id', invitation.design_id)
-          .single();
-
-        if (!templateError && templateData) {
-          result.default_templates = rowToDefaultTemplate(templateData);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching design/template:', error);
-    }
+  // The nested 'designs' relation is now mapped directly via INVITATION_FULL_SELECT
+  if (row.designs) {
+    result.designs = rowToDesign(row.designs as Record<string, unknown>);
   }
 
   return result;
+}
+
+// ⚡ Bolt: Fast O(1) bulk fetch for missing default_templates
+async function enrichInvitationsWithTemplates(invitations: InvitationWithRSVPs[]): Promise<InvitationWithRSVPs[]> {
+  // 1. Extract unique design_ids for invitations that don't have a resolved design
+  const missingTemplateIds = Array.from(new Set(
+    invitations
+      .filter(inv => inv.design_id && !inv.designs)
+      .map(inv => inv.design_id as string)
+  ));
+
+  if (missingTemplateIds.length === 0) {
+    return invitations;
+  }
+
+  // 2. Fetch all required templates in a single O(1) query
+  try {
+    const { data: templateData, error: templateError } = await supabaseAdmin
+      .from('default_templates')
+      .select('*')
+      .in('id', missingTemplateIds);
+
+    if (templateError) {
+      console.error('Error fetching default_templates:', templateError);
+      return invitations; // Fail gracefully
+    }
+
+    // 3. Create a dictionary for fast O(1) lookups
+    const templateDict: Record<string, DefaultTemplate> = {};
+    for (const template of templateData || []) {
+      templateDict[template.id] = rowToDefaultTemplate(template);
+    }
+
+    // 4. Synchronously attach the correct template
+    return invitations.map(inv => {
+      if (inv.design_id && !inv.designs && templateDict[inv.design_id]) {
+        return {
+          ...inv,
+          default_templates: templateDict[inv.design_id]
+        };
+      }
+      return inv;
+    });
+  } catch (error) {
+    console.error('Unexpected error enriching templates:', error);
+    return invitations;
+  }
 }
 
 // Helper function to convert Supabase row to Design
@@ -130,6 +153,13 @@ const INVITATION_FULL_SELECT = `
     response,
     comment,
     created_at
+  ),
+  designs:designs (
+    id,
+    user_id,
+    name,
+    image_url,
+    created_at
   )
 `;
 
@@ -144,47 +174,11 @@ export const supabaseDb = {
 
     if (error) throw error;
 
-    if (!data || data.length === 0) return [];
 
-    // ⚡ Bolt: Fix N+1 queries. O(1) bulk fetch instead of sequential O(N) calls per row.
-    const uniqueDesignIds = [...new Set(data.map(row => row.design_id).filter(Boolean))] as string[];
+    // ⚡ Bolt: Map synchronously, then enrich with templates in O(1)
+    const baseInvitations = data.map(rowToInvitationWithRSVPsSync);
+    return enrichInvitationsWithTemplates(baseInvitations);
 
-    const designsMap = new Map<string, Design>();
-    const templatesMap = new Map<string, DefaultTemplate>();
-
-    if (uniqueDesignIds.length > 0) {
-      // Fetch matching custom designs and default templates in parallel
-      const [designsRes, templatesRes] = await Promise.all([
-        supabaseAdmin.from('designs').select('*').in('id', uniqueDesignIds),
-        supabaseAdmin.from('default_templates').select('*').in('id', uniqueDesignIds)
-      ]);
-
-      if (!designsRes.error && designsRes.data) {
-        designsRes.data.forEach(d => designsMap.set(d.id, rowToDesign(d)));
-      }
-      if (!templatesRes.error && templatesRes.data) {
-        templatesRes.data.forEach(t => templatesMap.set(t.id, rowToDefaultTemplate(t)));
-      }
-    }
-
-    // Synchronously construct the final array
-    return data.map(row => {
-      const invitation = rowToInvitation(row);
-      const result: InvitationWithRSVPs = {
-        ...invitation,
-        rsvps: (row.rsvps as Record<string, unknown>[])?.map(rowToRSVP) || [],
-      };
-
-      if (invitation.design_id) {
-        if (designsMap.has(invitation.design_id)) {
-          result.designs = designsMap.get(invitation.design_id);
-        } else if (templatesMap.has(invitation.design_id)) {
-          result.default_templates = templatesMap.get(invitation.design_id);
-        }
-      }
-
-      return result;
-    });
   },
 
   // Get a single invitation by ID with RSVP data and designs (for owner)
@@ -201,7 +195,10 @@ export const supabaseDb = {
       throw error;
     }
 
-    return rowToInvitationWithRSVPs(data);
+    // ⚡ Bolt: Map synchronously, wrap in array to enrich, return single
+    const baseInvitation = rowToInvitationWithRSVPsSync(data);
+    const enriched = await enrichInvitationsWithTemplates([baseInvitation]);
+    return enriched[0];
   },
 
   // Get invitation by share token (public) - with full data including designs and RSVPs
@@ -218,7 +215,11 @@ export const supabaseDb = {
     }
 
     console.log('Raw invitation data from Supabase (public):', data);
-    return await rowToInvitationWithRSVPs(data);
+
+    // ⚡ Bolt: Map synchronously, wrap in array to enrich, return single
+    const baseInvitation = rowToInvitationWithRSVPsSync(data);
+    const enriched = await enrichInvitationsWithTemplates([baseInvitation]);
+    return enriched[0];
   },
 
   // Create a new invitation
