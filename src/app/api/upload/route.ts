@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
+import { sanitizeText } from '@/lib/security';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
@@ -50,12 +51,11 @@ export async function POST(request: NextRequest) {
     const buffer = new Uint8Array(arrayBuffer);
 
     // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from('designs')
-      .upload(fileName, buffer, {
-        contentType: file.type,
-        upsert: false,
-      });
+    const { error: uploadError } = await supabaseDb.uploadDesignImage(
+      fileName,
+      buffer,
+      file.type
+    );
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
@@ -63,33 +63,33 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('designs')
-      .getPublicUrl(fileName);
+    const publicUrl = supabaseDb.getDesignPublicUrl(fileName);
 
-    if (!urlData.publicUrl) {
+    if (!publicUrl) {
       return NextResponse.json({ error: 'Failed to get file URL' }, { status: 500 });
     }
 
     // Create design record in database
-    const designName = name || file.name.replace(/\.[^/.]+$/, '');
-    const { data: design, error: dbError } = await supabase
-      .from('designs')
-      .insert({
+    const rawDesignName = name || file.name.replace(/\.[^/.]+$/, '');
+    const designName = sanitizeText(rawDesignName);
+
+    let design;
+    let dbError;
+    try {
+      design = await supabaseDb.createDesign({
         user_id: userData.id,
         name: designName,
-        image_url: urlData.publicUrl,
-      })
-      .select()
-      .single();
+        image_url: publicUrl,
+      }, userData.id);
+    } catch (error) {
+      dbError = error;
+    }
 
     if (dbError) {
       console.error('Database error:', dbError);
 
       // Clean up uploaded file if database insert fails
-      await supabase.storage
-        .from('designs')
-        .remove([fileName]);
+      await supabaseDb.deleteDesignImage(fileName);
 
       return NextResponse.json({ error: 'Failed to save design' }, { status: 500 });
     }
