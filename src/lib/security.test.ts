@@ -11,6 +11,7 @@ import {
   generateSecureToken,
   containsDangerousContent,
   escapeHTML,
+  serializeJsonLd,
   checkRateLimit,
   cleanupRateLimitStore
 } from './security';
