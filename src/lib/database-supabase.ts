@@ -53,49 +53,49 @@ function rowToInvitationWithRSVPsSync(row: Record<string, unknown>): InvitationW
   return result;
 }
 
-// ⚡ Bolt: Fast O(1) bulk fetch for missing default_templates
+// ⚡ Bolt: Fast O(1) bulk fetch for missing designs and default_templates
 async function enrichInvitationsWithTemplates(invitations: InvitationWithRSVPs[]): Promise<InvitationWithRSVPs[]> {
-  // 1. Extract unique design_ids for invitations that don't have a resolved design
-  const missingTemplateIds = Array.from(new Set(
+  const missingDesignIds = Array.from(new Set(
     invitations
-      .filter(inv => inv.design_id && !inv.designs)
+      .filter(inv => inv.design_id && !inv.designs && !inv.default_templates)
       .map(inv => inv.design_id as string)
   ));
 
-  if (missingTemplateIds.length === 0) {
+  if (missingDesignIds.length === 0) {
     return invitations;
   }
 
-  // 2. Fetch all required templates in a single O(1) query
   try {
+    // 1. Try fetching from custom designs
+    const { data: designData, error: designError } = await supabaseAdmin
+      .from('designs')
+      .select('*')
+      .in('id', missingDesignIds);
+
+    // 2. Try fetching from default templates
     const { data: templateData, error: templateError } = await supabaseAdmin
       .from('default_templates')
       .select('*')
-      .in('id', missingTemplateIds);
+      .in('id', missingDesignIds);
 
-    if (templateError) {
-      logger.error({ templateError }, 'Error fetching default_templates:');
-      return invitations; // Fail gracefully
-    }
+    const designDict: Record<string, Design> = {};
+    for (const d of designData || []) designDict[d.id] = rowToDesign(d);
 
-    // 3. Create a dictionary for fast O(1) lookups
     const templateDict: Record<string, DefaultTemplate> = {};
-    for (const template of templateData || []) {
-      templateDict[template.id] = rowToDefaultTemplate(template);
-    }
+    for (const t of templateData || []) templateDict[t.id] = rowToDefaultTemplate(t);
 
-    // 4. Synchronously attach the correct template
     return invitations.map(inv => {
-      if (inv.design_id && !inv.designs && templateDict[inv.design_id]) {
-        return {
-          ...inv,
-          default_templates: templateDict[inv.design_id]
-        };
+      if (inv.design_id) {
+        if (designDict[inv.design_id]) {
+          return { ...inv, designs: designDict[inv.design_id] };
+        } else if (templateDict[inv.design_id]) {
+          return { ...inv, default_templates: templateDict[inv.design_id] };
+        }
       }
       return inv;
     });
   } catch (error) {
-    logger.error({ error }, 'Unexpected error enriching templates:');
+    logger.error({ error }, 'Unexpected error enriching templates/designs:');
     return invitations;
   }
 }
@@ -153,13 +153,6 @@ const INVITATION_FULL_SELECT = `
     name,
     response,
     comment,
-    created_at
-  ),
-  designs:designs (
-    id,
-    user_id,
-    name,
-    image_url,
     created_at
   )
 `;

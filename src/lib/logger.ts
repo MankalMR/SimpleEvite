@@ -16,19 +16,11 @@ const loggerConfig = {
         // and objects that are expandable in Chrome DevTools instead of plain JSON strings.
         asObject: true,
     },
-    // Use pino-pretty for human-readable logs when running in local development on the server.
-    // In production on the server, we output raw JSON.
-    ...(process.env.NODE_ENV === 'development' && !isBrowser
-        ? {
-            transport: {
-                target: 'pino-pretty',
-                options: {
-                    colorize: true,
-                    ignore: 'pid,hostname',
-                },
-            },
-        }
-        : {}),
+    // We intentionally do not configure 'transport' with 'pino-pretty' here.
+    // In Next.js App Router, Pino transports use worker threads which fail to bundle
+    // into the server chunks, causing "MODULE_NOT_FOUND worker.js" errors.
+    // For pretty logs in local dev, pipe the Next.js output to pino-pretty instead:
+    // npm run dev | npx pino-pretty
 };
 
 export const logger = pino(loggerConfig);
