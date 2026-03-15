@@ -78,6 +78,7 @@ export function InvitationDisplay({
             src={design.image_url}
             alt={design.name}
             fill
+            priority={true} // ⚡ Bolt: Disable lazy loading for hero images to improve LCP
             className="object-cover"
             style={{ zIndex: 1 }}
             unoptimized
