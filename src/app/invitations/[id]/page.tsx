@@ -10,6 +10,7 @@ import { useInvitations } from '@/hooks/useInvitations';
 import { InvitationDisplay } from '@/components/invitation-display';
 import { getInvitationDesign } from '@/lib/invitation-utils';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
+import { logger } from "@/lib/logger";
 
 export default function InvitationView() {
   const params = useParams();
@@ -51,7 +52,7 @@ export default function InvitationView() {
       // Refresh invitation data to get updated RSVP list
       await fetchInvitation(id);
     } catch (error) {
-      console.error(error instanceof Error ? error.message : 'Failed to delete RSVP');
+      logger.error(error instanceof Error ? error.message : 'Failed to delete RSVP');
     }
   };
 
@@ -71,7 +72,7 @@ export default function InvitationView() {
       // Redirect to dashboard
       window.location.href = '/dashboard';
     } catch (error) {
-      console.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
+      logger.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
     }
   };
 

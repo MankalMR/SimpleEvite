@@ -11,6 +11,7 @@ import {
   getTextOverlayBackgroundClasses,
   getTextOverlayBackgroundStyles
 } from '@/lib/text-overlay-utils';
+import { logger } from "@/lib/logger";
 
 interface InvitationDisplayProps {
   invitation: Invitation;
@@ -81,7 +82,7 @@ export function InvitationDisplay({
             style={{ zIndex: 1 }}
             unoptimized
             onError={(e) => {
-              console.error('Image failed to load:', design.image_url, e);
+              logger.error({ data0: design.image_url, e }, 'Image failed to load:');
             }}
           />
 

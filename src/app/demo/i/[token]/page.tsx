@@ -280,14 +280,16 @@ export default function DemoPublicInvite() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-900 mb-3">Will you attend? *</label>
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <label id="rsvp-attend-label" className="block text-sm font-semibold text-gray-900 mb-3">Will you attend? *</label>
+                                    <div role="radiogroup" aria-labelledby="rsvp-attend-label" className="grid grid-cols-3 gap-3">
                                         {(['yes', 'no', 'maybe'] as const).map((response) => (
                                             <button
                                                 key={response}
                                                 type="button"
+                                                role="radio"
+                                                aria-checked={rsvpData.response === response}
                                                 onClick={() => setRsvpData({ ...rsvpData, response })}
-                                                className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${rsvpData.response === response
+                                                className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${rsvpData.response === response
                                                     ? response === 'yes'
                                                         ? 'border-green-500 bg-green-50 text-green-700'
                                                         : response === 'no'
@@ -324,14 +326,14 @@ export default function DemoPublicInvite() {
                                     <button
                                         type="button"
                                         onClick={() => setShowRSVPForm(false)}
-                                        className="flex-1 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                                        className="flex-1 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response}
-                                        className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                        className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                                     >
                                         {rsvpLoading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
                                         {rsvpLoading ? 'Submitting...' : 'Submit RSVP'}
@@ -343,7 +345,7 @@ export default function DemoPublicInvite() {
                                 <p className="text-gray-600 mb-6">Please let us know if you can attend this event.</p>
                                 <button
                                     onClick={() => setShowRSVPForm(true)}
-                                    className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                                    className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                                 >
                                     RSVP Now
                                 </button>

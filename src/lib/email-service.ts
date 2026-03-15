@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { Invitation, RSVP } from '@/lib/supabase';
+import { logger } from "@/lib/logger";
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -81,7 +82,7 @@ export async function sendEventReminderEmail(params: EmailReminderParams) {
 
     // Check if Resend returned an error (they don't throw, they return error in response)
     if (response.error) {
-      console.error('Resend API error:', response.error);
+      logger.error({ err: response.error }, 'Resend API error:');
       return {
         success: false,
         error: response.error.message || 'Email sending failed',
@@ -95,7 +96,7 @@ export async function sendEventReminderEmail(params: EmailReminderParams) {
       response: response,
     };
   } catch (error) {
-    console.error('Failed to send reminder email:', error);
+    logger.error({ error }, 'Failed to send reminder email:');
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

@@ -12,7 +12,7 @@ import { TemplateSelector } from '@/components/template-selector';
 import { DefaultTemplate, Invitation } from '@/lib/supabase';
 import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
-
+import { logger } from "@/lib/logger";
 
 interface InvitationFormProps {
   mode: 'create' | 'edit';
@@ -122,7 +122,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
       const formattedData = formatInvitationForSubmission(formData);
       await onSubmit(formattedData);
     } catch (error) {
-      console.error(`${mode} invitation error:`, error);
+      logger.error({ error }, `${mode} invitation error:`);
       setSubmissionError(error instanceof Error ? error.message : `Failed to ${mode} invitation`);
     }
   };

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from "@/lib/logger";
 
 // GET /api/designs - Get user's designs
 export async function GET() {
@@ -33,7 +34,7 @@ export async function GET() {
 
     return NextResponse.json({ designs });
   } catch (error) {
-    console.error('Error in GET /api/designs:', error);
+    logger.error({ error }, 'Error in GET /api/designs:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ design }, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/designs:', error);
+    logger.error({ error }, 'Error in POST /api/designs:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { logger } from "@/lib/logger";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ||
@@ -82,7 +83,7 @@ export async function generateInvitationSitemap() {
 
     return [];
   } catch (error) {
-    console.error('Error generating invitation sitemap:', error);
+    logger.error({ error }, 'Error generating invitation sitemap:');
     return [];
   }
 }

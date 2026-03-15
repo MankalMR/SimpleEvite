@@ -9,10 +9,11 @@ import { validateRSVPForm } from '@/lib/form-utils';
 import { usePublicInvitation } from '@/hooks/usePublicInvitation';
 import { getInvitationDesign } from '@/lib/invitation-utils';
 import { generateStructuredData } from '@/lib/seo';
-import Script from 'next/script';
 import { serializeJsonLd } from '@/lib/security';
+import Script from 'next/script';
 import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
+import { logger } from "@/lib/logger";
 
 export default function PublicInvite() {
   const params = useParams();
@@ -81,7 +82,7 @@ export default function PublicInvite() {
       setShowRSVPForm(false);
       setRsvpData({ name: '', response: '', comment: '', email: '', emailNotifications: true });
     } catch (error) {
-      console.error('RSVP submission error:', error);
+      logger.error({ error }, 'RSVP submission error:');
       setSubmissionError(error instanceof Error ? error.message : 'Failed to submit RSVP');
     }
   };
@@ -256,14 +257,16 @@ export default function PublicInvite() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                  <label id="rsvp-attend-label" className="block text-sm font-semibold text-gray-900 mb-3">
                     Will you attend? *
                   </label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div role="radiogroup" aria-labelledby="rsvp-attend-label" className="grid grid-cols-3 gap-3">
                     {(['yes', 'no', 'maybe'] as const).map((response) => (
                       <button
                         key={response}
                         type="button"
+                        role="radio"
+                        aria-checked={rsvpData.response === response}
                         onClick={() => setRsvpData({ ...rsvpData, response })}
                         className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${rsvpData.response === response
                             ? response === 'yes'
@@ -373,7 +376,7 @@ export default function PublicInvite() {
                   <button
                     type="submit"
                     disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                   >
                     {rsvpLoading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
                     {rsvpLoading ? 'Submitting...' : 'Submit RSVP'}
@@ -387,7 +390,7 @@ export default function PublicInvite() {
                 </p>
                 <button
                   onClick={() => setShowRSVPForm(true)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                 >
                   RSVP Now
                 </button>

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from "@/lib/logger";
 
 // PUT /api/designs/[id] - Update design
 export async function PUT(
@@ -44,7 +45,7 @@ export async function PUT(
 
     return NextResponse.json({ design });
   } catch (error) {
-    console.error('Error in PUT /api/designs/[id]:', error);
+    logger.error({ error }, 'Error in PUT /api/designs/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -100,7 +101,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Design deleted successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/designs/[id]:', error);
+    logger.error({ error }, 'Error in DELETE /api/designs/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

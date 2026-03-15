@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from "@/lib/logger";
 
 // DELETE /api/rsvp/[id] - Delete RSVP (only invitation owner can delete)
 export async function DELETE(
@@ -25,7 +26,7 @@ export async function DELETE(
       .single();
 
     if (userError || !userData) {
-      console.error('User lookup failed:', userError, 'Email:', session.user.email);
+      logger.error({ userError, data1: 'Email:', data2: session.user.email }, 'User lookup failed:');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -59,13 +60,13 @@ export async function DELETE(
       .eq('id', resolvedParams.id);
 
     if (error) {
-      console.error('Error deleting RSVP:', error);
+      logger.error({ error }, 'Error deleting RSVP:');
       return NextResponse.json({ error: 'Failed to delete RSVP' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'RSVP deleted successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/rsvp/[id]:', error);
+    logger.error({ error }, 'Error in DELETE /api/rsvp/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

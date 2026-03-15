@@ -3,6 +3,7 @@
 import { useSession, signOut, signIn } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { logger } from "@/lib/logger";
 
 export function Navbar() {
   const { data: session, status } = useSession();
@@ -11,7 +12,7 @@ export function Navbar() {
     try {
       await signIn('google', { callbackUrl: '/dashboard' });
     } catch (error) {
-      console.error('Error signing in:', error);
+      logger.error({ error }, 'Error signing in:');
     }
   };
 

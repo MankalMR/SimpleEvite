@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { generateEventMetadata } from '@/lib/seo';
 import { getBaseUrl } from '@/lib/url-utils';
+import { logger } from "@/lib/logger";
 
 // Server-side function to fetch invitation data for metadata
 async function getInvitation(token: string) {
@@ -16,7 +17,7 @@ async function getInvitation(token: string) {
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching invitation for metadata:', error);
+    logger.error({ error }, 'Error fetching invitation for metadata:');
     return null;
   }
 }

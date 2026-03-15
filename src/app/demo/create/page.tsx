@@ -7,6 +7,7 @@ import { InvitationPreview } from '@/components/invitation-preview';
 import { DefaultTemplate } from '@/lib/supabase';
 import { Spinner } from '@/components/spinner';
 import { getTextOverlayStyleOptions, getTextPositionOptions, getTextSizeOptions, TextOverlayStyle, TextPosition, TextSize } from '@/lib/text-overlay-utils';
+import { logger } from "@/lib/logger";
 
 export default function DemoCreateInvitation() {
     const router = useRouter();
@@ -62,7 +63,7 @@ export default function DemoCreateInvitation() {
         })
             .then(res => res.json())
             .then(data => setTemplates(data.templates || []))
-            .catch(() => console.error('Failed to load templates'));
+            .catch(() => logger.error('Failed to load templates'));
     }, [sessionId]);
 
     const handleSubmit = async (e: React.FormEvent) => {

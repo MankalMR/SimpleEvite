@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from "@/lib/logger";
 
 interface DemoBannerProps {
     onReset?: () => void;
@@ -22,7 +23,7 @@ export function DemoBanner({ onReset }: DemoBannerProps) {
             }
             onReset?.();
         } catch (error) {
-            console.error('Failed to reset demo:', error);
+            logger.error({ error }, 'Failed to reset demo:');
         } finally {
             setResetting(false);
         }

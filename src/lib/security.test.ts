@@ -11,6 +11,7 @@ import {
   generateSecureToken,
   containsDangerousContent,
   escapeHTML,
+  serializeJsonLd,
   checkRateLimit,
   cleanupRateLimitStore
 } from './security';
@@ -193,6 +194,31 @@ describe('security', () => {
       const input = '<script>alert("xss")</script> & "quotes"';
       const result = escapeHTML(input);
       expect(result).toBe('&lt;script&gt;alert("xss")&lt;/script&gt; &amp; "quotes"');
+    });
+  });
+
+  describe('serializeJsonLd', () => {
+    it('should safely serialize objects and escape dangerous characters', () => {
+      const data = {
+        title: 'Party</script><script>alert("XSS")</script>',
+        description: 'Food & Drinks',
+        location: '123 <Street>',
+      };
+      const result = serializeJsonLd(data);
+
+      expect(result).not.toContain('</script>');
+      expect(result).not.toContain('<');
+      expect(result).not.toContain('>');
+      expect(result).not.toContain('&');
+
+      expect(result).toContain('\\u003c/script\\u003e');
+      expect(result).toContain('\\u003cscript\\u003e');
+      expect(result).toContain('Food \\u0026 Drinks');
+      expect(result).toContain('123 \\u003cStreet\\u003e');
+
+      // Ensure it's still valid JSON if parsed
+      const parsed = JSON.parse(result);
+      expect(parsed).toEqual(data);
     });
   });
 
