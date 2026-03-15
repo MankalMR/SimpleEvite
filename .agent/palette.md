@@ -10,3 +10,6 @@
 ## 2026-03-20 - Keyboard Navigation for RSVP Forms
 **Learning:** Interactive forms like RSVP selection and submission forms often lack explicit focus indicators, making it very difficult to navigate them using a keyboard. The default focus styling on active elements is often insufficient or entirely absent in some Tailwind configurations.
 **Action:** Consistently apply explicit focus states using `focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1` across all form elements (buttons, inputs) to ensure keyboard navigation remains accessible.
+## 2026-03-15 - RSVP Form Focus
+**Learning:** Adding `autoFocus` to inputs revealed conditionally (like the RSVP form) immediately shifts focus to the new content, helping screen readers and keyboard users realize the form has appeared.
+**Action:** Always add `autoFocus` to the first primary input of conditionally rendered forms.
