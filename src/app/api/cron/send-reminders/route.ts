@@ -96,6 +96,20 @@ export async function GET(request: NextRequest) {
       errors: [] as Array<{ rsvpId: string; error: string }>,
     };
 
+    // Arrays to track batched DB operations
+    const skippedRsvpIds: string[] = [];
+    const sentRsvpIds: string[] = [];
+    const failedRsvpIds: string[] = [];
+    const notificationLogsToInsert: Array<{
+      rsvp_id: string;
+      invitation_id: string;
+      notification_type: 'email';
+      recipient: string;
+      status: 'sent' | 'failed';
+      provider_response?: unknown;
+      error_message?: string;
+    }> = [];
+
     // Process each invitation
     for (const invitation of invitations) {
       logger.info(`Processing invitation: ${invitation.title} (${invitation.id})`);
@@ -136,12 +150,7 @@ export async function GET(request: NextRequest) {
             logger.info(`Skipping RSVP ${rsvp.id} - no email or notifications disabled`);
             results.skippedCount++;
 
-            // Update status to skipped
-            await supabaseAdmin
-              .from('rsvps')
-              .update({ reminder_status: 'skipped' })
-              .eq('id', rsvp.id);
-
+            skippedRsvpIds.push(rsvp.id);
             continue;
           }
 
@@ -151,18 +160,9 @@ export async function GET(request: NextRequest) {
 
           if (emailResult.success) {
             results.sentCount++;
+            sentRsvpIds.push(rsvp.id);
 
-            // Update RSVP status
-            await supabaseAdmin
-              .from('rsvps')
-              .update({
-                reminder_sent_at: new Date().toISOString(),
-                reminder_status: 'sent',
-              })
-              .eq('id', rsvp.id);
-
-            // Log notification
-            await supabaseAdmin.from('notification_logs').insert({
+            notificationLogsToInsert.push({
               rsvp_id: rsvp.id,
               invitation_id: invitation.id,
               notification_type: 'email',
@@ -178,15 +178,9 @@ export async function GET(request: NextRequest) {
               rsvpId: rsvp.id,
               error: emailResult.error || 'Unknown error',
             });
+            failedRsvpIds.push(rsvp.id);
 
-            // Update RSVP status
-            await supabaseAdmin
-              .from('rsvps')
-              .update({ reminder_status: 'failed' })
-              .eq('id', rsvp.id);
-
-            // Log notification failure
-            await supabaseAdmin.from('notification_logs').insert({
+            notificationLogsToInsert.push({
               rsvp_id: rsvp.id,
               invitation_id: invitation.id,
               notification_type: 'email',
@@ -204,16 +198,44 @@ export async function GET(request: NextRequest) {
             rsvpId: rsvp.id,
             error: errorMessage,
           });
+          failedRsvpIds.push(rsvp.id);
 
           logger.error({ error }, `Error processing RSVP ${rsvp.id}:`);
-
-          // Update RSVP status
-          await supabaseAdmin
-            .from('rsvps')
-            .update({ reminder_status: 'failed' })
-            .eq('id', rsvp.id);
         }
       }
+    }
+
+    // Execute batch DB operations
+    try {
+      if (skippedRsvpIds.length > 0) {
+        await supabaseAdmin
+          .from('rsvps')
+          .update({ reminder_status: 'skipped' })
+          .in('id', skippedRsvpIds);
+      }
+
+      if (sentRsvpIds.length > 0) {
+        await supabaseAdmin
+          .from('rsvps')
+          .update({
+            reminder_sent_at: new Date().toISOString(),
+            reminder_status: 'sent',
+          })
+          .in('id', sentRsvpIds);
+      }
+
+      if (failedRsvpIds.length > 0) {
+        await supabaseAdmin
+          .from('rsvps')
+          .update({ reminder_status: 'failed' })
+          .in('id', failedRsvpIds);
+      }
+
+      if (notificationLogsToInsert.length > 0) {
+        await supabaseAdmin.from('notification_logs').insert(notificationLogsToInsert);
+      }
+    } catch (dbError) {
+      logger.error({ dbError }, 'Error updating database status after processing reminders:');
     }
 
     logger.info({ results }, 'Reminder notification job complete:');
