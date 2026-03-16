@@ -10,3 +10,8 @@
 ## 2026-03-20 - Keyboard Navigation for RSVP Forms
 **Learning:** Interactive forms like RSVP selection and submission forms often lack explicit focus indicators, making it very difficult to navigate them using a keyboard. The default focus styling on active elements is often insufficient or entirely absent in some Tailwind configurations.
 **Action:** Consistently apply explicit focus states using `focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1` across all form elements (buttons, inputs) to ensure keyboard navigation remains accessible.
+## 2024-05-18 - Accessibility: Conditionally Rendered Forms
+
+**Learning:** When forms are conditionally rendered below existing content (e.g., clicking 'RSVP Now' reveals the RSVP form), keyboard users and screen readers are not automatically directed to the new content, causing friction. Although `autoFocus` can sometimes cause unexpected scrolling on page load, it is highly beneficial for *conditionally* revealed inputs like the first field of an expanding RSVP form.
+
+**Action:** Always add `autoFocus` to the first primary input of conditionally rendered forms to immediately shift focus and improve accessibility for keyboard and screen reader users.
