@@ -153,6 +153,7 @@ export default function PublicInvite() {
             invitation={invitation}
             design={getInvitationDesign(invitation)}
             className="h-64 md:h-96"
+            priority={true}
           />
         </div>
 
