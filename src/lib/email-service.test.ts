@@ -40,6 +40,25 @@ describe('sendTestEmail', () => {
     );
   });
 
+  it('should handle errors returned in the response object from Resend', async () => {
+    mockSend.mockResolvedValueOnce({ error: { message: 'Invalid API key' } });
+
+    const result = await sendTestEmail('test@example.com');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Invalid API key');
+    expect(result.response).toEqual({ error: { message: 'Invalid API key' } });
+  });
+
+  it('should provide a default error message if error object lacks message', async () => {
+    mockSend.mockResolvedValueOnce({ error: { name: 'SomeError' } });
+
+    const result = await sendTestEmail('test@example.com');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Email sending failed');
+  });
+
   it('should handle errors thrown by Resend', async () => {
     const error = new Error('API Error');
     mockSend.mockRejectedValueOnce(error);
