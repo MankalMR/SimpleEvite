@@ -395,6 +395,9 @@ export const supabaseDb = {
         name: rsvp.name,
         response: rsvp.response,
         comment: rsvp.comment,
+        email: rsvp.email,
+        notification_preferences: rsvp.notification_preferences,
+        reminder_status: rsvp.reminder_status,
       })
       .select()
       .single();

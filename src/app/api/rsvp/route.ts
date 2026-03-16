@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
 import { withSecurity, validateRequestBody, addSecurityHeaders, RATE_LIMIT_PRESETS, logSecurityEvent } from '@/lib/api-security';
 import { validateRSVPData } from '@/lib/security';
 import { logger } from "@/lib/logger";
@@ -65,28 +66,24 @@ export async function POST(request: NextRequest) {
           : { email: true };
 
         // Create RSVP with sanitized data
-        const { data: rsvp, error } = await supabase
-          .from('rsvps')
-          .insert({
-            invitation_id,
+        let rsvp;
+        try {
+          rsvp = await supabaseDb.createRSVP({
             name,
-            response,
-            comment: comment || null,
-            email: sanitizedEmail || null,
+            response: response as 'yes' | 'no' | 'maybe',
+            comment: comment || undefined,
+            email: sanitizedEmail || undefined,
             notification_preferences: sanitizedNotificationPrefs,
             reminder_status: sanitizedEmail && response === 'yes' && sanitizedNotificationPrefs.email ? 'pending' : 'skipped',
-          })
-          .select()
-          .single();
-
-        if (error) {
+          }, invitation_id);
+        } catch (error) {
           logger.error({ error }, 'Error creating RSVP:');
           const clientIP = req.headers.get('x-forwarded-for') ||
                           req.headers.get('x-real-ip') ||
                           'unknown';
           logSecurityEvent('rsvp_creation_failed', {
             invitation_id,
-            error: error.message,
+            error: error instanceof Error ? error.message : 'Unknown error',
             ip: clientIP,
           });
           return NextResponse.json({ error: 'Failed to create RSVP' }, { status: 500 });
