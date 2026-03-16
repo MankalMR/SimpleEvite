@@ -137,6 +137,10 @@ function rowToRSVP(row: Record<string, unknown>): RSVP {
     name: row.name as string,
     response: row.response as 'yes' | 'no' | 'maybe',
     comment: row.comment as string | undefined,
+    email: row.email as string | undefined,
+    notification_preferences: row.notification_preferences as { email: boolean } | undefined,
+    reminder_sent_at: row.reminder_sent_at as string | undefined,
+    reminder_status: row.reminder_status as 'pending' | 'sent' | 'failed' | 'skipped' | undefined,
     created_at: row.created_at as string,
   };
 }
@@ -158,6 +162,18 @@ const INVITATION_FULL_SELECT = `
 `;
 
 export const supabaseDb = {
+  // Check if an invitation exists by ID (for RSVP)
+  async checkInvitationExists(id: string): Promise<boolean> {
+    const { data, error } = await supabaseAdmin
+      .from('invitations')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (error) return false;
+    return !!data;
+  },
+
   // Get all invitations for a user with RSVP data and designs
   async getInvitations(userId: string): Promise<InvitationWithRSVPs[]> {
     const { data, error } = await supabaseAdmin
@@ -395,6 +411,9 @@ export const supabaseDb = {
         name: rsvp.name,
         response: rsvp.response,
         comment: rsvp.comment,
+        email: rsvp.email,
+        notification_preferences: rsvp.notification_preferences,
+        reminder_status: rsvp.reminder_status,
       })
       .select()
       .single();
