@@ -22,6 +22,7 @@ interface InvitationDisplayProps {
   } | null;
   className?: string;
   showPlaceholder?: boolean;
+  priority?: boolean;
 }
 
 /**
@@ -32,7 +33,8 @@ export function InvitationDisplay({
   invitation,
   design,
   className = "h-96",
-  showPlaceholder = false
+  showPlaceholder = false,
+  priority = false
 }: InvitationDisplayProps) {
   // Create beautiful gradient backgrounds for when no design is selected
   const gradientBackgrounds = [
@@ -81,6 +83,8 @@ export function InvitationDisplay({
             className="object-cover"
             style={{ zIndex: 1 }}
             unoptimized
+            // ⚡ Bolt: Disable lazy loading for hero image to significantly improve LCP
+            priority={priority}
             onError={(e) => {
               logger.error({ data0: design.image_url, e }, 'Image failed to load:');
             }}
