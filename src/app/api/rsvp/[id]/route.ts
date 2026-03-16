@@ -11,24 +11,13 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string })?.id;
 
-    if (!session?.user?.email) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const resolvedParams = await params;
-
-    // Get user from database
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (userError || !userData) {
-      logger.error({ userError, data1: 'Email:', data2: session.user.email }, 'User lookup failed:');
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
 
     // First check if the user owns the invitation this RSVP belongs to
     const { data: rsvp, error: rsvpError } = await supabaseAdmin
@@ -49,7 +38,7 @@ export async function DELETE(
     // Check if the current user owns the invitation
     const invitation = rsvp.invitations as unknown as { user_id: string };
 
-    if (!invitation || invitation.user_id !== userData.id) {
+    if (!invitation || invitation.user_id !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

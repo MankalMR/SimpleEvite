@@ -67,13 +67,13 @@ async function enrichInvitationsWithTemplates(invitations: InvitationWithRSVPs[]
 
   try {
     // 1. Try fetching from custom designs
-    const { data: designData, error: designError } = await supabaseAdmin
+    const { data: designData } = await supabaseAdmin
       .from('designs')
       .select('*')
       .in('id', missingDesignIds);
 
     // 2. Try fetching from default templates
-    const { data: templateData, error: templateError } = await supabaseAdmin
+    const { data: templateData } = await supabaseAdmin
       .from('default_templates')
       .select('*')
       .in('id', missingDesignIds);
