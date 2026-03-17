@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo } from 'react';
 import Image from 'next/image';
 import { Invitation } from '@/lib/supabase';
 import {
@@ -28,8 +29,11 @@ interface InvitationDisplayProps {
 /**
  * Unified component for displaying invitations with text overlay
  * Used across live preview, public view, and private view
+ * ⚡ Bolt: Wrapped with React.memo() to prevent unnecessary re-renders when
+ * typed form state changes in parent preview components, significantly
+ * improving perceived performance and reducing main thread blocking.
  */
-export function InvitationDisplay({
+export const InvitationDisplay = memo(function InvitationDisplay({
   invitation,
   design,
   className = "h-96",
@@ -156,4 +160,4 @@ export function InvitationDisplay({
       )}
     </div>
   );
-}
+});
