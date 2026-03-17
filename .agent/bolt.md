@@ -16,3 +16,6 @@
 ## 2024-03-15 - Improve LCP for Hero Images
 **Learning:** Next.js `<Image>` component lazy-loads images by default. When used for "above-the-fold" hero images (like `InvitationDisplay`), this causes a delay and hurts the Largest Contentful Paint (LCP) performance metric.
 **Action:** Add `priority={true}` to the `<Image>` component for hero images to disable lazy loading and significantly improve LCP.
+## 2026-03-17 - React.memo on InvitationDisplay
+ **Learning:** The `InvitationDisplay` component is a purely stateless visual component that is heavily re-rendered within the `InvitationPreview` and form components on every keystroke. Next.js App Router "use client" components like forms cause deep re-renders by default.
+ **Action:** Wrapped `InvitationDisplay` in `React.memo` to eliminate unnecessary reconciliation cycles, significantly improving typing responsiveness in the creation/edit forms.
