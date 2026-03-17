@@ -404,6 +404,15 @@ export async function sendTestEmail(to: string) {
       html: '<p>This is a test email. If you received this, Resend is configured correctly!</p>',
     });
 
+    if (response.error) {
+      logger.error({ err: response.error }, 'Resend API error during test email:');
+      return {
+        success: false,
+        error: response.error.message || 'Email sending failed',
+        response: response,
+      };
+    }
+
     return { success: true, response };
   } catch (error) {
     return {
