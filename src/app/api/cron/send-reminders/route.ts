@@ -110,23 +110,40 @@ export async function GET(request: NextRequest) {
       error_message?: string;
     }> = [];
 
+    // Extract all invitation IDs to fetch RSVPs in one batch
+    const invitationIds = invitations.map((inv) => inv.id);
+
+    // Fetch all pending RSVPs for these invitations in a single query
+    const { data: allRsvps, error: rsvpsError } = await supabaseAdmin
+      .from('rsvps')
+      .select('*')
+      .in('invitation_id', invitationIds)
+      .eq('response', 'yes')
+      .eq('reminder_status', 'pending')
+      .not('email', 'is', null);
+
+    if (rsvpsError) {
+      logger.error({ rsvpsError }, 'Error fetching pending RSVPs in batch:');
+      return NextResponse.json(
+        { error: 'Failed to fetch RSVPs', details: rsvpsError.message },
+        { status: 500 }
+      );
+    }
+
+    // Group RSVPs by invitation_id for O(1) lookup
+    const rsvpsByInvitationId = (allRsvps || []).reduce((acc, rsvp) => {
+      if (!acc[rsvp.invitation_id]) {
+        acc[rsvp.invitation_id] = [];
+      }
+      acc[rsvp.invitation_id].push(rsvp);
+      return acc;
+    }, {} as Record<string, typeof allRsvps>);
+
     // Process each invitation
     for (const invitation of invitations) {
       logger.info(`Processing invitation: ${invitation.title} (${invitation.id})`);
 
-      // Fetch RSVPs for this invitation that need reminders
-      const { data: rsvps, error: rsvpsError } = await supabaseAdmin
-        .from('rsvps')
-        .select('*')
-        .eq('invitation_id', invitation.id)
-        .eq('response', 'yes')
-        .eq('reminder_status', 'pending')
-        .not('email', 'is', null);
-
-      if (rsvpsError) {
-        logger.error({ rsvpsError }, `Error fetching RSVPs for invitation ${invitation.id}:`);
-        continue;
-      }
+      const rsvps = rsvpsByInvitationId[invitation.id];
 
       if (!rsvps || rsvps.length === 0) {
         logger.info(`No pending reminders for invitation ${invitation.id}`);
