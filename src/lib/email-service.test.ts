@@ -25,52 +25,57 @@ describe('sendTestEmail', () => {
     mockSend.mockClear();
   });
 
-  it('should successfully send an email', async () => {
-    mockSend.mockResolvedValueOnce({ id: 'test-id', data: { id: 'test-id' } });
+  it('should successfully send a test email', async () => {
+    const mockResponse = { id: 'test-msg-id', data: { id: 'test-msg-id' } };
+    mockSend.mockResolvedValueOnce(mockResponse);
 
     const result = await sendTestEmail('test@example.com');
 
     expect(result.success).toBe(true);
-    expect(result.response).toEqual({ id: 'test-id', data: { id: 'test-id' } });
+    expect(result.response).toEqual(mockResponse);
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'test@example.com',
         subject: 'Test Email from Simple Evite',
+        html: expect.any(String),
       })
     );
   });
 
-  it('should handle errors returned in the response object from Resend', async () => {
-    mockSend.mockResolvedValueOnce({ error: { message: 'Invalid API key' } });
+  it('should handle errors returned in the response object from Resend (e.g., invalid API key)', async () => {
+    const mockErrorResponse = { error: { message: 'Invalid API key' } };
+    mockSend.mockResolvedValueOnce(mockErrorResponse);
 
     const result = await sendTestEmail('test@example.com');
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('Invalid API key');
-    expect(result.response).toEqual({ error: { message: 'Invalid API key' } });
+    expect(result.response).toEqual(mockErrorResponse);
   });
 
-  it('should provide a default error message if error object lacks message', async () => {
-    mockSend.mockResolvedValueOnce({ error: { name: 'SomeError' } });
+  it('should provide a default error message if Resend response error object lacks a message', async () => {
+    const mockErrorResponse = { error: { name: 'UnknownResendError' } };
+    mockSend.mockResolvedValueOnce(mockErrorResponse);
 
     const result = await sendTestEmail('test@example.com');
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('Email sending failed');
+    expect(result.response).toEqual(mockErrorResponse);
   });
 
-  it('should handle errors thrown by Resend', async () => {
-    const error = new Error('API Error');
+  it('should catch and handle Error objects thrown by Resend', async () => {
+    const error = new Error('Network timeout');
     mockSend.mockRejectedValueOnce(error);
 
     const result = await sendTestEmail('test@example.com');
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('API Error');
+    expect(result.error).toBe('Network timeout');
   });
 
-  it('should handle non-Error objects thrown', async () => {
-    mockSend.mockRejectedValueOnce('String Error');
+  it('should catch and handle non-Error objects thrown by Resend', async () => {
+    mockSend.mockRejectedValueOnce('Some string error');
 
     const result = await sendTestEmail('test@example.com');
 

@@ -19,6 +19,9 @@
 ## 2026-03-17 - React.memo on InvitationDisplay
  **Learning:** The `InvitationDisplay` component is a purely stateless visual component that is heavily re-rendered within the `InvitationPreview` and form components on every keystroke. Next.js App Router "use client" components like forms cause deep re-renders by default.
  **Action:** Wrapped `InvitationDisplay` in `React.memo` to eliminate unnecessary reconciliation cycles, significantly improving typing responsiveness in the creation/edit forms.
+## 2026-03-17 - Optimize email dispatching in cron jobs
+ **Learning:** When refactoring sequential async network requests (e.g., sending emails via Resend in `src/app/api/cron/*` routes), use `Promise.all` with batched tasks to execute them concurrently. This eliminates N+1 performance bottlenecks and prevents cron job timeouts.
+ **Action:** Refactored the `/api/cron/send-reminders` route to push async tasks to an array and resolve them concurrently in chunks using `Promise.all`.
 
 ## 2024-05-24 - Template Selector Bottleneck
 **Learning:** The default templates API route (`/api/templates`) does not include caching headers. Since these templates change infrequently, every client request incurs an unnecessary roundtrip to the Supabase database.

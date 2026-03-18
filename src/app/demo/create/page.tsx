@@ -166,6 +166,7 @@ export default function DemoCreateInvitation() {
                                                 id="title"
                                                 name="title"
                                                 required
+                                        autoFocus
                                                 value={formData.title}
                                                 onChange={handleChange}
                                                 className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
