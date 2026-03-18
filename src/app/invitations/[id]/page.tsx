@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/protected-route';
@@ -11,12 +11,12 @@ import { InvitationDisplay } from '@/components/invitation-display';
 import { getInvitationDesign } from '@/lib/invitation-utils';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { logger } from "@/lib/logger";
-import { Check, Link as LinkIcon, Edit, Eye } from 'lucide-react';
+import { Edit, Eye } from 'lucide-react';
+import { CopyLinkButton } from '@/components/copy-link-button';
 
 export default function InvitationView() {
   const params = useParams();
   const id = params.id as string;
-  const [copySuccess, setCopySuccess] = useState(false);
 
   const {
     invitation,
@@ -30,15 +30,6 @@ export default function InvitationView() {
       fetchInvitation(id);
     }
   }, [id, fetchInvitation]);
-
-  const handleCopyInviteLink = () => {
-    if (!invitation) return;
-    const url = `${window.location.origin}/invite/${invitation.share_token}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    });
-  };
 
   const deleteRSVP = async (rsvpId: string) => {
     try {
@@ -148,22 +139,11 @@ export default function InvitationView() {
               {/* Mobile: Stack actions vertically, Desktop: Horizontal */}
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                 {/* Primary actions - most important first on mobile */}
-                {(() => {
-                  const Icon = copySuccess ? Check : LinkIcon;
-                  return (
-                    <button
-                      onClick={handleCopyInviteLink}
-                      className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2 ${copySuccess
-                        ? 'bg-green-600 text-white hover:bg-green-700'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }`}
-                      aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-                    >
-                      <Icon className="w-5 h-5 flex-shrink-0" />
-                      {copySuccess ? 'Copied!' : 'Copy Invite Link'}
-                    </button>
-                  );
-                })()}
+                <CopyLinkButton
+                  shareToken={invitation.share_token}
+                  className="px-4 py-2.5 rounded-lg font-medium transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                  label="Copy Invite Link"
+                />
 
                 <div className="flex gap-2">
                   <Link
@@ -387,22 +367,11 @@ export default function InvitationView() {
               <p className="text-gray-600 mb-6">
                 Share your invitation link to start receiving responses.
               </p>
-              {(() => {
-                const Icon = copySuccess ? Check : LinkIcon;
-                return (
-                  <button
-                    onClick={handleCopyInviteLink}
-                    className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2 ${copySuccess
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                      }`}
-                    aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-                  >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
-                    {copySuccess ? 'Copied!' : 'Copy Invite Link'}
-                  </button>
-                );
-              })()}
+              <CopyLinkButton
+                shareToken={invitation.share_token}
+                className="w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                label="Copy Invite Link"
+              />
             </div>
           )}
         </div>

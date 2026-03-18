@@ -10,10 +10,10 @@ import { useInvitations } from '@/hooks/useInvitations';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { InlineError } from '@/components/inline-error';
-import { Check, Link as LinkIcon, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
+import { CopyLinkButton } from '@/components/copy-link-button';
 
 export default function Dashboard() {
-  const [copySuccess, setCopySuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const {
@@ -35,14 +35,6 @@ export default function Dashboard() {
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to delete invitation');
     }
-  };
-
-  const handleCopyLink = (shareToken: string) => {
-    const url = `${window.location.origin}/invite/${shareToken}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopySuccess(shareToken);
-      setTimeout(() => setCopySuccess(null), 2000);
-    });
   };
 
   // Global stats across all invitations
@@ -182,23 +174,7 @@ export default function Dashboard() {
                       </div>
 
                       <div className="flex gap-2">
-                        {(() => {
-                          const isCopied = copySuccess === invitation.share_token;
-                          const Icon = isCopied ? Check : LinkIcon;
-                          return (
-                            <button
-                              onClick={() => handleCopyLink(invitation.share_token)}
-                              className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5 ${isCopied
-                                  ? 'bg-green-600 text-white hover:bg-green-700'
-                                  : 'bg-blue-600 text-white hover:bg-blue-700'
-                                }`}
-                              aria-label={isCopied ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-                            >
-                              <Icon className="w-4 h-4 flex-shrink-0" />
-                              {isCopied ? 'Copied!' : 'Copy Link'}
-                            </button>
-                          );
-                        })()}
+                        <CopyLinkButton shareToken={invitation.share_token} />
                         <Link
                           href={`/invitations/${invitation.id}`}
                           className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
