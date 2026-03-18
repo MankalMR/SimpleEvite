@@ -10,6 +10,8 @@ import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-uti
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { InlineError } from '@/components/inline-error';
+import { Eye } from 'lucide-react';
+import { CopyLinkButton } from '@/components/copy-link-button';
 
 export default function DemoDashboard() {
     const [sessionId, setSessionId] = useState<string | null>(null);
@@ -17,7 +19,6 @@ export default function DemoDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
-    const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
     // Initialize session
     useEffect(() => {
@@ -78,14 +79,6 @@ export default function DemoDashboard() {
         } catch {
             setActionError('Failed to delete invitation');
         }
-    };
-
-    const handleCopyLink = (shareToken: string) => {
-        const url = `${window.location.origin}/demo/i/${shareToken}`;
-        navigator.clipboard.writeText(url).then(() => {
-            setCopySuccess(shareToken);
-            setTimeout(() => setCopySuccess(null), 2000);
-        });
     };
 
     const handleReset = () => {
@@ -227,17 +220,15 @@ export default function DemoDashboard() {
                                             </div>
 
                                             <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleCopyLink(invitation.share_token)}
-                                                    className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${copySuccess === invitation.share_token ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                                                    aria-label={copySuccess === invitation.share_token ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-                                                >
-                                                    {copySuccess === invitation.share_token ? 'Copied!' : 'Copy Link'}
-                                                </button>
+                                                <CopyLinkButton
+                                                    shareToken={invitation.share_token}
+                                                    baseUrl={typeof window !== 'undefined' ? `${window.location.origin}/demo/i/` : ''}
+                                                />
                                                 <Link
                                                     href={`/demo/i/${invitation.share_token}`}
-                                                    className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                                                    className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
                                                 >
+                                                    <Eye className="w-4 h-4 flex-shrink-0" />
                                                     Preview
                                                 </Link>
                                                 <ConfirmDeleteButton
