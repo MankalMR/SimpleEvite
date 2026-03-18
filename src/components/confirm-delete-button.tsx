@@ -112,6 +112,8 @@ export function ConfirmDeleteButton({
         deleting: 'Deleting…',
     };
 
+    const Icon = state === 'idle' ? Trash2 : state === 'confirming' ? AlertTriangle : Loader2;
+
     return (
         <button
             type="button"
@@ -121,15 +123,7 @@ export function ConfirmDeleteButton({
             aria-label={ariaLabels[state]}
             aria-live="assertive"
         >
-            {state === 'idle' && (
-                <Trash2 className="w-4 h-4 flex-shrink-0" />
-            )}
-            {state === 'confirming' && (
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-            )}
-            {state === 'deleting' && (
-                <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
-            )}
+            <Icon className={`w-4 h-4 flex-shrink-0 ${state === 'deleting' ? 'animate-spin' : ''}`} />
             {displayText[state]}
         </button>
     );

@@ -148,26 +148,22 @@ export default function InvitationView() {
               {/* Mobile: Stack actions vertically, Desktop: Horizontal */}
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                 {/* Primary actions - most important first on mobile */}
-                <button
-                  onClick={handleCopyInviteLink}
-                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2 ${copySuccess
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-                  aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-                >
-                  {copySuccess ? (
-                    <>
-                      <Check className="w-5 h-5 flex-shrink-0" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <LinkIcon className="w-5 h-5 flex-shrink-0" />
-                      Copy Invite Link
-                    </>
-                  )}
-                </button>
+                {(() => {
+                  const Icon = copySuccess ? Check : LinkIcon;
+                  return (
+                    <button
+                      onClick={handleCopyInviteLink}
+                      className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2 ${copySuccess
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
+                    >
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      {copySuccess ? 'Copied!' : 'Copy Invite Link'}
+                    </button>
+                  );
+                })()}
 
                 <div className="flex gap-2">
                   <Link
@@ -391,26 +387,22 @@ export default function InvitationView() {
               <p className="text-gray-600 mb-6">
                 Share your invitation link to start receiving responses.
               </p>
-              <button
-                onClick={handleCopyInviteLink}
-                className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2 ${copySuccess
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-              >
-                {copySuccess ? (
-                  <>
-                    <Check className="w-5 h-5 flex-shrink-0" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <LinkIcon className="w-5 h-5 flex-shrink-0" />
-                    Copy Invite Link
-                  </>
-                )}
-              </button>
+              {(() => {
+                const Icon = copySuccess ? Check : LinkIcon;
+                return (
+                  <button
+                    onClick={handleCopyInviteLink}
+                    className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2 ${copySuccess
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
+                    aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    {copySuccess ? 'Copied!' : 'Copy Invite Link'}
+                  </button>
+                );
+              })()}
             </div>
           )}
         </div>
