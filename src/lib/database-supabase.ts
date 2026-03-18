@@ -389,7 +389,7 @@ export const supabaseDb = {
 
   // Create a new RSVP
   async createRSVP(
-    rsvp: Omit<RSVP, 'id' | 'created_at'>,
+    rsvp: Omit<RSVP, 'id' | 'created_at' | 'invitation_id'>,
     invitationId: string
   ): Promise<RSVP> {
     const { data, error } = await supabaseAdmin
