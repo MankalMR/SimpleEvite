@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, ChevronDown, Download, Globe } from 'lucide-react';
-import { Invitation } from '@/lib/supabase';
+import type { Invitation } from '@/lib/supabase';
 import {
   generateGoogleCalendarUrl,
   generateYahooCalendarUrl,

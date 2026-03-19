@@ -1,4 +1,4 @@
-import { Invitation } from '@/lib/supabase';
+import type { Invitation } from '@/lib/supabase';
 
 /**
  * Helper to format date and time for calendar links.

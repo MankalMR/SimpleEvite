@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
 
 // PUT /api/designs/[id] - Update design
@@ -72,7 +73,9 @@ export async function DELETE(
     if (design.image_url && design.image_url.includes('/storage/v1/object/public/designs/')) {
       const filePath = design.image_url.split('/storage/v1/object/public/designs/')[1];
       if (filePath && filePath.startsWith(userId + '/')) {
-        await supabaseDb.removeDesignImage(filePath);
+        await supabaseAdmin.storage
+          .from('designs')
+          .remove([filePath]);
       }
     }
 
