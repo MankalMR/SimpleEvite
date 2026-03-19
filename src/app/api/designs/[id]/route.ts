@@ -13,7 +13,7 @@ export async function PUT(
     const session = await getServerSession(authOptions);
     const userId = (session?.user as { id?: string })?.id;
 
-    if (!userId) {
+    if (!userId || !session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -48,7 +48,7 @@ export async function DELETE(
     const session = await getServerSession(authOptions);
     const userId = (session?.user as { id?: string })?.id;
 
-    if (!userId) {
+    if (!userId || !session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -70,9 +70,20 @@ export async function DELETE(
 
     // Extract file path from URL and delete from Supabase Storage
     if (design.image_url && design.image_url.includes('/storage/v1/object/public/designs/')) {
-      const filePath = design.image_url.split('/storage/v1/object/public/designs/')[1];
-      if (filePath && filePath.startsWith(userId + '/')) {
-        await supabaseDb.removeDesignImage(filePath);
+      try {
+        const rawFilePath = design.image_url.split('/storage/v1/object/public/designs/')[1];
+        if (rawFilePath) {
+          const filePath = decodeURIComponent(rawFilePath);
+          // Prevent directory traversal by strictly validating the path structure: userId/filename
+          const pathParts = filePath.split('/');
+          if (pathParts.length === 2 && pathParts[0] === userId && !pathParts[1].includes('..')) {
+            await supabaseDb.removeDesignImage(filePath);
+          } else {
+            logger.warn({ filePath, userId }, 'Suspicious file deletion attempt blocked');
+          }
+        }
+      } catch (e) {
+        logger.error({ e }, 'Error parsing design image URL for deletion:');
       }
     }
 
