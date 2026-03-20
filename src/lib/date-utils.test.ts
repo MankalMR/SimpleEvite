@@ -78,23 +78,32 @@ describe('date-utils', () => {
   });
 
   describe('isDateInPast', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      // Set system time to a fixed date: 2024-05-15T12:00:00.000Z
+      jest.setSystemTime(new Date('2024-05-15T12:00:00.000Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('should return true for past dates', () => {
-      const pastDate = '2020-01-01';
+      const pastDate = '2024-05-14';
       const result = isDateInPast(pastDate);
 
       expect(result).toBe(true);
     });
 
     it('should return false for future dates', () => {
-      const futureDate = '2030-01-01';
+      const futureDate = '2024-05-16';
       const result = isDateInPast(futureDate);
 
       expect(result).toBe(false);
     });
 
     it('should return false for today', () => {
-      const today = new Date();
-      const todayString = today.toISOString().split('T')[0];
+      const todayString = '2024-05-15';
       const result = isDateInPast(todayString);
 
       // Should be false since it's today
@@ -102,9 +111,8 @@ describe('date-utils', () => {
     });
 
     it('should handle edge cases around midnight', () => {
-      // Use a fixed past date to avoid timezone issues
-      const yesterdayString = '2020-01-01';
-
+      // Test the date exactly before the mocked today
+      const yesterdayString = '2024-05-14T23:59:59Z';
       const result = isDateInPast(yesterdayString);
       expect(result).toBe(true);
     });
