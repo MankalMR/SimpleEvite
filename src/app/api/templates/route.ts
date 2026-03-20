@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch templates' }, { status: 500 });
     }
 
-    // ⚡ Bolt: Added Cache-Control to reduce DB load and improve TTFB for infrequently changing default templates
+    // ⚡ Bolt: Added Cache-Control to reduce DB load and improve TTFB for template selector
     return NextResponse.json(
       { templates: data || [] },
       {
