@@ -11,7 +11,6 @@ import { DemoBanner } from '@/components/DemoBanner';
 import { Spinner } from '@/components/spinner';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { InlineError } from '@/components/inline-error';
-import { AddToCalendar } from '@/components/add-to-calendar';
 
 export default function DemoPublicInvite() {
     const params = useParams();
@@ -186,10 +185,7 @@ export default function DemoPublicInvite() {
                 {/* Event Details */}
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-                        <div className="flex justify-between items-start mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
-                            {!eventPassed && <AddToCalendar invitation={invitation} />}
-                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="flex items-start space-x-3">
                                 <svg className="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

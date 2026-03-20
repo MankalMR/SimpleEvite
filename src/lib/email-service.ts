@@ -1,9 +1,9 @@
 import { Resend } from 'resend';
-import type { Invitation, RSVP } from '@/lib/supabase';
+import { Invitation, RSVP } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
 
 // Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY || 'mock_key_for_build');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email configuration
 const EMAIL_CONFIG = {
@@ -397,27 +397,28 @@ You received this email because you RSVP'd to this event and opted in to receive
  */
 export async function sendTestEmail(to: string) {
   try {
-    const response = await resend.emails.send({
+    const res = await resend.emails.send({
       from: EMAIL_CONFIG.from,
       to,
       subject: 'Test Email from Simple Evite',
       html: '<p>This is a test email. If you received this, Resend is configured correctly!</p>',
     });
 
-    if (response.error) {
-      logger.error({ err: response.error }, 'Resend API error during test email:');
+    // The Resend SDK resolves with an error object rather than throwing on API failures
+    if (res.error) {
+      logger.error({ err: res.error }, 'Resend API error during test email:');
       return {
         success: false,
-        error: response.error.message || 'Email sending failed',
-        response: response,
+        error: res.error.message || 'Email sending failed',
+        response: res,
       };
     }
 
-    return { success: true, response };
-  } catch (error) {
+    return { success: true, response: res };
+  } catch (err) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: err instanceof Error ? err.message : 'Unknown error',
     };
   }
 }

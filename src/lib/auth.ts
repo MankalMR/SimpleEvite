@@ -14,8 +14,8 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co',
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock_key_for_build',
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    secret: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   }) as NonNullable<NextAuthOptions['adapter']>,
   callbacks: {
     session: async ({ session, user }) => {

@@ -1,7 +1,7 @@
 # Feature Ticket: Add to Calendar Links
 
 ## Status
-done
+pending-implementation
 
 ## Context
 When guests receive an invitation link (e.g., via `/demo/i/[token]`), they can see the event details and RSVP. However, there is no easy way for them to save the event directly to their personal calendar (Apple, Google, Outlook, etc.). Guests currently have to manually copy the event date, time, and location into their calendar app, which is a common source of friction and can lead to missed events or no-shows.
@@ -64,14 +64,9 @@ Comp-->>Guest: Triggers download of event.ics file
 ```
 
 ## Acceptance Criteria
-- [x] A guest viewing an invitation sees an "Add to Calendar" option.
-- [x] Clicking the Google option opens a new tab to Google Calendar with the title, date, time, and location correctly pre-filled.
-- [x] Clicking the Apple/Outlook option triggers a download of an `.ics` file that successfully imports into standard calendar applications with the correct details.
-- [x] The component gracefully handles missing optional fields (like `event_time` or `location`).
-- [x] The feature works coherently in the `/demo` flows without requiring authentication.
-- [x] Unit tests are added for `calendar-utils.ts` to ensure correct URL generation and date parsing.
-
-## Implementation Notes
-- Files changed: `src/lib/calendar-utils.ts`, `src/lib/calendar-utils.test.ts`, `src/components/add-to-calendar.tsx`, `src/app/demo/i/[token]/page.tsx`, `src/app/invite/[token]/page.tsx`
-- Behavior: Implemented an "Add to Calendar" dropdown for both demo and live public invitation pages. The dropdown contains links to Yahoo Calendar and Google Calendar, which open directly in a new tab with pre-filled event details. Also provides an option to download a fully formatted `.ics` file which triggers an immediate client-side Blob download.
-- Tests: Added comprehensive unit tests in `src/lib/calendar-utils.test.ts` for URL construction and `.ics` file generation.
+- [ ] A guest viewing an invitation sees an "Add to Calendar" option.
+- [ ] Clicking the Google option opens a new tab to Google Calendar with the title, date, time, and location correctly pre-filled.
+- [ ] Clicking the Apple/Outlook option triggers a download of an `.ics` file that successfully imports into standard calendar applications with the correct details.
+- [ ] The component gracefully handles missing optional fields (like `event_time` or `location`).
+- [ ] The feature works coherently in the `/demo` flows without requiring authentication.
+- [ ] Unit tests are added for `calendar-utils.ts` to ensure correct URL generation and date parsing.

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
-import { supabaseAdmin } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
 
 // PUT /api/designs/[id] - Update design
