@@ -4,14 +4,6 @@ import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
 
-interface RSVPWithInvitationOwner {
-  id: string;
-  // Supabase may return joined results as a single object or an array depending on configuration
-  invitations: {
-    user_id: string;
-  } | Array<{ user_id: string }> | null;
-}
-
 // DELETE /api/rsvp/[id] - Delete RSVP (only invitation owner can delete)
 export async function DELETE(
   request: NextRequest,
@@ -28,7 +20,7 @@ export async function DELETE(
     const resolvedParams = await params;
 
     // First check if the user owns the invitation this RSVP belongs to
-    const { data: rsvp, error: rsvpError } = await supabaseAdmin
+    const { data: rsvpData, error: rsvpError } = await supabaseAdmin
       .from('rsvps')
       .select(`
         id,
@@ -37,15 +29,17 @@ export async function DELETE(
         )
       `)
       .eq('id', resolvedParams.id)
-      .returns<RSVPWithInvitationOwner>()
       .single();
 
-    if (rsvpError || !rsvp) {
+    if (rsvpError || !rsvpData) {
       return NextResponse.json({ error: 'RSVP not found' }, { status: 404 });
     }
 
     // Check if the current user owns the invitation
-    const invitation = Array.isArray(rsvp.invitations) ? rsvp.invitations[0] : rsvp.invitations;
+    // The query above joins the invitations table to get the user_id
+    type QueryResult = { invitations: { user_id: string }[] };
+    const rsvp = rsvpData as QueryResult;
+    const invitation = rsvp.invitations?.[0];
     if (!invitation || invitation.user_id !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized. You do not own the invitation for this RSVP.' },
