@@ -139,9 +139,6 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, typeof allRsvps>);
 
-    // Prepare all email sending tasks
-    const emailTasks: Array<() => Promise<void>> = [];
-
     // Process each invitation
     for (const invitation of invitations) {
       logger.info(`Processing invitation: ${invitation.title} (${invitation.id})`);
@@ -174,58 +171,43 @@ export async function GET(request: NextRequest) {
             continue;
           }
 
-          // Add to tasks array instead of awaiting immediately
-          emailTasks.push(async () => {
-            try {
-              // Send email
-              logger.info(`Sending reminder to ${reminderData.guestName} <${reminderData.to}>`);
-              const emailResult = await sendEventReminderEmail(reminderData);
+          // Send email
+          logger.info(`Sending reminder to ${reminderData.guestName} <${reminderData.to}>`);
+          const emailResult = await sendEventReminderEmail(reminderData);
 
-              if (emailResult.success) {
-                results.sentCount++;
-                sentRsvpIds.push(rsvp.id);
+          if (emailResult.success) {
+            results.sentCount++;
+            sentRsvpIds.push(rsvp.id);
 
-                notificationLogsToInsert.push({
-                  rsvp_id: rsvp.id,
-                  invitation_id: invitation.id,
-                  notification_type: 'email',
-                  recipient: reminderData.to,
-                  status: 'sent',
-                  provider_response: emailResult.response,
-                });
+            notificationLogsToInsert.push({
+              rsvp_id: rsvp.id,
+              invitation_id: invitation.id,
+              notification_type: 'email',
+              recipient: reminderData.to,
+              status: 'sent',
+              provider_response: emailResult.response,
+            });
 
-                logger.info(`✓ Successfully sent reminder to ${reminderData.to}`);
-              } else {
-                results.failedCount++;
-                results.errors.push({
-                  rsvpId: rsvp.id,
-                  error: emailResult.error || 'Unknown error',
-                });
-                failedRsvpIds.push(rsvp.id);
+            logger.info(`✓ Successfully sent reminder to ${reminderData.to}`);
+          } else {
+            results.failedCount++;
+            results.errors.push({
+              rsvpId: rsvp.id,
+              error: emailResult.error || 'Unknown error',
+            });
+            failedRsvpIds.push(rsvp.id);
 
-                notificationLogsToInsert.push({
-                  rsvp_id: rsvp.id,
-                  invitation_id: invitation.id,
-                  notification_type: 'email',
-                  recipient: reminderData.to,
-                  status: 'failed',
-                  error_message: emailResult.error,
-                });
+            notificationLogsToInsert.push({
+              rsvp_id: rsvp.id,
+              invitation_id: invitation.id,
+              notification_type: 'email',
+              recipient: reminderData.to,
+              status: 'failed',
+              error_message: emailResult.error,
+            });
 
-                logger.error({ err: emailResult.error }, `✗ Failed to send reminder to ${reminderData.to}:`);
-              }
-            } catch (error) {
-              results.failedCount++;
-              const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-              results.errors.push({
-                rsvpId: rsvp.id,
-                error: errorMessage,
-              });
-              failedRsvpIds.push(rsvp.id);
-
-              logger.error({ error }, `Error sending email for RSVP ${rsvp.id}:`);
-            }
-          });
+            logger.error({ err: emailResult.error }, `✗ Failed to send reminder to ${reminderData.to}:`);
+          }
         } catch (error) {
           results.failedCount++;
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -235,16 +217,9 @@ export async function GET(request: NextRequest) {
           });
           failedRsvpIds.push(rsvp.id);
 
-          logger.error({ error }, `Error preparing RSVP ${rsvp.id}:`);
+          logger.error({ error }, `Error processing RSVP ${rsvp.id}:`);
         }
       }
-    }
-
-    // Process email tasks in chunks to avoid rate limiting and memory issues
-    const CHUNK_SIZE = 50;
-    for (let i = 0; i < emailTasks.length; i += CHUNK_SIZE) {
-      const chunk = emailTasks.slice(i, i + CHUNK_SIZE);
-      await Promise.all(chunk.map((task) => task()));
     }
 
     // Execute batch DB operations
