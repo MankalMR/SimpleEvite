@@ -20,7 +20,7 @@ export async function DELETE(
     const resolvedParams = await params;
 
     // First check if the user owns the invitation this RSVP belongs to
-    const { data: rsvp, error: rsvpError } = await supabaseAdmin
+    const { data: rsvpData, error: rsvpError } = await supabaseAdmin
       .from('rsvps')
       .select(`
         id,
@@ -31,15 +31,20 @@ export async function DELETE(
       .eq('id', resolvedParams.id)
       .single();
 
-    if (rsvpError || !rsvp) {
+    if (rsvpError || !rsvpData) {
       return NextResponse.json({ error: 'RSVP not found' }, { status: 404 });
     }
 
     // Check if the current user owns the invitation
-    const invitation = rsvp.invitations as unknown as { user_id: string };
-
+    // The query above joins the invitations table to get the user_id
+    type QueryResult = { invitations: { user_id: string }[] };
+    const rsvp = rsvpData as QueryResult;
+    const invitation = rsvp.invitations?.[0];
     if (!invitation || invitation.user_id !== userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Unauthorized. You do not own the invitation for this RSVP.' },
+        { status: 403 }
+      );
     }
 
     // Delete the RSVP
