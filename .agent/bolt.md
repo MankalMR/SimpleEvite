@@ -22,3 +22,6 @@
 ## 2026-03-17 - Optimize email dispatching in cron jobs
  **Learning:** When refactoring sequential async network requests (e.g., sending emails via Resend in `src/app/api/cron/*` routes), use `Promise.all` with batched tasks to execute them concurrently. This eliminates N+1 performance bottlenecks and prevents cron job timeouts.
  **Action:** Refactored the `/api/cron/send-reminders` route to push async tasks to an array and resolve them concurrently in chunks using `Promise.all`.
+## 2026-03-19 - Cache-Control for Default Templates API
+**Learning:** Public API routes serving static or infrequently changing data (like `/api/templates` and `/api/templates/[id]`) should use `Cache-Control` headers. This enables CDN/Edge caching, reduces database load, and significantly improves Time To First Byte (TTFB).
+**Action:** Added `Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400` to the Next.js API routes serving default templates.

@@ -375,41 +375,6 @@ export const supabaseDb = {
     return !error;
   },
 
-  // Upload a design image to storage
-  async uploadDesignImage(fileName: string, buffer: Uint8Array, contentType: string): Promise<string | null> {
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from('designs')
-      .upload(fileName, buffer, {
-        contentType,
-        upsert: false,
-      });
-
-    if (uploadError) {
-      logger.error({ uploadError }, 'Failed to upload design image:');
-      return null;
-    }
-
-    const { data: urlData } = supabaseAdmin.storage
-      .from('designs')
-      .getPublicUrl(fileName);
-
-    return urlData.publicUrl;
-  },
-
-  // Remove a design image from storage
-  async removeDesignImage(fileName: string): Promise<boolean> {
-    const { error } = await supabaseAdmin.storage
-      .from('designs')
-      .remove([fileName]);
-
-    if (error) {
-      logger.error({ error }, 'Failed to remove design image:');
-      return false;
-    }
-
-    return true;
-  },
-
   // Get RSVPs for an invitation
   async getRSVPs(invitationId: string): Promise<RSVP[]> {
     const { data, error } = await supabaseAdmin
