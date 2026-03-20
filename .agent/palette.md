@@ -15,3 +15,6 @@
 **Learning:** When forms are conditionally rendered below existing content (e.g., clicking 'RSVP Now' reveals the RSVP form), keyboard users and screen readers are not automatically directed to the new content, causing friction. Although `autoFocus` can sometimes cause unexpected scrolling on page load, it is highly beneficial for *conditionally* revealed inputs like the first field of an expanding RSVP form.
 
 **Action:** Always add `autoFocus` to the first primary input of conditionally rendered forms to immediately shift focus and improve accessibility for keyboard and screen reader users.
+## 2025-03-20 - Demo Banner Feedback
+**Learning:** Utility banners (like the Demo Mode warning) often neglect basic interactive states because they are "temporary" UI. Missing focus rings and loading states make them feel broken to keyboard users and during slow network requests.
+**Action:** Always apply the standard application focus styles (`focus:ring-2`) and loading feedback (`Spinner`) even to development/demo-specific UI elements to maintain a consistent standard of quality.
