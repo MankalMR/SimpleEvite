@@ -2,7 +2,6 @@
  * @jest-environment node
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { authOptions } from './auth';
 
 // Mock NextAuth
@@ -48,7 +47,7 @@ describe('authOptions', () => {
           session: mockSession,
           token: mockToken,
           user: mockSession.user
-        } as any);
+        } as unknown as Parameters<NonNullable<NonNullable<typeof authOptions.callbacks>['session']>>[0]);
 
         expect(result?.user).toHaveProperty('id', 'user-123');
         expect(result?.user?.email).toBe('test@example.com');
@@ -69,7 +68,7 @@ describe('authOptions', () => {
           session: mockSession,
           token: { userId: 'user-123' },
           user: mockSession.user
-        } as any);
+        } as unknown as Parameters<NonNullable<NonNullable<typeof authOptions.callbacks>['session']>>[0]);
 
         expect(result?.user).toHaveProperty('id', 'user-123');
         expect(result?.user?.email).toBe('test@example.com');
@@ -94,7 +93,7 @@ describe('authOptions', () => {
           session: mockSession,
           token: mockToken,
           user: mockSession.user
-        } as any);
+        } as unknown as Parameters<NonNullable<NonNullable<typeof authOptions.callbacks>['session']>>[0]);
 
         expect(result?.user).toHaveProperty('id', 'user-123');
       });
