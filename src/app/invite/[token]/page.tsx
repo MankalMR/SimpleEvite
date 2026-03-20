@@ -14,6 +14,7 @@ import Script from 'next/script';
 import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
 import { logger } from "@/lib/logger";
+import { AddToCalendar } from '@/components/add-to-calendar';
 
 export default function PublicInvite() {
   const params = useParams();
@@ -160,7 +161,10 @@ export default function PublicInvite() {
         {/* Event Details */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+              {!eventPassed && <AddToCalendar invitation={invitation} />}
+            </div>
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="flex items-start space-x-3">
