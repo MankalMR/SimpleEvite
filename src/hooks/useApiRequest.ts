@@ -1,5 +1,10 @@
 import { useState, useCallback } from 'react';
 
+export interface ApiRequestOptions<T> {
+  onSuccess?: (data: T) => void;
+  onError?: (error: Error) => void;
+}
+
 export interface ApiRequestState<T> {
   data: T | null;
   loading: boolean;
@@ -16,7 +21,8 @@ export interface UseApiRequestReturn<T, TArgs extends readonly unknown[] = reado
  */
 export function useApiRequest<T, TArgs extends readonly unknown[] = readonly unknown[]>(
   apiFunction: (...args: TArgs) => Promise<T>,
-  initialData: T | null = null
+  initialData: T | null = null,
+  options?: ApiRequestOptions<T>
 ): UseApiRequestReturn<T, TArgs> {
   const [state, setState] = useState<ApiRequestState<T>>({
     data: initialData,
@@ -29,11 +35,15 @@ export function useApiRequest<T, TArgs extends readonly unknown[] = readonly unk
 
     try {
       const result = await apiFunction(...args);
-      setState(prev => ({ ...prev, data: result, loading: false }));
+      setState(prev => ({ ...prev, data: result, loading: false, error: null }));
+
+      options?.onSuccess?.(result);
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      setState(prev => ({ ...prev, error: errorMessage, loading: false }));
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      setState(prev => ({ ...prev, loading: false, error: errorMessage }));
+
+      options?.onError?.(error instanceof Error ? error : new Error(errorMessage));
       throw error;
     }
   }, [apiFunction]);
