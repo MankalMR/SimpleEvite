@@ -26,7 +26,15 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch template' }, { status: 500 });
     }
 
-    return NextResponse.json({ template: data });
+    // ⚡ Bolt: Added Cache-Control to reduce DB load and improve TTFB for infrequently changing default templates
+    return NextResponse.json(
+      { template: data },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    );
   } catch (error) {
     logger.error({ error }, 'Error in GET /api/templates/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

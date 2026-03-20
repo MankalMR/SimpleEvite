@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
 
 // PUT /api/designs/[id] - Update design
@@ -77,7 +78,7 @@ export async function DELETE(
           // Prevent directory traversal by strictly validating the path structure: userId/filename
           const pathParts = filePath.split('/');
           if (pathParts.length === 2 && pathParts[0] === userId && !pathParts[1].includes('..')) {
-            await supabaseDb.removeDesignImage(filePath);
+            await supabaseAdmin.storage.from('designs').remove([filePath]);
           } else {
             logger.warn({ filePath, userId }, 'Suspicious file deletion attempt blocked');
           }
