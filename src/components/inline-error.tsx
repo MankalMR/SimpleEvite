@@ -31,7 +31,7 @@ export function InlineError({ error, onDismiss, className = "mb-6", autoDismissM
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="text-red-700 hover:text-red-900 focus:outline-none ml-4"
+          className="text-red-700 hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 focus:ring-offset-red-50 rounded ml-4"
           aria-label="Close error message"
           type="button"
         >
