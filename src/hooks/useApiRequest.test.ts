@@ -30,7 +30,7 @@ describe('useApiRequest', () => {
     mockApiFunc.mockResolvedValueOnce(mockData);
     const { result } = renderHook(() => useApiRequest(mockApiFunc));
 
-    let promise: Promise<any>;
+    let promise: Promise<unknown>;
     await act(async () => {
       promise = result.current.execute('arg1', 123);
     });
@@ -64,7 +64,7 @@ describe('useApiRequest', () => {
     await act(async () => {
       try {
         await result.current.execute();
-      } catch (e) {
+      } catch {
         // Error is expected to be re-thrown
       }
     });
@@ -83,7 +83,7 @@ describe('useApiRequest', () => {
     await act(async () => {
       try {
         await result.current.execute();
-      } catch (e) {
+      } catch {
         // Error is expected
       }
     });
@@ -99,7 +99,7 @@ describe('useApiRequest', () => {
     await act(async () => {
       try {
         await result.current.execute();
-      } catch (e) {
+      } catch {
         // Error is expected
       }
     });
@@ -109,7 +109,7 @@ describe('useApiRequest', () => {
   });
 
   it('should set loading state correctly during execution', async () => {
-    let resolveApi: (value: any) => void;
+    let resolveApi: (value: unknown) => void;
     const apiPromise = new Promise((resolve) => {
       resolveApi = resolve;
     });
@@ -117,7 +117,7 @@ describe('useApiRequest', () => {
 
     const { result } = renderHook(() => useApiRequest(mockApiFunc));
 
-    let executePromise: Promise<any>;
+    let executePromise: Promise<unknown>;
     await act(async () => {
       executePromise = result.current.execute();
     });

@@ -46,7 +46,7 @@ export function useApiRequest<T, TArgs extends readonly unknown[] = readonly unk
       options?.onError?.(error instanceof Error ? error : new Error(errorMessage));
       throw error;
     }
-  }, [apiFunction]);
+  }, [apiFunction, options]);
 
   const reset = useCallback(() => {
     setState({
