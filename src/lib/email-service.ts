@@ -1,9 +1,9 @@
 import { Resend } from 'resend';
-import { Invitation, RSVP } from '@/lib/supabase';
+import type { Invitation, RSVP } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
 
 // Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || 'mock_key_for_build');
 
 // Email configuration
 const EMAIL_CONFIG = {

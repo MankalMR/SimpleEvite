@@ -130,14 +130,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Group RSVPs by invitation_id for O(1) lookup
-    const rsvpsByInvitationId = (allRsvps || []).reduce((acc, rsvp) => {
-      if (!acc[rsvp.invitation_id]) {
-        acc[rsvp.invitation_id] = [];
+    // Group RSVPs by invitation_id for O(1) lookup using Map for better performance
+    const rsvpsByInvitationId = new Map<string, RSVP[]>();
+    for (const rsvp of allRsvps || []) {
+      let group = rsvpsByInvitationId.get(rsvp.invitation_id);
+      if (!group) {
+        group = [];
+        rsvpsByInvitationId.set(rsvp.invitation_id, group);
       }
-      acc[rsvp.invitation_id].push(rsvp);
-      return acc;
-    }, {} as Record<string, typeof allRsvps>);
+      group.push(rsvp as RSVP);
+    }
 
     // Prepare all email sending tasks
     const emailTasks: Array<() => Promise<void>> = [];
@@ -146,7 +148,7 @@ export async function GET(request: NextRequest) {
     for (const invitation of invitations) {
       logger.info(`Processing invitation: ${invitation.title} (${invitation.id})`);
 
-      const rsvps = rsvpsByInvitationId[invitation.id];
+      const rsvps = rsvpsByInvitationId.get(invitation.id);
 
       if (!rsvps || rsvps.length === 0) {
         logger.info(`No pending reminders for invitation ${invitation.id}`);
