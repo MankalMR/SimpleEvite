@@ -8,7 +8,7 @@ import { logger } from "@/lib/logger";
  * Cron job endpoint to send event reminders
  *
  * This endpoint should be called daily (e.g., at 9 AM) to check for events
- * happening in 1 day and send reminder emails to guests who opted in.
+ * happening in 1-3 days and send reminder emails to guests who opted in.
  *
  * Security: Protected by CRON_SECRET environment variable
  *
@@ -46,16 +46,16 @@ export async function GET(request: NextRequest) {
 
     logger.info('Starting reminder notification job...');
 
-    // Calculate date range: 1 day from now
+    // Calculate date range: 1 to 3 days from now
     const oneDayFromNowStart = new Date();
     oneDayFromNowStart.setDate(oneDayFromNowStart.getDate() + 1);
     oneDayFromNowStart.setHours(0, 0, 0, 0);
 
-    const oneDayFromNowEnd = new Date();
-    oneDayFromNowEnd.setDate(oneDayFromNowEnd.getDate() + 1);
-    oneDayFromNowEnd.setHours(23, 59, 59, 999);
+    const threeDaysFromNowEnd = new Date();
+    threeDaysFromNowEnd.setDate(threeDaysFromNowEnd.getDate() + 3);
+    threeDaysFromNowEnd.setHours(23, 59, 59, 999);
 
-    // Fetch invitations with events happening in 1 day
+    // Fetch invitations with events happening in 1-3 days
     const { data: invitations, error: invitationsError } = await supabaseAdmin
       .from('invitations')
       .select(`
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .gte('event_date', oneDayFromNowStart.toISOString().split('T')[0])
-      .lte('event_date', oneDayFromNowEnd.toISOString().split('T')[0]);
+      .lte('event_date', threeDaysFromNowEnd.toISOString().split('T')[0]);
 
     if (invitationsError) {
       logger.error({ invitationsError }, 'Error fetching invitations:');
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!invitations || invitations.length === 0) {
-      logger.info('No upcoming events found in the 1 day window');
+      logger.info('No upcoming events found in the 1-3 day window');
       return NextResponse.json({
         success: true,
         message: 'No events requiring reminders',

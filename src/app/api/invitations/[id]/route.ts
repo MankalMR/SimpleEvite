@@ -93,7 +93,8 @@ export async function PUT(
     const hasCoreDetailsChanged =
       originalInvitation.event_date !== event_date ||
       originalInvitation.event_time !== event_time ||
-      originalInvitation.location !== location;
+      originalInvitation.location !== location ||
+      originalInvitation.organizer_notes !== organizer_notes;
 
     // Update invitation using the database layer
     const invitation = await supabaseDb.updateInvitation(resolvedParams.id, {
