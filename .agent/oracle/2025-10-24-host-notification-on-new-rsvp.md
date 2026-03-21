@@ -1,7 +1,12 @@
 # Feature Ticket: Host Notification on New RSVP
 
 ## Status
-pending-implementation
+done
+
+## Implementation Notes
+- Files changed: `src/lib/email-service.ts`, `src/app/api/rsvp/route.ts`, `src/lib/email-service.test.ts`
+- Behavior: Added `sendHostRsvpNotificationEmail` function which generates HTML and Text emails and dispatches them via Resend. The RSVP API now securely fetches the host's email through `supabaseAdmin` when a guest RSVPs, dispatching the notification silently and safely in the background.
+- Tests: Added unit tests in `src/lib/email-service.test.ts` checking success and error paths. All tests pass successfully.
 
 ## Context
 When guests RSVP to an event through the public invitation link, their response is recorded in the database, but the event host is not actively notified. Hosts currently have to repeatedly log in and manually check their dashboard to see if anyone new has responded. This creates a disconnected experience and forces hosts to actively poll for updates, which is inconvenient, especially for events with rolling RSVPs.
@@ -60,7 +65,7 @@ API_RSVP-->>UI: 201 Created
 ```
 
 ## Acceptance Criteria
-- [ ] Submitting a new RSVP successfully triggers an email to the event host's email address.
-- [ ] The email contains the guest's name, their response (Yes/No/Maybe), their comment (if any), and the name of the event.
-- [ ] The email sending process does not break the existing RSVP flow or return a 500 error to the guest if the email fails to send.
-- [ ] The email design is clear, mobile-friendly, and aligns with the application's branding.
+- [x] Submitting a new RSVP successfully triggers an email to the event host's email address.
+- [x] The email contains the guest's name, their response (Yes/No/Maybe), their comment (if any), and the name of the event.
+- [x] The email sending process does not break the existing RSVP flow or return a 500 error to the guest if the email fails to send.
+- [x] The email design is clear, mobile-friendly, and aligns with the application's branding.
