@@ -162,6 +162,22 @@ const INVITATION_FULL_SELECT = `
 `;
 
 export const supabaseDb = {
+
+  // Get a user's email by their user ID
+  async getUserEmail(userId: string): Promise<string | null> {
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .select('email')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw error;
+    }
+    return data?.email || null;
+  },
+
   // Get all invitations for a user with RSVP data and designs
   async getInvitations(userId: string): Promise<InvitationWithRSVPs[]> {
     const { data, error } = await supabaseAdmin

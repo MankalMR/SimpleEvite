@@ -1,4 +1,4 @@
-import { sendTestEmail, sendRsvpConfirmationEmail, sendEventUpdateEmail } from './email-service';
+import { sendTestEmail, sendRsvpConfirmationEmail, sendEventUpdateEmail, sendHostRsvpNotificationEmail } from './email-service';
 import { Resend } from 'resend';
 
 // Create a mock setup directly in the module mock
@@ -106,6 +106,75 @@ describe('sendEventUpdateEmail', () => {
     expect(result.error).toBe('Rate limit exceeded');
   });
 });
+
+
+describe('sendHostRsvpNotificationEmail', () => {
+  let mockSend: jest.Mock;
+
+  beforeEach(() => {
+    mockSend = new Resend().emails.send as jest.Mock;
+    mockSend.mockClear();
+  });
+
+  it('sends host RSVP notification email successfully', async () => {
+    mockSend.mockResolvedValueOnce({ data: { id: 'mock-id' }, error: null });
+
+    const result = await sendHostRsvpNotificationEmail({
+      to: 'host@example.com',
+      guestName: 'Jane Doe',
+      response: 'yes',
+      comment: 'Cant wait!',
+      eventTitle: 'Birthday Party',
+      inviteUrl: 'https://example.com/dashboard/events/123'
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'host@example.com',
+        subject: 'New RSVP: Jane Doe responded YES',
+        html: expect.stringContaining('Jane Doe'),
+        text: expect.stringContaining('Cant wait!')
+      })
+    );
+  });
+
+  it('handles Resend API errors gracefully', async () => {
+    mockSend.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'API Error', name: 'error' }
+    });
+
+    const result = await sendHostRsvpNotificationEmail({
+      to: 'host@example.com',
+      guestName: 'Jane Doe',
+      response: 'no',
+      eventTitle: 'Birthday Party',
+      inviteUrl: 'https://example.com/dashboard/events/123'
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('API Error');
+  });
+
+  it('handles unexpected errors gracefully', async () => {
+    mockSend.mockImplementationOnce(() => {
+      throw new Error('Unexpected Error');
+    });
+
+    const result = await sendHostRsvpNotificationEmail({
+      to: 'host@example.com',
+      guestName: 'Jane Doe',
+      response: 'maybe',
+      eventTitle: 'Birthday Party',
+      inviteUrl: 'https://example.com/dashboard/events/123'
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Unexpected Error');
+  });
+});
+
 
 describe('sendTestEmail', () => {
   let mockSend: jest.Mock;
