@@ -4,6 +4,7 @@ import { supabaseDb } from '@/lib/database-supabase';
 import { withSecurity, validateRequestBody, addSecurityHeaders, RATE_LIMIT_PRESETS, logSecurityEvent } from '@/lib/api-security';
 import { validateRSVPData } from '@/lib/security';
 import { logger } from "@/lib/logger";
+import { sendRsvpConfirmationEmail } from '@/lib/email-service';
 
 // POST /api/rsvp - Create RSVP (public endpoint)
 export async function POST(request: NextRequest) {
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
         // Check if invitation exists
         const { data: invitation, error: invitationError } = await supabase
           .from('invitations')
-          .select('id')
+          .select('id, title, event_date, event_time, location, description, organizer_notes, share_token')
           .eq('id', invitation_id)
           .single();
 
@@ -97,6 +98,23 @@ export async function POST(request: NextRequest) {
           response,
           ip: clientIP,
         }, 'low');
+
+        // Send RSVP confirmation email
+        if (response === 'yes' && sanitizedEmail) {
+          const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://evite.mankala.space'}/invite/${invitation.share_token}`;
+
+          await sendRsvpConfirmationEmail({
+            to: sanitizedEmail,
+            guestName: name,
+            eventTitle: invitation.title,
+            eventDate: invitation.event_date,
+            eventTime: invitation.event_time,
+            location: invitation.location,
+            description: invitation.description || undefined,
+            inviteUrl,
+            organizerNotes: invitation.organizer_notes || undefined,
+          });
+        }
 
         const apiResponse = NextResponse.json({ rsvp }, { status: 201 });
         return addSecurityHeaders(apiResponse);
