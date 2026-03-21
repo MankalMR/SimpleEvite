@@ -8,7 +8,7 @@ import { logger } from "@/lib/logger";
  * Cron job endpoint to send event reminders
  *
  * This endpoint should be called daily (e.g., at 9 AM) to check for events
- * happening in 2-3 days and send reminder emails to guests who opted in.
+ * happening in 1-3 days and send reminder emails to guests who opted in.
  *
  * Security: Protected by CRON_SECRET environment variable
  *
@@ -46,16 +46,16 @@ export async function GET(request: NextRequest) {
 
     logger.info('Starting reminder notification job...');
 
-    // Calculate date range: 2-3 days from now
-    const twoDaysFromNow = new Date();
-    twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2);
-    twoDaysFromNow.setHours(0, 0, 0, 0);
+    // Calculate date range: 1 to 3 days from now
+    const oneDayFromNowStart = new Date();
+    oneDayFromNowStart.setDate(oneDayFromNowStart.getDate() + 1);
+    oneDayFromNowStart.setHours(0, 0, 0, 0);
 
-    const threeDaysFromNow = new Date();
-    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-    threeDaysFromNow.setHours(23, 59, 59, 999);
+    const threeDaysFromNowEnd = new Date();
+    threeDaysFromNowEnd.setDate(threeDaysFromNowEnd.getDate() + 3);
+    threeDaysFromNowEnd.setHours(23, 59, 59, 999);
 
-    // Fetch invitations with events happening in 2-3 days
+    // Fetch invitations with events happening in 1-3 days
     const { data: invitations, error: invitationsError } = await supabaseAdmin
       .from('invitations')
       .select(`
@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
           email
         )
       `)
-      .gte('event_date', twoDaysFromNow.toISOString().split('T')[0])
-      .lte('event_date', threeDaysFromNow.toISOString().split('T')[0]);
+      .gte('event_date', oneDayFromNowStart.toISOString().split('T')[0])
+      .lte('event_date', threeDaysFromNowEnd.toISOString().split('T')[0]);
 
     if (invitationsError) {
       logger.error({ invitationsError }, 'Error fetching invitations:');
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!invitations || invitations.length === 0) {
-      logger.info('No upcoming events found in the 2-3 day window');
+      logger.info('No upcoming events found in the 1-3 day window');
       return NextResponse.json({
         success: true,
         message: 'No events requiring reminders',
