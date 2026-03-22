@@ -10,24 +10,25 @@ Simple Evite helps hosts create invitations quickly, but writing catchy, context
 Provide an AI-powered "Smart Copy" feature that generates suggested invitation text based on the event title and basic details, helping hosts overcome writer's block and create engaging invites faster.
 
 ## Scope
-- Add a "✨ Generate with AI" button next to the Description field in the Invitation Form (`src/components/invitation-form.tsx`).
-- Create a new API route (`/api/ai/generate-copy`) that accepts the event title, date, location, and an optional prompt to generate 1-3 suggested descriptions.
+- Add a conditionally rendered "✨ Generate with AI" button next to the Description field in the Invitation Form (`src/components/invitation-form.tsx`).
+- Create a new API route (`/api/ai/generate-copy`) that accepts the event title, date, and location to generate suggested descriptions.
 - The feature is strictly opt-in and provides editable text suggestions; it does not auto-save or override user input without consent.
 - Uses a lightweight LLM API (e.g., OpenAI or similar, assuming a generic AI utility is available or can be mocked if necessary for demo purposes, or we can use a built-in mock for the demo environment).
 
 ## UX & Entry Points
-- **Invitation Form (`src/components/invitation-form.tsx`)**: A small sparkle icon button near the Description textarea. Clicking it opens a small popover or modal where the host can optionally add a "Vibe/Theme" (e.g., "Casual BBQ", "Formal Wedding") and hit "Generate". The generated text can then be applied to the description field.
+- **Invitation Form (`src/components/invitation-form.tsx`)**: A small sparkle icon button is displayed near the Description textarea *only* after the user has entered an Event Title and focuses out (onBlur) of the title field. Clicking it immediately generates text using the existing form state (title, location, date) as the LLM context, bypassing any need for a popover or manual tone selection. The generated text is then displayed and can be applied to the description field.
 
 ## Tech Plan
 1. **API Route**: Create `src/app/api/ai/generate-copy/route.ts`.
    - Method: POST
-   - Input: `{ title, location, date, tone }`
-   - Action: Calls an external LLM API (or a mock service for local/demo) to generate a short, engaging event description.
+   - Input: `{ title, location, date }`
+   - Action: Calls an external LLM API (or a mock service for local/demo) to generate a short, engaging event description based on the provided event details.
    - Output: `{ suggestions: string[] }` or a single string.
 2. **Component Update**: Modify `src/components/invitation-form.tsx`.
+   - Add state to track if the title field has been blurred (e.g., `hasTitleBlurred`).
    - Add state for the AI generation (loading, result, error).
-   - Add UI elements (button to trigger, display for results).
-   - Fetch from `/api/ai/generate-copy` when triggered.
+   - Conditionally render the "✨ Generate with AI" button next to the description field if `hasTitleBlurred` is true and `formData.title` is not empty.
+   - Fetch from `/api/ai/generate-copy` using current `formData` when triggered.
 3. **Demo Fallback**: Ensure the API route returns sensible mock data if the environment variable for the LLM is missing, so `/demo` users can still experience the UI flow.
 
 ## Sequence Diagram
@@ -38,10 +39,11 @@ sequenceDiagram
     participant APIRoute
     participant LLMService
 
+    Host->>InvitationForm: Enters Event Title
+    Host->>InvitationForm: Focuses out (onBlur) of Title field
+    InvitationForm-->>Host: Displays "✨ Generate with AI" button
     Host->>InvitationForm: Clicks "✨ Generate with AI"
-    Host->>InvitationForm: Enters optional Tone/Theme
-    Host->>InvitationForm: Clicks "Generate"
-    InvitationForm->>APIRoute: POST /api/ai/generate-copy (title, location, date, tone)
+    InvitationForm->>APIRoute: POST /api/ai/generate-copy (title, location, date)
     APIRoute->>LLMService: Request text generation
     LLMService-->>APIRoute: Returns generated text
     APIRoute-->>InvitationForm: Returns { suggestion: "..." }
@@ -51,8 +53,8 @@ sequenceDiagram
 ```
 
 ## Acceptance Criteria
-- [ ] A "Generate with AI" button is visible near the Description field in the create/edit invitation form.
-- [ ] Clicking the button allows the user to request AI text based on the current form state (title, etc.).
+- [ ] The "Generate with AI" button is ONLY visible near the Description field after a user enters a title and focuses out of the title input.
+- [ ] Clicking the button requests AI text using the current form state (title, etc.) without requiring a popover.
 - [ ] The generated text can be easily applied to the Description field.
 - [ ] The feature fails gracefully (shows an error or uses a mock) if the AI service is unavailable.
 - [ ] No database schema changes are required.
