@@ -50,6 +50,11 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
+  const [hasTitleBlurred, setHasTitleBlurred] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedText, setGeneratedText] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
   const {
     designs,
     fetchDesigns,
@@ -135,6 +140,40 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     });
   };
 
+
+  const handleGenerateCopy = async () => {
+    setIsGenerating(true);
+    setGenerateError(null);
+    setGeneratedText(null);
+
+    try {
+      const response = await fetch('/api/ai/generate-copy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          location: formData.location,
+          date: formData.event_date,
+          time: formData.event_time,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate copy');
+      }
+
+      const data = await response.json();
+      setGeneratedText(data.suggestion);
+    } catch (err) {
+      setGenerateError('Could not generate text. Please try again.');
+      logger.error({ error: err }, 'AI Generate Copy Error');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleDesignSelect = (designId: string) => {
     setFormData({
       ...formData,
@@ -209,6 +248,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         autoFocus
                         value={formData.title}
                         onChange={handleChange}
+                        onBlur={() => setHasTitleBlurred(true)}
                         className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter event title"
                       />
@@ -225,30 +265,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                       </label>
                     </div>
 
-                    <div>
-                      <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
-                        Description
-                      </label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        rows={4}
-                        value={formData.description}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Describe your event"
-                      />
-                      <label className="flex items-center mt-2">
-                        <input
-                          type="checkbox"
-                          name="hide_description"
-                          checked={formData.hide_description}
-                          onChange={handleChange}
-                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
-                      </label>
-                    </div>
+
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
@@ -295,6 +312,75 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter event location"
                       />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label htmlFor="description" className="block text-sm font-semibold text-gray-900">
+                          Description
+                        </label>
+                        {hasTitleBlurred && formData.title.trim() !== '' && (
+                          <button
+                            type="button"
+                            onClick={handleGenerateCopy}
+                            disabled={isGenerating}
+                            className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                          >
+                            {isGenerating ? <Spinner className="w-4 h-4 mr-2" /> : "✨ "}
+                            {isGenerating ? "Generating..." : "Generate with AI"}
+                          </button>
+                        )}
+                      </div>
+
+                      {generateError && (
+                        <div className="mb-2 text-sm text-red-600">
+                          {generateError}
+                        </div>
+                      )}
+
+                      {generatedText && (
+                        <div className="mb-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
+                          <p className="text-sm text-indigo-900 mb-3 whitespace-pre-wrap">{generatedText}</p>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setGeneratedText(null)}
+                              className="px-3 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                            >
+                              Discard
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, description: generatedText });
+                                setGeneratedText(null);
+                              }}
+                              className="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                              Apply to Description
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows={4}
+                        value={formData.description}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Describe your event"
+                      />
+                      <label className="flex items-center mt-2">
+                        <input
+                          type="checkbox"
+                          name="hide_description"
+                          checked={formData.hide_description}
+                          onChange={handleChange}
+                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
+                      </label>
                     </div>
 
                     <div>

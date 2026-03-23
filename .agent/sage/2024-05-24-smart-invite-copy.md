@@ -1,7 +1,12 @@
 # Ticket: Smart Invite Copy
 
 ## Status
-`pending-implementation`
+done
+
+## Implementation Notes
+- Files changed: `src/components/invitation-form.tsx`, `src/app/demo/create/page.tsx`, `src/app/api/ai/generate-copy/route.ts`
+- Behavior: Added 'Generate with AI' button that fetches a description from the new `/api/ai/generate-copy` endpoint. Reordered the form layout so Description sits below Location. Added visual success and application state.
+- Tests: Validated via frontend test scripts.
 
 ## Context
 Simple Evite helps hosts create invitations quickly, but writing catchy, context-appropriate event descriptions can be time-consuming. Hosts often stare at a blank "Description" field, unsure of what to write or how to set the right tone.
