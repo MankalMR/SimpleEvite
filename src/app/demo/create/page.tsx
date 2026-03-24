@@ -9,6 +9,7 @@ import { Spinner } from '@/components/spinner';
 import { getTextOverlayStyleOptions, getTextPositionOptions, getTextSizeOptions, TextOverlayStyle, TextPosition, TextSize } from '@/lib/text-overlay-utils';
 import { logger } from "@/lib/logger";
 import { useGenerateCopy } from '@/hooks/useGenerateCopy';
+import { SmartCopySection } from '@/components/smart-copy-section';
 
 export default function DemoCreateInvitation() {
     const router = useRouter();
@@ -45,39 +46,28 @@ const [sessionId, setSessionId] = useState<string | null>(null);
         if (stored) {
             setSessionId(stored);
         } else {
-            fetch('/api/demo/session', { method: 'POST' })
+            fetch('/api/demo/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            })
                 .then(res => res.json())
                 .then(data => {
-                    setSessionId(data.sessionId);
                     localStorage.setItem('demoSessionId', data.sessionId);
-                })
-                .catch(err => {
-                    logger.error({ error: err }, 'Failed to initialize session');
-                    setError('Failed to initialize session');
+                    setSessionId(data.sessionId);
                 });
         }
-    }, [sessionId]);
+    }, []);
 
-    // Load templates
+    // Fetch templates
     useEffect(() => {
-        const loadTemplates = async () => {
-            try {
-                if (!sessionId) return;
-                const res = await fetch('/api/demo/templates', {
-                    headers: { 'x-demo-session-id': sessionId }
-                });
-                if (!res.ok) throw new Error('Failed to load templates');
-                const data = await res.json();
-                setTemplates(data.templates);
-                if (data.templates.length > 0) {
-                    setFormData(prev => ({ ...prev, design_id: data.templates[0].id }));
-                }
-            } catch (err) {
-                logger.error({ error: err }, 'Failed to load templates');
-                setError('Failed to load templates');
-            }
-        };
-        loadTemplates();
+        if (!sessionId) return;
+        fetch('/api/demo/templates', {
+            headers: { 'x-demo-session-id': sessionId },
+        })
+            .then(res => res.json())
+            .then(data => setTemplates(data.templates || []))
+            .catch(() => logger.error('Failed to load templates'));
     }, [sessionId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -88,36 +78,35 @@ const [sessionId, setSessionId] = useState<string | null>(null);
         }));
     };
 
-const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!sessionId) return;
+
+        if (!formData.title || !formData.event_date) {
+            setError('Title and event date are required');
+            return;
+        }
+
         setSubmitting(true);
         setError(null);
 
         try {
-            const formattedData = {
-                ...formData,
-                text_background_opacity: Number(formData.text_background_opacity)
-            };
-
-            const response = await fetch('/api/demo/invitations', {
+            const res = await fetch('/api/demo/invitations', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-demo-session-id': sessionId || ''
+                    'x-demo-session-id': sessionId,
                 },
-                body: JSON.stringify(formattedData)
+                body: JSON.stringify(formData),
             });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to create invitation');
+            if (!res.ok) {
+                throw new Error('Failed to create invitation');
             }
 
-            const data = await response.json();
-            router.push(`/demo/i/${data.invitation.share_token}`);
-        } catch (err) {
-            logger.error({ error: err }, 'Failed to create invitation');
-            setError(err instanceof Error ? err.message : 'An error occurred while saving.');
+            router.push('/demo/dashboard');
+        } catch {
+            setError('Failed to create invitation. Please try again.');
         } finally {
             setSubmitting(false);
         }
@@ -249,53 +238,19 @@ const handleSubmit = async (e: React.FormEvent) => {
                                         </div>
 
                                         <div>
-                                            <div className="flex items-center justify-between mb-2">
-                                                <label htmlFor="description" className="block text-sm font-semibold text-gray-900">
-                                                    Description
-                                                </label>
-                                                {hasTitleBlurred && formData.title.trim() !== '' && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time, isDemo: true })}
-                                                        disabled={isGenerating}
-                                                        className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                                                    >
-                                                        {isGenerating ? <Spinner className="w-4 h-4 mr-2" /> : "✨ "}
-                                                        {isGenerating ? "Generating..." : "Generate with AI"}
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {generateError && (
-                                                <div className="mb-2 text-sm text-red-600">
-                                                    {generateError}
-                                                </div>
-                                            )}
-
-                                            {generatedText && (
-                                                <div className="mb-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
-                                                    <p className="text-sm text-indigo-900 mb-3 whitespace-pre-wrap">{generatedText}</p>
-                                                    <div className="flex justify-end gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setGeneratedText(null)}
-                                                            className="px-3 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                                                        >
-                                                            Discard
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setFormData({ ...formData, description: generatedText });
-                                                                setGeneratedText(null);
-                                                            }}
-                                                            className="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                        >
-                                                            Apply to Description
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
+                                            <SmartCopySection
+                                                hasTitleBlurred={hasTitleBlurred}
+                                                title={formData.title}
+                                                isGenerating={isGenerating}
+                                                generatedText={generatedText}
+                                                generateError={generateError}
+                                                onGenerate={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time, isDemo: true })}
+                                                onDiscard={() => setGeneratedText(null)}
+                                                onApply={() => {
+                                                    setFormData({ ...formData, description: generatedText || "" });
+                                                    setGeneratedText(null);
+                                                }}
+                                            />
                                             <textarea
                                                 id="description"
                                                 name="description"

@@ -14,6 +14,7 @@ import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
 import { logger } from "@/lib/logger";
 import { useGenerateCopy } from '@/hooks/useGenerateCopy';
+import { SmartCopySection } from '@/components/smart-copy-section';
 
 interface InvitationFormProps {
   mode: 'create' | 'edit';
@@ -279,53 +280,19 @@ const handleDesignSelect = (designId: string) => {
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label htmlFor="description" className="block text-sm font-semibold text-gray-900">
-                          Description
-                        </label>
-                        {hasTitleBlurred && formData.title.trim() !== '' && (
-                          <button
-                            type="button"
-                            onClick={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time })}
-                            disabled={isGenerating}
-                            className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                          >
-                            {isGenerating ? <Spinner className="w-4 h-4 mr-2" /> : "✨ "}
-                            {isGenerating ? "Generating..." : "Generate with AI"}
-                          </button>
-                        )}
-                      </div>
-
-                      {generateError && (
-                        <div className="mb-2 text-sm text-red-600">
-                          {generateError}
-                        </div>
-                      )}
-
-                      {generatedText && (
-                        <div className="mb-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
-                          <p className="text-sm text-indigo-900 mb-3 whitespace-pre-wrap">{generatedText}</p>
-                          <div className="flex justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setGeneratedText(null)}
-                              className="px-3 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                            >
-                              Discard
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFormData({ ...formData, description: generatedText });
-                                setGeneratedText(null);
-                              }}
-                              className="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            >
-                              Apply to Description
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                      <SmartCopySection
+                        hasTitleBlurred={hasTitleBlurred}
+                        title={formData.title}
+                        isGenerating={isGenerating}
+                        generatedText={generatedText}
+                        generateError={generateError}
+                        onGenerate={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time })}
+                        onDiscard={() => setGeneratedText(null)}
+                        onApply={() => {
+                          setFormData({ ...formData, description: generatedText || "" });
+                          setGeneratedText(null);
+                        }}
+                      />
                       <textarea
                         id="description"
                         name="description"
