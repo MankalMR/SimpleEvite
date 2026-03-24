@@ -48,76 +48,45 @@ export default function DemoCreateInvitation() {
         if (stored) {
             setSessionId(stored);
         } else {
-            fetch('/api/demo/session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({}),
-            })
+            fetch('/api/demo/session', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
-                    localStorage.setItem('demoSessionId', data.sessionId);
                     setSessionId(data.sessionId);
+                    localStorage.setItem('demoSessionId', data.sessionId);
+                })
+                .catch(err => {
+                    logger.error({ error: err }, 'Failed to initialize session');
+                    setError('Failed to initialize session');
                 });
         }
     }, []);
 
-    // Fetch templates
+    // Load templates
     useEffect(() => {
-        if (!sessionId) return;
-        fetch('/api/demo/templates', {
-            headers: { 'x-demo-session-id': sessionId },
-        })
-            .then(res => res.json())
-            .then(data => setTemplates(data.templates || []))
-            .catch(() => logger.error('Failed to load templates'));
-    }, [sessionId]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!sessionId) return;
-
-        if (!formData.title || !formData.event_date) {
-            setError('Title and event date are required');
-            return;
-        }
-
-        setSubmitting(true);
-        setError(null);
-
-        try {
-            const res = await fetch('/api/demo/invitations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-demo-session-id': sessionId,
-                },
-                body: JSON.stringify(formData),
-            });
-
-            if (!res.ok) {
-                throw new Error('Failed to create invitation');
+        const loadTemplates = async () => {
+            try {
+                const res = await fetch('/api/demo/templates');
+                if (!res.ok) throw new Error('Failed to load templates');
+                const data = await res.json();
+                setTemplates(data.templates);
+                if (data.templates.length > 0) {
+                    setFormData(prev => ({ ...prev, design_id: data.templates[0].id }));
+                }
+            } catch (err) {
+                logger.error({ error: err }, 'Failed to load templates');
+                setError('Failed to load templates');
             }
-
-            router.push('/demo/dashboard');
-        } catch {
-            setError('Failed to create invitation. Please try again.');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleReset = () => {
-        window.location.href = '/demo/dashboard';
-    };
+        };
+        loadTemplates();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
-        setFormData({
-            ...formData,
-            [e.target.name]: value,
-        });
+        const { name, value, type } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+        }));
     };
-
 
     const handleGenerateCopy = async () => {
         setIsGenerating(true);
@@ -135,6 +104,7 @@ export default function DemoCreateInvitation() {
                     location: formData.location,
                     date: formData.event_date,
                     time: formData.event_time,
+                    isDemo: true,
                 }),
             });
 
@@ -151,6 +121,44 @@ export default function DemoCreateInvitation() {
             setIsGenerating(false);
         }
     };
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setError(null);
+
+        try {
+            const formattedData = {
+                ...formData,
+                text_background_opacity: Number(formData.text_background_opacity)
+            };
+
+            const response = await fetch('/api/demo/invitations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formattedData)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to create invitation');
+            }
+
+            const data = await response.json();
+            router.push(`/demo/i/${data.invitation.share_token}`);
+        } catch (err) {
+            logger.error({ error: err }, 'Failed to create invitation');
+            setError(err instanceof Error ? err.message : 'An error occurred while saving.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleReset = () => {
+        window.location.href = '/demo/dashboard';
+    };
+
 
     return (
         <>

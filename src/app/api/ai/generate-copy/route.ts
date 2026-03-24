@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { GoogleGenAI } from '@google/genai';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, location, date, time } = body;
+    const { title, location, date, time, isDemo } = body;
 
     if (!title) {
       return NextResponse.json(
@@ -13,63 +14,55 @@ export async function POST(req: NextRequest) {
       );
     }
 
-// Call an external LLM API if the environment variable is present
-    if (process.env.OPENAI_API_KEY) {
-      try {
-        const prompt = `Write a short, engaging invitation description for an event titled "${title}".
-${date ? `The event is on ${date}.` : ''}
-${time ? `The event is at ${time}.` : ''}
-${location ? `It will be held at ${location}.` : ''}
-Keep it under 3 sentences and friendly.`;
+    if (isDemo) {
+      // Mock an external AI call returning a suggested description (Fallback)
+      let suggestion = `Join us for ${title}!`;
 
-        const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 150,
-          }),
-        });
-
-        if (openAiResponse.ok) {
-          const openAiData = await openAiResponse.json();
-          if (openAiData.choices && openAiData.choices.length > 0) {
-            const generatedText = openAiData.choices[0].message.content.trim();
-            return NextResponse.json({ suggestion: generatedText }, { status: 200 });
-          }
-        } else {
-          logger.warn({ status: openAiResponse.status }, 'OpenAI API request failed, falling back to mock');
-        }
-      } catch (err) {
-        logger.error({ error: err }, 'Error calling OpenAI API, falling back to mock');
+      const details = [];
+      if (date) {
+        details.push(`on ${date}`);
       }
+      if (time) {
+        details.push(`at ${time}`);
+      }
+      if (location) {
+        details.push(`at ${location}`);
+      }
+
+      if (details.length > 0) {
+        suggestion += ` We're hosting it ${details.join(' ')}.`;
+      }
+
+      suggestion += " It's going to be a great time, and we'd love to see you there.";
+
+      return NextResponse.json({ suggestion }, { status: 200 });
     }
 
-    // Mock an external AI call returning a suggested description (Fallback)
-    let suggestion = `Join us for ${title}!`;
-
-    const details = [];
-    if (date) {
-      details.push(`on ${date}`);
-    }
-    if (time) {
-      details.push(`at ${time}`);
-    }
-    if (location) {
-      details.push(`at ${location}`);
+    // Call Gemini API if the environment variable is present
+    if (!process.env.GEMINI_API_KEY) {
+      logger.error('GEMINI_API_KEY is missing. Failing silently.');
+      return NextResponse.json({ error: 'AI generation not configured.' }, { status: 500 });
     }
 
-    if (details.length > 0) {
-      suggestion += ` We're hosting it ${details.join(' ')}.`;
+    try {
+      const prompt = `Write a short, engaging invitation description for an event titled "${title}". ${date ? `The event is on ${date}.` : ''} ${time ? `The event is at ${time}.` : ''} ${location ? `It will be held at ${location}.` : ''} Keep it under 3 sentences and friendly.`;
+
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: process.env.GEMINI_MODEL || "gemini-2.0-flash-lite-preview-02-05",
+        contents: prompt,
+      });
+
+      if (response && response.text) {
+        return NextResponse.json({ suggestion: response.text.trim() }, { status: 200 });
+      } else {
+        logger.error('Unexpected Gemini SDK response structure');
+        return NextResponse.json({ error: 'Failed to parse generated copy.' }, { status: 500 });
+      }
+    } catch (err) {
+      logger.error({ error: err }, 'Error calling Gemini API');
+      return NextResponse.json({ error: 'Failed to generate copy.' }, { status: 500 });
     }
-
-    suggestion += " It's going to be a great time, and we'd love to see you there.";
-
-    return NextResponse.json({ suggestion }, { status: 200 });
   } catch (error) {
     logger.error({ error }, 'Failed to generate copy');
     return NextResponse.json(
