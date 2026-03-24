@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { GoogleGenAI } from '@google/genai';
+import { getGeminiClient } from '@/lib/ai';
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,9 +47,9 @@ export async function POST(req: NextRequest) {
     try {
       const prompt = `Write a short, engaging invitation description for an event titled "${title}". ${date ? `The event is on ${date}.` : ''} ${time ? `The event is at ${time}.` : ''} ${location ? `It will be held at ${location}.` : ''} Keep it under 3 sentences and friendly.`;
 
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const ai = getGeminiClient();
       const response = await ai.models.generateContent({
-        model: process.env.GEMINI_MODEL || "gemini-2.0-flash-lite-preview-02-05",
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
         contents: prompt,
       });
 
