@@ -13,6 +13,7 @@ import { DefaultTemplate, Invitation } from '@/lib/supabase';
 import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
 import { logger } from "@/lib/logger";
+import { useGenerateCopy } from '@/hooks/useGenerateCopy';
 
 interface InvitationFormProps {
   mode: 'create' | 'edit';
@@ -50,10 +51,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  const [hasTitleBlurred, setHasTitleBlurred] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedText, setGeneratedText] = useState<string | null>(null);
-  const [generateError, setGenerateError] = useState<string | null>(null);
+  const { hasTitleBlurred, setHasTitleBlurred, isGenerating, generatedText, setGeneratedText, generateError, generateCopy } = useGenerateCopy();
 
   const {
     designs,
@@ -140,41 +138,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     });
   };
 
-
-  const handleGenerateCopy = async () => {
-    setIsGenerating(true);
-    setGenerateError(null);
-    setGeneratedText(null);
-
-    try {
-      const response = await fetch('/api/ai/generate-copy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          location: formData.location,
-          date: formData.event_date,
-          time: formData.event_time,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate copy');
-      }
-
-      const data = await response.json();
-      setGeneratedText(data.suggestion);
-    } catch (err) {
-      setGenerateError('Could not generate text. Please try again.');
-      logger.error({ error: err }, 'AI Generate Copy Error');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleDesignSelect = (designId: string) => {
+const handleDesignSelect = (designId: string) => {
     setFormData({
       ...formData,
       design_id: designId,
@@ -322,7 +286,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         {hasTitleBlurred && formData.title.trim() !== '' && (
                           <button
                             type="button"
-                            onClick={handleGenerateCopy}
+                            onClick={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time })}
                             disabled={isGenerating}
                             className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                           >

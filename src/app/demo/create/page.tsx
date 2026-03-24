@@ -8,19 +8,16 @@ import { DefaultTemplate } from '@/lib/supabase';
 import { Spinner } from '@/components/spinner';
 import { getTextOverlayStyleOptions, getTextPositionOptions, getTextSizeOptions, TextOverlayStyle, TextPosition, TextSize } from '@/lib/text-overlay-utils';
 import { logger } from "@/lib/logger";
+import { useGenerateCopy } from '@/hooks/useGenerateCopy';
 
 export default function DemoCreateInvitation() {
     const router = useRouter();
-    const [sessionId, setSessionId] = useState<string | null>(null);
+const [sessionId, setSessionId] = useState<string | null>(null);
     const [templates, setTemplates] = useState<DefaultTemplate[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // AI Copy States
-    const [hasTitleBlurred, setHasTitleBlurred] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [generatedText, setGeneratedText] = useState<string | null>(null);
-    const [generateError, setGenerateError] = useState<string | null>(null);
+    const { hasTitleBlurred, setHasTitleBlurred, isGenerating, generatedText, setGeneratedText, generateError, generateCopy } = useGenerateCopy();
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -59,13 +56,16 @@ export default function DemoCreateInvitation() {
                     setError('Failed to initialize session');
                 });
         }
-    }, []);
+    }, [sessionId]);
 
     // Load templates
     useEffect(() => {
         const loadTemplates = async () => {
             try {
-                const res = await fetch('/api/demo/templates');
+                if (!sessionId) return;
+                const res = await fetch('/api/demo/templates', {
+                    headers: { 'x-demo-session-id': sessionId }
+                });
                 if (!res.ok) throw new Error('Failed to load templates');
                 const data = await res.json();
                 setTemplates(data.templates);
@@ -78,7 +78,7 @@ export default function DemoCreateInvitation() {
             }
         };
         loadTemplates();
-    }, []);
+    }, [sessionId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -88,42 +88,7 @@ export default function DemoCreateInvitation() {
         }));
     };
 
-    const handleGenerateCopy = async () => {
-        setIsGenerating(true);
-        setGenerateError(null);
-        setGeneratedText(null);
-
-        try {
-            const response = await fetch('/api/ai/generate-copy', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    title: formData.title,
-                    location: formData.location,
-                    date: formData.event_date,
-                    time: formData.event_time,
-                    isDemo: true,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to generate copy');
-            }
-
-            const data = await response.json();
-            setGeneratedText(data.suggestion);
-        } catch (err) {
-            setGenerateError('Could not generate text. Please try again.');
-            console.error('AI Generate Copy Error', err);
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-
-    const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
         setError(null);
@@ -136,7 +101,10 @@ export default function DemoCreateInvitation() {
 
             const response = await fetch('/api/demo/invitations', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-demo-session-id': sessionId || ''
+                },
                 body: JSON.stringify(formattedData)
             });
 
@@ -288,7 +256,7 @@ export default function DemoCreateInvitation() {
                                                 {hasTitleBlurred && formData.title.trim() !== '' && (
                                                     <button
                                                         type="button"
-                                                        onClick={handleGenerateCopy}
+                                                        onClick={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time, isDemo: true })}
                                                         disabled={isGenerating}
                                                         className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                                                     >
