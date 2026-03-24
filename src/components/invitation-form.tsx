@@ -13,6 +13,8 @@ import { DefaultTemplate, Invitation } from '@/lib/supabase';
 import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
 import { logger } from "@/lib/logger";
+import { useGenerateCopy } from '@/hooks/useGenerateCopy';
+import { SmartCopySection } from '@/components/smart-copy-section';
 
 interface InvitationFormProps {
   mode: 'create' | 'edit';
@@ -49,6 +51,8 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  const { hasTitleBlurred, setHasTitleBlurred, isGenerating, generatedText, setGeneratedText, generateError, generateCopy } = useGenerateCopy();
 
   const {
     designs,
@@ -135,7 +139,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     });
   };
 
-  const handleDesignSelect = (designId: string) => {
+const handleDesignSelect = (designId: string) => {
     setFormData({
       ...formData,
       design_id: designId,
@@ -209,6 +213,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         autoFocus
                         value={formData.title}
                         onChange={handleChange}
+                        onBlur={() => setHasTitleBlurred(true)}
                         className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter event title"
                       />
@@ -225,30 +230,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                       </label>
                     </div>
 
-                    <div>
-                      <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
-                        Description
-                      </label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        rows={4}
-                        value={formData.description}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Describe your event"
-                      />
-                      <label className="flex items-center mt-2">
-                        <input
-                          type="checkbox"
-                          name="hide_description"
-                          checked={formData.hide_description}
-                          onChange={handleChange}
-                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
-                      </label>
-                    </div>
+
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
@@ -295,6 +277,41 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter event location"
                       />
+                    </div>
+
+                    <div>
+                      <SmartCopySection
+                        hasTitleBlurred={hasTitleBlurred}
+                        title={formData.title}
+                        isGenerating={isGenerating}
+                        generatedText={generatedText}
+                        generateError={generateError}
+                        onGenerate={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time })}
+                        onDiscard={() => setGeneratedText(null)}
+                        onApply={() => {
+                          setFormData({ ...formData, description: generatedText || "" });
+                          setGeneratedText(null);
+                        }}
+                      />
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows={4}
+                        value={formData.description}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Describe your event"
+                      />
+                      <label className="flex items-center mt-2">
+                        <input
+                          type="checkbox"
+                          name="hide_description"
+                          checked={formData.hide_description}
+                          onChange={handleChange}
+                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
+                      </label>
                     </div>
 
                     <div>
