@@ -145,3 +145,20 @@ export function getRSVPResponseColorClasses(response: 'yes' | 'no' | 'maybe'): {
       };
   }
 }
+
+/**
+ * Check if a user is the owner of an invitation associated with an RSVP
+ * This function handles both object and array formats returned by Supabase joins
+ */
+export function isInvitationOwner(
+  invitationsData: { user_id: string } | { user_id: string }[] | undefined | null,
+  userId: string
+): boolean {
+  if (!invitationsData) return false;
+  
+  const invitation = Array.isArray(invitationsData) 
+    ? invitationsData[0] 
+    : (invitationsData as { user_id: string });
+    
+  return invitation?.user_id === userId;
+}

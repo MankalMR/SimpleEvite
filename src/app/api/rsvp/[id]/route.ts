@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
+import { isInvitationOwner } from '@/lib/rsvp-utils';
 
 // DELETE /api/rsvp/[id] - Delete RSVP (only invitation owner can delete)
 export async function DELETE(
@@ -35,12 +36,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'RSVP not found' }, { status: 404 });
     }
 
-    // Check if the current user owns the invitation
-    // The query above joins the invitations table to get the user_id
-    type QueryResult = { invitations: { user_id: string }[] };
-    const rsvp = rsvpData as QueryResult;
-    const invitation = rsvp.invitations?.[0];
-    if (!invitation || invitation.user_id !== userId) {
+    // Check if the current user owns the invitation (host)
+    type QueryResult = { invitations: { user_id: string } | { user_id: string }[] };
+    const rsvp = rsvpData as unknown as QueryResult;
+    
+    if (!isInvitationOwner(rsvp.invitations, userId)) {
       return NextResponse.json(
         { error: 'Unauthorized. You do not own the invitation for this RSVP.' },
         { status: 403 }

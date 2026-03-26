@@ -13,7 +13,8 @@ import {
   filterRSVPsByResponse,
   getMostRecentRSVP,
   hasPendingResponses,
-  getRSVPResponseColorClasses
+  getRSVPResponseColorClasses,
+  isInvitationOwner
 } from './rsvp-utils';
 import { RSVP } from './supabase';
 
@@ -238,6 +239,44 @@ describe('rsvp-utils', () => {
         bg: 'bg-gray-50',
         border: 'border-gray-200',
       });
+    });
+  });
+
+  describe('isInvitationOwner', () => {
+    const userId = 'user-123';
+
+    it('should return true if data is an object with matching user_id (New Logic)', () => {
+      const data = { user_id: userId };
+      expect(isInvitationOwner(data, userId)).toBe(true);
+    });
+
+    it('should return true if data is an array with matching user_id', () => {
+      const data = [{ user_id: userId }];
+      expect(isInvitationOwner(data, userId)).toBe(true);
+    });
+
+    it('should return false if user_id does not match', () => {
+      expect(isInvitationOwner({ user_id: 'other' }, userId)).toBe(false);
+      expect(isInvitationOwner([{ user_id: 'other' }], userId)).toBe(false);
+    });
+
+    it('should return false if data is missing', () => {
+      expect(isInvitationOwner(null, userId)).toBe(false);
+      expect(isInvitationOwner(undefined, userId)).toBe(false);
+    });
+
+    // This specifically captures the bug scenario
+    it('demonstrates the fix for the object-vs-array bug', () => {
+      const objectData = { user_id: userId };
+      
+      // Old logic would have done: (objectData as any)[0]?.user_id
+      // This would be undefined because you can't access an object with index [0]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const oldLogicResult = (objectData as any)[0]?.user_id === userId;
+      expect(oldLogicResult).toBe(false); // This was why it was failing!
+      
+      // New logic uses the utility function which correctly handles the object
+      expect(isInvitationOwner(objectData, userId)).toBe(true); // This proves the fix!
     });
   });
 });
