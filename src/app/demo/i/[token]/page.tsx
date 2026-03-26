@@ -7,6 +7,7 @@ import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
 import { InvitationDisplay } from '@/components/invitation-display';
 import { validateRSVPForm } from '@/lib/form-utils';
 import { getInvitationDesign } from '@/lib/invitation-utils';
+import { getRSVPStats } from '@/lib/rsvp-utils';
 import { DemoBanner } from '@/components/DemoBanner';
 import { Spinner } from '@/components/spinner';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
@@ -131,12 +132,6 @@ export default function DemoPublicInvite() {
             minute: '2-digit',
             hour12: true,
         });
-
-    const getRSVPStats = (rsvps: RSVP[]) =>
-        rsvps.reduce((acc, rsvp) => {
-            acc[rsvp.response]++;
-            return acc;
-        }, { yes: 0, no: 0, maybe: 0 } as Record<string, number>);
 
     const handleReset = () => {
         window.location.href = '/demo/dashboard';
