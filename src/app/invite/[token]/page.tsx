@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { RSVP } from '@/lib/supabase';
 import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
+import { getRSVPStats } from '@/lib/rsvp-utils';
 import { InvitationDisplay } from '@/components/invitation-display';
 import { validateRSVPForm } from '@/lib/form-utils';
 import { usePublicInvitation } from '@/hooks/usePublicInvitation';
@@ -96,16 +96,6 @@ export default function PublicInvite() {
       minute: '2-digit',
       hour12: true,
     });
-  };
-
-  const getRSVPStats = (rsvps: RSVP[]) => {
-    return rsvps.reduce(
-      (acc, rsvp) => {
-        acc[rsvp.response]++;
-        return acc;
-      },
-      { yes: 0, no: 0, maybe: 0 }
-    );
   };
 
   if (loading) {
