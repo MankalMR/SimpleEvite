@@ -188,14 +188,16 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template) => (
-            <div
+            <button
               key={template.id}
-              className={`relative bg-white rounded-lg shadow-sm border-2 transition-all cursor-pointer hover:shadow-md ${
+              type="button"
+              className={`relative bg-white rounded-lg shadow-sm border-2 transition-all cursor-pointer hover:shadow-md w-full text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 selectedTemplateId === template.id
                   ? 'border-blue-500 ring-2 ring-blue-200'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
               onClick={() => onSelectTemplate(template)}
+              aria-pressed={selectedTemplateId === template.id}
             >
               {/* Template Preview */}
               <div className="relative h-48 w-full rounded-t-lg overflow-hidden bg-gray-100">
@@ -238,7 +240,7 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
                   <p className="text-sm text-gray-600 line-clamp-2">{template.description}</p>
                 )}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

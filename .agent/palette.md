@@ -18,3 +18,7 @@
 ## 2025-03-20 - Demo Banner Feedback
 **Learning:** Utility banners (like the Demo Mode warning) often neglect basic interactive states because they are "temporary" UI. Missing focus rings and loading states make them feel broken to keyboard users and during slow network requests.
 **Action:** Always apply the standard application focus styles (`focus:ring-2`) and loading feedback (`Spinner`) even to development/demo-specific UI elements to maintain a consistent standard of quality.
+
+## 2025-03-27 - [Accessible Grid Cards]
+**Learning:** In complex form components (like template or design selectors), interactive `div` elements used as selection cards completely break keyboard navigation and screen reader support, leaving keyboard users unable to select an option.
+**Action:** Always use semantic `<button type="button">` elements for custom clickable cards in a grid layout, ensuring to add `aria-pressed` for selection state and `focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500` for clear visual focus rings.
