@@ -26,3 +26,5 @@
 ## 2024-05-24 - Template Selector Bottleneck
 **Learning:** The default templates API route (`/api/templates`) does not include caching headers. Since these templates change infrequently, every client request incurs an unnecessary roundtrip to the Supabase database.
 **Action:** Added a `Cache-Control` header (`public, s-maxage=3600, stale-while-revalidate=86400`) to `src/app/api/templates/route.ts` to allow Vercel/CDN to cache the response, significantly improving Time To First Byte (TTFB) and reducing database load.
+## 2024-05-24 - [Refactoring RSVP stats and grouped RSVPs]
+**Learning:** `src/app/invite/[token]/page.tsx` and `src/app/demo/i/[token]/page.tsx` and `src/lib/rsvp-utils.ts` use `reduce` to aggregate RSVP stats (`yes: 0, no: 0, maybe: 0`). For large amounts of RSVPs, `for...of` loops are significantly faster in V8 than `.reduce()`. I can optimize this simple calculation.

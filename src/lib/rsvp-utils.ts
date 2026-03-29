@@ -9,27 +9,39 @@ export interface RSVPStats {
 
 /**
  * Calculate RSVP statistics from an array of RSVPs
+ * ⚡ Bolt: Using for...of instead of reduce for better performance on large arrays
  */
 export function getRSVPStats(rsvps: RSVP[]): RSVPStats {
-  const stats = rsvps.reduce(
-    (acc, rsvp) => {
-      acc[rsvp.response]++;
-      acc.total++;
-      return acc;
-    },
-    { yes: 0, no: 0, maybe: 0, total: 0 }
-  );
+  const stats = { yes: 0, no: 0, maybe: 0, total: 0 };
+
+  if (!rsvps || !rsvps.length) return stats;
+
+  for (const rsvp of rsvps) {
+    if (rsvp.response === 'yes') stats.yes++;
+    else if (rsvp.response === 'no') stats.no++;
+    else if (rsvp.response === 'maybe') stats.maybe++;
+    stats.total++;
+  }
 
   return stats;
 }
 
 /**
  * Get the total count of all RSVPs across multiple invitations
+ * ⚡ Bolt: Using for...of instead of reduce for better performance
  */
 export function getTotalRSVPCount(invitations: Array<{ rsvps?: RSVP[] }>): number {
-  return invitations.reduce((total, invitation) => {
-    return total + (invitation.rsvps?.length || 0);
-  }, 0);
+  let total = 0;
+
+  if (!invitations || !invitations.length) return total;
+
+  for (const invitation of invitations) {
+    if (invitation.rsvps?.length) {
+      total += invitation.rsvps.length;
+    }
+  }
+
+  return total;
 }
 
 /**
