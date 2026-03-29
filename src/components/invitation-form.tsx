@@ -381,12 +381,14 @@ const handleDesignSelect = (designId: string) => {
 
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {/* No Design Option */}
-                        <div
-                          className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${formData.design_id === ''
+                        <button
+                          type="button"
+                          className={`cursor-pointer border-2 rounded-lg p-4 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${formData.design_id === ''
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-300 hover:border-gray-400'
                             }`}
                           onClick={() => handleDesignSelect('')}
+                          aria-pressed={formData.design_id === ''}
                         >
                           <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 flex items-center justify-center">
                             <span className="text-gray-500 text-sm">No Design</span>
@@ -394,17 +396,19 @@ const handleDesignSelect = (designId: string) => {
                           <p className="text-sm text-center text-gray-800 font-medium">
                             Plain Invitation
                           </p>
-                        </div>
+                        </button>
 
                         {/* Available Designs */}
                         {designs.map((design) => (
-                          <div
+                          <button
                             key={design.id}
-                            className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${formData.design_id === design.id
+                            type="button"
+                            className={`cursor-pointer border-2 rounded-lg p-4 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${formData.design_id === design.id
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-300 hover:border-gray-400'
                               }`}
                             onClick={() => handleDesignSelect(design.id)}
+                            aria-pressed={formData.design_id === design.id}
                           >
                             <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
                               <Image
@@ -418,7 +422,7 @@ const handleDesignSelect = (designId: string) => {
                             <p className="text-sm text-center text-gray-800 font-medium truncate">
                               {design.name}
                             </p>
-                          </div>
+                          </button>
                         ))}
                       </div>
 
