@@ -3,6 +3,7 @@ import { POST } from './route';
 import { supabase } from '@/lib/supabase';
 import { supabaseDb } from '@/lib/database-supabase';
 import { sendRsvpConfirmationEmail, sendHostRsvpNotificationEmail } from '@/lib/email-service';
+import { validateRequestBody } from '@/lib/api-security';
 
 // Mock dependencies
 jest.mock('@/lib/supabase', () => ({
@@ -63,8 +64,7 @@ describe('POST /api/rsvp', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const { validateRequestBody } = require('@/lib/api-security');
-    validateRequestBody.mockResolvedValue({
+    (validateRequestBody as jest.Mock).mockResolvedValue({
       success: true,
       data: {
         name: mockRsvpData.name,
@@ -104,8 +104,7 @@ describe('POST /api/rsvp', () => {
   });
 
   it('should handle missing guest email', async () => {
-    const { validateRequestBody } = require('@/lib/api-security');
-    validateRequestBody.mockResolvedValue({
+    (validateRequestBody as jest.Mock).mockResolvedValue({
       success: true,
       data: {
         name: mockRsvpData.name,
