@@ -119,7 +119,7 @@ export function generateIcsContent(invitation: Pick<Invitation, 'title' | 'event
     'VERSION:2.0',
     'PRODID:-//Simple Evite//EN',
     'BEGIN:VEVENT',
-    `UID:${Date.now()}-${Math.random().toString(36).substring(2)}@simpleevite.com`,
+    `UID:${Date.now()}-${crypto.randomUUID()}@simpleevite.com`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`
   ];
 
