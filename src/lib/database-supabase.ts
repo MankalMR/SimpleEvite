@@ -148,8 +148,6 @@ function rowToRSVP(row: Record<string, unknown>): RSVP {
 // Reusable query fragments
 const INVITATION_BASE_SELECT = `*`;
 
-// Removed unused select constants - using INVITATION_FULL_SELECT instead
-
 const INVITATION_FULL_SELECT = `
   ${INVITATION_BASE_SELECT},
   rsvps (
