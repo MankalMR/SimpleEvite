@@ -111,38 +111,49 @@ export async function POST(request: NextRequest) {
           ip: clientIP,
         }, 'low');
 
+        // Send emails concurrently
+        const emailPromises = [];
+
         // Send RSVP confirmation email
         if (response === 'yes' && sanitizedEmail) {
           const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://evite.mankala.space'}/invite/${invitation.share_token}`;
 
-          await sendRsvpConfirmationEmail({
-            to: sanitizedEmail,
-            guestName: name,
-            eventTitle: invitation.title,
-            eventDate: invitation.event_date,
-            eventTime: invitation.event_time,
-            location: invitation.location,
-            description: invitation.description || undefined,
-            inviteUrl,
-            organizerNotes: invitation.organizer_notes || undefined,
-          });
+          emailPromises.push(
+            sendRsvpConfirmationEmail({
+              to: sanitizedEmail,
+              guestName: name,
+              eventTitle: invitation.title,
+              eventDate: invitation.event_date,
+              eventTime: invitation.event_time,
+              location: invitation.location,
+              description: invitation.description || undefined,
+              inviteUrl,
+              organizerNotes: invitation.organizer_notes || undefined,
+            })
+          );
         }
-
 
         // Send host notification email
         if (hostEmail) {
           const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://evite.mankala.space'}/dashboard/events/${invitation.id}`;
 
-          sendHostRsvpNotificationEmail({
-            to: hostEmail,
-            guestName: name,
-            response: response as 'yes' | 'no' | 'maybe',
-            comment: comment || undefined,
-            eventTitle: invitation.title,
-            inviteUrl: dashboardUrl,
-          }).catch(e => {
-            logger.error({ error: e }, 'Failed to send host RSVP notification email');
-          });
+          emailPromises.push(
+            sendHostRsvpNotificationEmail({
+              to: hostEmail,
+              guestName: name,
+              response: response as 'yes' | 'no' | 'maybe',
+              comment: comment || undefined,
+              eventTitle: invitation.title,
+              inviteUrl: dashboardUrl,
+            }).catch(e => {
+              logger.error({ error: e }, 'Failed to send host RSVP notification email');
+            })
+          );
+        }
+
+        // Await all email dispatches before responding to ensure they complete in serverless environment
+        if (emailPromises.length > 0) {
+          await Promise.allSettled(emailPromises);
         }
 
         const apiResponse = NextResponse.json({ rsvp }, { status: 201 });
