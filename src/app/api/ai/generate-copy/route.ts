@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { getGeminiClient } from '@/lib/ai';
 
@@ -36,6 +38,15 @@ export async function POST(req: NextRequest) {
       suggestion += " It's going to be a great time, and we'd love to see you there.";
 
       return NextResponse.json({ suggestion }, { status: 200 });
+    }
+
+    // Authentication check for non-demo users
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     // Call Gemini API if the environment variable is present
