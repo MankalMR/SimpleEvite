@@ -22,3 +22,6 @@
 ## 2025-03-27 - [Accessible Grid Cards]
 **Learning:** In complex form components (like template or design selectors), interactive `div` elements used as selection cards completely break keyboard navigation and screen reader support, leaving keyboard users unable to select an option.
 **Action:** Always use semantic `<button type="button">` elements for custom clickable cards in a grid layout, ensuring to add `aria-pressed` for selection state and `focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500` for clear visual focus rings.
+## 2025-02-28 - Adding Focus Indicators to Navigation
+**Learning:** Custom interactive elements (like the mobile user menu dropdown and the "Sign In" button in `Navbar`) often miss the default focus indicators when styled with Tailwind CSS without explicit `focus:` variants.
+**Action:** When creating or reviewing components with interactive elements, especially custom buttons and dropdown toggles, always ensure `focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2` (or equivalent) is applied to maintain keyboard navigation accessibility.
