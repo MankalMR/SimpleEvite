@@ -17,7 +17,7 @@ export async function GET(
     const { state } = guard;
     const resolvedParams = await params;
 
-    const invitation = state.invitations.find((i: InvitationWithRSVPs) => i.id === resolvedParams.id);
+    const invitation = state.invitationsMap.get(resolvedParams.id);
     if (!invitation) {
         return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
@@ -39,20 +39,27 @@ export async function PUT(
         return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    const idx = state.invitations.findIndex((i: InvitationWithRSVPs) => i.id === resolvedParams.id);
-    if (idx === -1) {
+    const existing = state.invitationsMap.get(resolvedParams.id);
+    if (!existing) {
         return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
 
     const updated = {
-        ...state.invitations[idx],
+        ...existing,
         ...body,
-        id: state.invitations[idx].id, // prevent ID override
-        user_id: state.invitations[idx].user_id,
-        share_token: state.invitations[idx].share_token,
+        id: existing.id, // prevent ID override
+        user_id: existing.user_id,
+        share_token: existing.share_token,
         updated_at: new Date().toISOString(),
     };
-    state.invitations[idx] = updated;
+
+    // Update in all places
+    const idx = state.invitations.findIndex(i => i.id === resolvedParams.id);
+    if (idx !== -1) {
+        state.invitations[idx] = updated;
+    }
+    state.invitationsMap.set(updated.id, updated);
+    state.invitationsByTokenMap.set(updated.share_token, updated);
 
     return NextResponse.json({ invitation: updated });
 }
@@ -66,12 +73,15 @@ export async function DELETE(
     const { state } = guard;
     const resolvedParams = await params;
 
-    const originalLength = state.invitations.length;
-    state.invitations = state.invitations.filter((i: InvitationWithRSVPs) => i.id !== resolvedParams.id);
-
-    if (state.invitations.length === originalLength) {
+    const existing = state.invitationsMap.get(resolvedParams.id);
+    if (!existing) {
         return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
+
+    // Remove from all places
+    state.invitations = state.invitations.filter(i => i.id !== resolvedParams.id);
+    state.invitationsMap.delete(resolvedParams.id);
+    state.invitationsByTokenMap.delete(existing.share_token);
 
     return NextResponse.json({ success: true });
 }

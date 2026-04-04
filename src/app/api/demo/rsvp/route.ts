@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the invitation
-    const invitation = state.invitations.find(i => i.id === invitation_id);
+    const invitation = state.invitationsMap.get(invitation_id);
     if (!invitation) {
         return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
