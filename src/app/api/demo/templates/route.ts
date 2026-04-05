@@ -10,5 +10,5 @@ export async function GET(request: NextRequest) {
     if (guard.error) return guard.error;
     const { state } = guard;
 
-    return NextResponse.json({ templates: state.templates });
+    return NextResponse.json({ templates: Array.from(state.templates.values()) });
 }
