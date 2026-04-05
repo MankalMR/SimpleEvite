@@ -136,6 +136,7 @@ function rowToRSVP(row: Record<string, unknown>): RSVP {
     invitation_id: row.invitation_id as string,
     name: row.name as string,
     response: row.response as 'yes' | 'no' | 'maybe',
+    guest_count: (row.guest_count as number) || 1,
     comment: row.comment as string | undefined,
     email: row.email as string | undefined,
     notification_preferences: row.notification_preferences as { email: boolean } | undefined,
@@ -154,6 +155,7 @@ const INVITATION_FULL_SELECT = `
     id,
     name,
     response,
+    guest_count,
     comment,
     created_at
   )
@@ -412,6 +414,7 @@ export const supabaseDb = {
         invitation_id: invitationId,
         name: rsvp.name,
         response: rsvp.response,
+        guest_count: rsvp.guest_count || 1,
         comment: rsvp.comment,
         email: rsvp.email,
         notification_preferences: rsvp.notification_preferences,

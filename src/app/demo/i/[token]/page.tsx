@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { RSVP } from '@/lib/supabase';
 import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
 import { InvitationDisplay } from '@/components/invitation-display';
 import { validateRSVPForm } from '@/lib/form-utils';
@@ -30,10 +29,12 @@ export default function DemoPublicInvite() {
     const [rsvpData, setRsvpData] = useState<{
         name: string;
         response: 'yes' | 'no' | 'maybe' | '';
+        guest_count: number;
         comment: string;
     }>({
         name: '',
         response: '',
+        guest_count: 1,
         comment: '',
     });
 
@@ -106,6 +107,7 @@ export default function DemoPublicInvite() {
                     invitation_id: invitation.id,
                     name: rsvpData.name.trim(),
                     response: rsvpData.response,
+                    guest_count: rsvpData.guest_count,
                     comment: rsvpData.comment.trim() || undefined,
                 }),
             });
@@ -116,7 +118,7 @@ export default function DemoPublicInvite() {
 
             setRsvpSubmitted(true);
             setShowRSVPForm(false);
-            setRsvpData({ name: '', response: '', comment: '' });
+            setRsvpData({ name: '', response: '', guest_count: 1, comment: '' });
             // Refresh to see new RSVP
             fetchInvitation();
         } catch {
@@ -306,6 +308,23 @@ export default function DemoPublicInvite() {
                                     </div>
                                     {formErrors.response && <p className="mt-1 text-sm text-red-600">{formErrors.response}</p>}
                                 </div>
+                                {rsvpData.response === 'yes' && (
+                                    <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <label htmlFor="guest_count" className="block text-sm font-semibold text-gray-900 mb-2">
+                                            Number of Guests (including yourself)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            id="guest_count"
+                                            min="1"
+                                            max="20"
+                                            value={rsvpData.guest_count}
+                                            onChange={(e) => setRsvpData({ ...rsvpData, guest_count: parseInt(e.target.value) || 1 })}
+                                            className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                )}
+
 
                                 <div>
                                     <label htmlFor="comment" className="block text-sm font-semibold text-gray-900 mb-2">
@@ -368,7 +387,7 @@ export default function DemoPublicInvite() {
                                                 </svg>
                                             </div>
                                             <div className="flex-1">
-                                                <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
+                                                <h4 className="font-semibold text-gray-900">{rsvp.name}{rsvp.guest_count && rsvp.guest_count > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">+{rsvp.guest_count - 1} guest{rsvp.guest_count > 2 ? "s" : ""}</span>}</h4>
                                                 {rsvp.comment && (
                                                     <p className="text-gray-600 text-sm mt-1">&ldquo;{rsvp.comment}&rdquo;</p>
                                                 )}

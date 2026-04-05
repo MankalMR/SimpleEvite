@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
         // Get all data from validation result (body already parsed by validateRequestBody)
         const body = validation.rawData as Record<string, unknown>;
-        const { name, response, comment } = validation.data!;
+        const { name, response, comment, guest_count } = validation.data!;
         const { invitation_id, email, notification_preferences } = body;
 
         // Validate invitation_id separately as it's not in the RSVP data validation
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
             name,
             response: response as 'yes' | 'no' | 'maybe',
             comment: comment || undefined,
+            guest_count: guest_count,
             email: sanitizedEmail || undefined,
             notification_preferences: sanitizedNotificationPrefs,
             reminder_status: sanitizedEmail && response === 'yes' && sanitizedNotificationPrefs.email ? 'pending' : 'skipped',
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
               guestName: name,
               response: response as 'yes' | 'no' | 'maybe',
               comment: comment || undefined,
-              eventTitle: invitation.title,
+            eventTitle: invitation.title,
               inviteUrl: dashboardUrl,
             }).catch(e => {
               logger.error({ error: e }, 'Failed to send host RSVP notification email');

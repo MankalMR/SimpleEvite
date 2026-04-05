@@ -230,8 +230,8 @@ export default function InvitationView() {
 
             <div className="grid grid-cols-3 gap-6 mb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">{rsvpStats.yes}</div>
-                <div className="text-sm text-gray-800 font-medium">Yes</div>
+                <div className="text-3xl font-bold text-green-600 mb-2">{rsvpStats.attendingCount}</div>
+                <div className="text-sm text-gray-800 font-medium">Attending</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-yellow-600 mb-2">{rsvpStats.maybe}</div>
@@ -269,7 +269,7 @@ export default function InvitationView() {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
+                            <h4 className="font-semibold text-gray-900">{rsvp.name}{rsvp.guest_count && rsvp.guest_count > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">+{rsvp.guest_count - 1} guest{rsvp.guest_count > 2 ? "s" : ""}</span>}</h4>
                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${rsvp.response === 'yes'
                               ? 'bg-green-100 text-green-800'
                               : rsvp.response === 'no'
