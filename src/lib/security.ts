@@ -120,7 +120,7 @@ export function validateInvitationData(data: Record<string, unknown>) {
 /**
  * Validate and sanitize RSVP data
  */
-export function validateRSVPData(data: unknown): { isValid: boolean; errors: Record<string, string>; sanitizedData?: { name: string; response: unknown; comment: string; } } {
+export function validateRSVPData(data: unknown): { isValid: boolean; errors: Record<string, string>; sanitizedData?: { name: string; response: unknown; comment: string; guest_count: number; } } {
   if (!data || typeof data !== 'object') {
     return {
       isValid: false,
@@ -145,6 +145,17 @@ export function validateRSVPData(data: unknown): { isValid: boolean; errors: Rec
     errors.response = 'Please select a valid response';
   }
 
+  // Guest count validation
+  let guestCount = 1;
+  if (record.response === 'yes' && record.guest_count !== undefined && record.guest_count !== null) {
+      const parsed = typeof record.guest_count === 'string' ? parseInt(record.guest_count, 10) : Number(record.guest_count);
+      if (isNaN(parsed) || parsed < 1 || parsed > 100) {
+          errors.guest_count = 'Guest count must be a number between 1 and 100';
+      } else {
+          guestCount = parsed;
+      }
+  }
+
   // Comment validation
   if (record.comment && typeof record.comment === 'string') {
     if (record.comment.length > 300) {
@@ -159,6 +170,7 @@ export function validateRSVPData(data: unknown): { isValid: boolean; errors: Rec
       name: sanitizeText(record.name as string),
       response: record.response,
       comment: sanitizeText((record.comment as string) || ''),
+      guest_count: guestCount,
     } : undefined,
   };
 }

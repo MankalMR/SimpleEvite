@@ -25,6 +25,7 @@ describe('rsvp-utils', () => {
       invitation_id: 'inv1',
       name: 'Alice',
       response: 'yes',
+      guest_count: 2,
       created_at: '2024-01-01T10:00:00Z',
     },
     {
@@ -54,7 +55,7 @@ describe('rsvp-utils', () => {
     it('should calculate statistics correctly from an array of RSVPs', () => {
       const stats = getRSVPStats(mockRSVPs);
       expect(stats).toEqual({
-        yes: 2,
+        yes: 3, // Alice (2) + David (1)
         no: 1,
         maybe: 1,
         total: 4,
@@ -103,7 +104,7 @@ describe('rsvp-utils', () => {
     it('should return formatted strings based on counts', () => {
       const formatted = getFormattedRSVPCounts(mockRSVPs);
       expect(formatted).toEqual({
-        yesCount: '2 Yes',
+        yesCount: '3 Yes',
         maybeCount: '1 Maybe',
         noCount: '1 No',
       });
@@ -163,7 +164,7 @@ describe('rsvp-utils', () => {
       ];
       const stats = getGlobalRSVPStats(invitations);
       expect(stats).toEqual({
-        yes: 1,
+        yes: 2, // Alice (2)
         no: 1,
         maybe: 1,
         total: 3,
@@ -178,7 +179,7 @@ describe('rsvp-utils', () => {
       ];
       const stats = getGlobalRSVPStats(invitations);
       expect(stats).toEqual({
-        yes: 1,
+        yes: 2, // Alice (2)
         no: 0,
         maybe: 0,
         total: 1,

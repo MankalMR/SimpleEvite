@@ -36,12 +36,14 @@ export default function PublicInvite() {
   const [rsvpData, setRsvpData] = useState<{
     name: string;
     response: 'yes' | 'no' | 'maybe' | '';
+    guest_count: number;
     comment: string;
     email: string;
     emailNotifications: boolean;
   }>({
     name: '',
     response: '',
+    guest_count: 1,
     comment: '',
     email: '',
     emailNotifications: true,
@@ -72,6 +74,7 @@ export default function PublicInvite() {
         invitation_id: invitation.id,
         name: rsvpData.name.trim(),
         response: rsvpData.response as 'yes' | 'no' | 'maybe',
+        guest_count: rsvpData.guest_count,
         comment: rsvpData.comment.trim() || undefined,
         email: rsvpData.email.trim() || undefined,
         notification_preferences: {
@@ -81,7 +84,7 @@ export default function PublicInvite() {
 
       setRsvpSubmitted(true);
       setShowRSVPForm(false);
-      setRsvpData({ name: '', response: '', comment: '', email: '', emailNotifications: true });
+      setRsvpData({ name: '', response: '', guest_count: 1, comment: '', email: '', emailNotifications: true });
     } catch (error) {
       logger.error({ error }, 'RSVP submission error:');
       setSubmissionError(error instanceof Error ? error.message : 'Failed to submit RSVP');
@@ -284,6 +287,23 @@ export default function PublicInvite() {
                   )}
                 </div>
 
+                {rsvpData.response === 'yes' && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                    <label htmlFor="guest_count" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Number of Guests (including yourself)
+                    </label>
+                    <input
+                      type="number"
+                      id="guest_count"
+                      min="1"
+                      max="20"
+                      value={rsvpData.guest_count}
+                      onChange={(e) => setRsvpData({ ...rsvpData, guest_count: parseInt(e.target.value) || 1 })}
+                      className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <label htmlFor="comment" className="block text-sm font-semibold text-gray-900 mb-2">
                     Message (Optional)
@@ -409,7 +429,7 @@ export default function PublicInvite() {
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
+                        <h4 className="font-semibold text-gray-900">{rsvp.name}{rsvp.guest_count && rsvp.guest_count > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">+{rsvp.guest_count - 1} guest{rsvp.guest_count > 2 ? "s" : ""}</span>}</h4>
                         {rsvp.comment && (
                           <p className="text-gray-600 text-sm mt-1">&ldquo;{rsvp.comment}&rdquo;</p>
                         )}

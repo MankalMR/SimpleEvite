@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS public.rsvps (
   invitation_id UUID REFERENCES public.invitations(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   response TEXT CHECK (response IN ('yes', 'no', 'maybe')) NOT NULL,
+  guest_count INT DEFAULT 1,
   comment TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -58,6 +58,7 @@ export interface RSVP {
   invitation_id: string;
   name: string;
   response: 'yes' | 'no' | 'maybe';
+    guest_count?: number;
   comment?: string;
   email?: string;
   notification_preferences?: {

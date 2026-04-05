@@ -17,7 +17,7 @@ export function getRSVPStats(rsvps: RSVP[]): RSVPStats {
   if (!rsvps || !rsvps.length) return stats;
 
   for (const rsvp of rsvps) {
-    if (rsvp.response === 'yes') stats.yes++;
+    if (rsvp.response === 'yes') stats.yes += (rsvp.guest_count !== undefined ? Number(rsvp.guest_count) : 1);
     else if (rsvp.response === 'no') stats.no++;
     else if (rsvp.response === 'maybe') stats.maybe++;
     stats.total++;

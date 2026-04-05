@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { demoGuard } from '@/lib/demo/demo-guards';
 import { RSVP } from '@/lib/supabase';
+import { validateRSVPData } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
     const guard = demoGuard(request);
@@ -16,15 +17,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    const { invitation_id, name, response, comment } = body;
+    const { invitation_id } = body;
 
-    if (!invitation_id || !name || !response) {
-        return NextResponse.json({ error: 'invitation_id, name, and response are required' }, { status: 400 });
+    if (!invitation_id) {
+        return NextResponse.json({ error: 'invitation_id is required' }, { status: 400 });
     }
 
-    if (!['yes', 'no', 'maybe'].includes(response)) {
-        return NextResponse.json({ error: 'response must be yes, no, or maybe' }, { status: 400 });
+    const validation = validateRSVPData(body);
+    if (!validation.isValid) {
+        return NextResponse.json({ error: 'Invalid input', details: validation.errors }, { status: 400 });
     }
+
+    const { name, response, comment, guest_count } = validation.sanitizedData!;
 
     // Find the invitation
     const invitation = state.invitations.find(i => i.id === invitation_id);
@@ -38,6 +42,7 @@ export async function POST(request: NextRequest) {
         name,
         response: response as 'yes' | 'no' | 'maybe',
         comment: comment || undefined,
+        guest_count: guest_count,
         created_at: new Date().toISOString(),
     };
 

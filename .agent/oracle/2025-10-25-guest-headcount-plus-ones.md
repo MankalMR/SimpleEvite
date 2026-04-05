@@ -1,7 +1,7 @@
 # Feature Ticket: Guest Headcount & Plus Ones
 
 ## Status
-pending-implementation
+`done`
 
 ## Context
 Currently, the Simple Evite RSVP form allows a single guest to respond "Yes", "No", or "Maybe". However, many events (like weddings, parties, or large gatherings) allow guests to bring "plus ones" or entire families. Without a way to specify the number of attendees per RSVP, hosts cannot get an accurate total headcount, leading to catering or seating issues.
