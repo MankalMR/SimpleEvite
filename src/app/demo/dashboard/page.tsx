@@ -150,8 +150,8 @@ export default function DemoDashboard() {
                                 <p className="text-3xl font-bold text-blue-600">{totalInvitations}</p>
                             </div>
                             <div className="bg-white p-6 rounded-lg shadow-sm border">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total RSVPs</h3>
-                                <p className="text-3xl font-bold text-green-600">{totalRSVPs}</p>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Attending</h3>
+                                <p className="text-3xl font-bold text-green-600">{globalStats.attendingCount}</p>
                                 <div className="text-sm text-gray-600 mt-1">
                                     {globalStats.yes} Yes, {globalStats.maybe} Maybe, {globalStats.no} No
                                 </div>
@@ -214,7 +214,7 @@ export default function DemoDashboard() {
                                             </p>
 
                                             <div className="flex justify-between text-sm text-gray-600 mb-4">
-                                                <span className="text-green-600 font-medium">✓ {rsvpStats.yes} Yes</span>
+                                                <span className="text-green-600 font-medium">✓ {rsvpStats.attendingCount} Attending</span>
                                                 <span className="text-yellow-600 font-medium">? {rsvpStats.maybe} Maybe</span>
                                                 <span className="text-red-600 font-medium">✗ {rsvpStats.no} No</span>
                                             </div>

@@ -93,8 +93,8 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-blue-600">{stats.totalInvitations}</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total RSVPs</h3>
-                <p className="text-3xl font-bold text-green-600">{stats.totalRSVPs}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Attending</h3>
+                <p className="text-3xl font-bold text-green-600">{stats.globalStats.attendingCount}</p>
                 <div className="text-sm text-gray-600 mt-1">
                   {stats.globalStats.yes} Yes, {stats.globalStats.maybe} Maybe, {stats.globalStats.no} No
                 </div>
@@ -149,8 +149,8 @@ export default function Dashboard() {
                           {invitation.title}
                         </h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${isUpcoming
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
                           }`}>
                           {isUpcoming ? 'Upcoming' : 'Past'}
                         </span>
@@ -163,7 +163,7 @@ export default function Dashboard() {
 
                       <div className="flex justify-between text-sm text-gray-600 mb-4">
                         <span className="text-green-600 font-medium">
-                          ✓ {rsvpStats.yes} Yes
+                          ✓ {rsvpStats.attendingCount} Attending
                         </span>
                         <span className="text-yellow-600 font-medium">
                           ? {rsvpStats.maybe} Maybe

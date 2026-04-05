@@ -5,6 +5,7 @@ export interface RSVPStats {
   no: number;
   maybe: number;
   total: number;
+  attendingCount: number;
 }
 
 /**
@@ -12,12 +13,15 @@ export interface RSVPStats {
  * ⚡ Bolt: Using for...of instead of reduce for better performance on large arrays
  */
 export function getRSVPStats(rsvps: RSVP[]): RSVPStats {
-  const stats = { yes: 0, no: 0, maybe: 0, total: 0 };
+  const stats = { yes: 0, no: 0, maybe: 0, total: 0, attendingCount: 0 };
 
   if (!rsvps || !rsvps.length) return stats;
 
   for (const rsvp of rsvps) {
-    if (rsvp.response === 'yes') stats.yes += (rsvp.guest_count !== undefined ? Number(rsvp.guest_count) : 1);
+    if (rsvp.response === 'yes') {
+      stats.yes++;
+      stats.attendingCount += (rsvp.guest_count !== undefined ? Number(rsvp.guest_count) : 1);
+    }
     else if (rsvp.response === 'no') stats.no++;
     else if (rsvp.response === 'maybe') stats.maybe++;
     stats.total++;
