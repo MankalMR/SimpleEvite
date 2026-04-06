@@ -39,7 +39,10 @@ export function usePublicInvitation(token: string) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(rsvpData),
+      body: JSON.stringify({
+        ...rsvpData,
+        share_token: token,
+      }),
     });
 
     if (!response.ok) {
@@ -51,7 +54,7 @@ export function usePublicInvitation(token: string) {
 
     const data = await response.json();
     return data.rsvp;
-  }, []);
+  }, [token]);
 
   const invitationRequest = useApiRequest(fetchInvitation);
   const rsvpRequest = useApiRequest(submitRSVP);

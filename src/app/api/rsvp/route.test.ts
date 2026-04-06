@@ -59,6 +59,7 @@ describe('POST /api/rsvp', () => {
     comment: 'Coming!',
     email: 'guest@example.com',
     invitation_id: mockInvitationId,
+    share_token: 'token-789',
   };
 
   beforeEach(() => {
