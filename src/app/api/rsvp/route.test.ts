@@ -133,4 +133,38 @@ describe('POST /api/rsvp', () => {
     expect(sendRsvpConfirmationEmail).toHaveBeenCalled();
     expect(sendHostRsvpNotificationEmail).not.toHaveBeenCalled();
   });
+
+  it('should return 401 if share_token is missing', async () => {
+    (validateRequestBody as jest.Mock).mockResolvedValue({
+      success: true,
+      data: {
+        name: mockRsvpData.name,
+        response: mockRsvpData.response,
+        comment: mockRsvpData.comment,
+      },
+      rawData: { ...mockRsvpData, share_token: undefined },
+    });
+
+    const req = createMockRequest();
+    const response = await POST(req);
+
+    expect(response.status).toBe(401);
+    const data = await response.json();
+    expect(data.error).toBe('Valid share token is required');
+  });
+
+  it('should return 404 if share_token is invalid or does not match invitation', async () => {
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+    });
+
+    const req = createMockRequest();
+    const response = await POST(req);
+
+    expect(response.status).toBe(404);
+    const data = await response.json();
+    expect(data.error).toBe('Invitation not found or invalid share token');
+  });
 });
