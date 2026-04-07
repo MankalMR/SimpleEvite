@@ -32,22 +32,28 @@ export async function POST(request: NextRequest) {
         // Get all data from validation result (body already parsed by validateRequestBody)
         const body = validation.rawData as Record<string, unknown>;
         const { name, response, comment, guest_count } = validation.data!;
-        const { invitation_id, email, notification_preferences } = body;
+        const { invitation_id, share_token, email, notification_preferences } = body;
 
         // Validate invitation_id separately as it's not in the RSVP data validation
         if (!invitation_id || typeof invitation_id !== 'string') {
           return NextResponse.json({ error: 'Valid invitation ID is required' }, { status: 400 });
         }
 
-        // Check if invitation exists
+        // Validate share_token to ensure caller has link-based access
+        if (!share_token || typeof share_token !== 'string') {
+          return NextResponse.json({ error: 'Valid share token is required' }, { status: 401 });
+        }
+
+        // Check if invitation exists and matches the share_token
         const { data: invitation, error: invitationError } = await supabase
           .from('invitations')
           .select('id, user_id, title, event_date, event_time, location, description, organizer_notes, share_token')
           .eq('id', invitation_id)
+          .eq('share_token', share_token)
           .single();
 
         if (invitationError || !invitation) {
-          return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
+          return NextResponse.json({ error: 'Invitation not found or invalid share token' }, { status: 404 });
         }
         // Fetch host email for notification
         let hostEmail = undefined;
