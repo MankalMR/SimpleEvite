@@ -28,3 +28,7 @@
 **Action:** Added a `Cache-Control` header (`public, s-maxage=3600, stale-while-revalidate=86400`) to `src/app/api/templates/route.ts` to allow Vercel/CDN to cache the response, significantly improving Time To First Byte (TTFB) and reducing database load.
 ## 2024-05-24 - [Refactoring RSVP stats and grouped RSVPs]
 **Learning:** `src/app/invite/[token]/page.tsx` and `src/app/demo/i/[token]/page.tsx` and `src/lib/rsvp-utils.ts` use `reduce` to aggregate RSVP stats (`yes: 0, no: 0, maybe: 0`). For large amounts of RSVPs, `for...of` loops are significantly faster in V8 than `.reduce()`. I can optimize this simple calculation.
+
+## 2026-04-09 - Zero-allocation getGlobalRSVPStats & Demo Cache
+**Learning:** The `getGlobalRSVPStats` function was creating an intermediate array using `flatMap`. The demo route was missing `Cache-Control`.
+**Action:** Refactored `getGlobalRSVPStats` to use nested `for...of` loops and added `Cache-Control` header to demo route for parity with production.
