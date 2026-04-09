@@ -98,10 +98,28 @@ export function sortRSVPsByDate(rsvps: RSVP[]): RSVP[] {
 
 /**
  * Get RSVP statistics across multiple invitations
+ * ⚡ Bolt: Using nested for...of to avoid array allocation (flatMap)
  */
 export function getGlobalRSVPStats(invitations: Array<{ rsvps?: RSVP[] }>): RSVPStats {
-  const allRSVPs = invitations.flatMap(inv => inv.rsvps || []);
-  return getRSVPStats(allRSVPs);
+  const stats = { yes: 0, no: 0, maybe: 0, total: 0, attendingCount: 0 };
+
+  if (!invitations || !invitations.length) return stats;
+
+  for (const invitation of invitations) {
+    if (!invitation.rsvps) continue;
+
+    for (const rsvp of invitation.rsvps) {
+      if (rsvp.response === 'yes') {
+        stats.yes++;
+        stats.attendingCount += (rsvp.guest_count !== undefined ? Number(rsvp.guest_count) : 1);
+      }
+      else if (rsvp.response === 'no') stats.no++;
+      else if (rsvp.response === 'maybe') stats.maybe++;
+      stats.total++;
+    }
+  }
+
+  return stats;
 }
 
 /**
