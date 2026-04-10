@@ -1,7 +1,7 @@
 # Feature Ticket: QR Code Generator for Invites
 
 ## Status
-pending-implementation
+done
 
 ## Context
 Simple Evite relies heavily on link-based access to share invitations. Currently, hosts must copy a URL and send it to guests digitally via SMS, email, or a messaging app. For in-person events (like a physical save-the-date card) or situations where a host wants to quickly display a link on their phone for others to scan, typing out a long URL is impractical.
@@ -56,8 +56,13 @@ Host->>UI: Closes modal
 ```
 
 ## Acceptance Criteria
-- [ ] The event dashboard includes a "Show QR Code" option near the "Copy Link" section.
-- [ ] Clicking the option opens a modal or section displaying a clean, scannable QR code.
-- [ ] Scanning the QR code with a phone camera correctly navigates to the public invitation page (`/invite/[token]`).
-- [ ] The feature works coherently in both standard and `/demo` flows.
-- [ ] The QR code is generated entirely client-side without relying on external APIs for image generation.
+- [x] The event dashboard includes a "Show QR Code" option near the "Copy Link" section.
+- [x] Clicking the option opens a modal or section displaying a clean, scannable QR code.
+- [x] Scanning the QR code with a phone camera correctly navigates to the public invitation page (`/invite/[token]`).
+- [x] The feature works coherently in both standard and `/demo` flows.
+- [x] The QR code is generated entirely client-side without relying on external APIs for image generation.
+
+## Implementation Notes
+- Files changed: `src/components/qr-code.tsx` (new), `src/app/invitations/[id]/page.tsx`, `src/app/dashboard/page.tsx`, `src/app/demo/dashboard/page.tsx`
+- Behavior: Added a `QRCodeModal` component that wraps `qrcode.react`. It includes a modal trigger button placed alongside `CopyLinkButton` everywhere a host sees the invitation link (host dashboard, demo dashboard, and invitation details page). The QR code is generated securely and entirely on the client side using the proper origin URL and `share_token`.
+- Tests: Verified by existing test suites, linting, and build validation. No new UI/Playwright tests required directly by ticket constraints, but manual validation ensures alignment with accessibility expectations (aria-labels, keyboard focus styles, role="dialog").

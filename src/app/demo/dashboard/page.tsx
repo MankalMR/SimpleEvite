@@ -11,7 +11,7 @@ import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { InlineError } from '@/components/inline-error';
 import { Eye } from 'lucide-react';
-import { CopyLinkButton } from '@/components/copy-link-button';
+import { ShareLinkGroup } from '@/components/share-link-group';
 
 export default function DemoDashboard() {
     const [sessionId, setSessionId] = useState<string | null>(null);
@@ -220,7 +220,7 @@ export default function DemoDashboard() {
                                             </div>
 
                                             <div className="flex gap-2">
-                                                <CopyLinkButton
+                                                <ShareLinkGroup
                                                     shareToken={invitation.share_token}
                                                     baseUrl={typeof window !== 'undefined' ? `${window.location.origin}/demo/i/` : ''}
                                                 />
