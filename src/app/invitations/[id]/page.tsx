@@ -13,6 +13,7 @@ import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { logger } from "@/lib/logger";
 import { Edit, Eye } from 'lucide-react';
 import { CopyLinkButton } from '@/components/copy-link-button';
+import { QRCodeModal } from '@/components/qr-code';
 
 export default function InvitationView() {
   const params = useParams();
@@ -139,11 +140,17 @@ export default function InvitationView() {
               {/* Mobile: Stack actions vertically, Desktop: Horizontal */}
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                 {/* Primary actions - most important first on mobile */}
-                <CopyLinkButton
-                  shareToken={invitation.share_token}
-                  className="px-4 py-2.5 rounded-lg font-medium transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
-                  label="Copy Invite Link"
-                />
+                <div className="flex gap-2">
+                  <CopyLinkButton
+                    shareToken={invitation.share_token}
+                    className="flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                    label="Copy Invite Link"
+                  />
+                  <QRCodeModal
+                    url={typeof window !== 'undefined' ? `${window.location.origin}/invite/${invitation.share_token}` : ''}
+                    className="flex-initial px-4 py-2.5 rounded-lg font-medium transition-colors bg-gray-100 hover:bg-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                  />
+                </div>
 
                 <div className="flex gap-2">
                   <Link
@@ -367,11 +374,17 @@ export default function InvitationView() {
               <p className="text-gray-600 mb-6">
                 Share your invitation link to start receiving responses.
               </p>
-              <CopyLinkButton
-                shareToken={invitation.share_token}
-                className="w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
-                label="Copy Invite Link"
-              />
+              <div className="flex flex-col sm:flex-row gap-2 w-full mb-4">
+                <CopyLinkButton
+                  shareToken={invitation.share_token}
+                  className="flex-1 px-6 py-3 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                  label="Copy Invite Link"
+                />
+                <QRCodeModal
+                  url={typeof window !== 'undefined' ? `${window.location.origin}/invite/${invitation.share_token}` : ''}
+                  className="sm:w-auto w-full px-6 py-3 rounded-lg font-semibold transition-colors bg-gray-100 hover:bg-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                />
+              </div>
             </div>
           )}
         </div>

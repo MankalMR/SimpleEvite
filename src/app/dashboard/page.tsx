@@ -12,6 +12,7 @@ import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { InlineError } from '@/components/inline-error';
 import { Eye } from 'lucide-react';
 import { CopyLinkButton } from '@/components/copy-link-button';
+import { QRCodeModal } from '@/components/qr-code';
 
 export default function Dashboard() {
   const [actionError, setActionError] = useState<string | null>(null);
@@ -174,7 +175,10 @@ export default function Dashboard() {
                       </div>
 
                       <div className="flex gap-2">
-                        <CopyLinkButton shareToken={invitation.share_token} />
+                        <div className="flex gap-1">
+                          <CopyLinkButton shareToken={invitation.share_token} />
+                          <QRCodeModal url={typeof window !== 'undefined' ? `${window.location.origin}/invite/${invitation.share_token}` : ''} />
+                        </div>
                         <Link
                           href={`/invitations/${invitation.id}`}
                           className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
