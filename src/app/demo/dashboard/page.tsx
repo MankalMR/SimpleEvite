@@ -11,8 +11,7 @@ import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { InlineError } from '@/components/inline-error';
 import { Eye } from 'lucide-react';
-import { CopyLinkButton } from '@/components/copy-link-button';
-import { QRCodeModal } from '@/components/qr-code';
+import { ShareLinkGroup } from '@/components/share-link-group';
 
 export default function DemoDashboard() {
     const [sessionId, setSessionId] = useState<string | null>(null);
@@ -221,15 +220,10 @@ export default function DemoDashboard() {
                                             </div>
 
                                             <div className="flex gap-2">
-                                                <div className="flex gap-1">
-                                                    <CopyLinkButton
-                                                        shareToken={invitation.share_token}
-                                                        baseUrl={typeof window !== 'undefined' ? `${window.location.origin}/demo/i/` : ''}
-                                                    />
-                                                    <QRCodeModal
-                                                        url={typeof window !== 'undefined' ? `${window.location.origin}/demo/i/${invitation.share_token}` : ''}
-                                                    />
-                                                </div>
+                                                <ShareLinkGroup
+                                                    shareToken={invitation.share_token}
+                                                    baseUrl={typeof window !== 'undefined' ? `${window.location.origin}/demo/i/` : ''}
+                                                />
                                                 <Link
                                                     href={`/demo/i/${invitation.share_token}`}
                                                     className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
