@@ -28,3 +28,7 @@
 **Action:** Added a `Cache-Control` header (`public, s-maxage=3600, stale-while-revalidate=86400`) to `src/app/api/templates/route.ts` to allow Vercel/CDN to cache the response, significantly improving Time To First Byte (TTFB) and reducing database load.
 ## 2024-05-24 - [Refactoring RSVP stats and grouped RSVPs]
 **Learning:** `src/app/invite/[token]/page.tsx` and `src/app/demo/i/[token]/page.tsx` and `src/lib/rsvp-utils.ts` use `reduce` to aggregate RSVP stats (`yes: 0, no: 0, maybe: 0`). For large amounts of RSVPs, `for...of` loops are significantly faster in V8 than `.reduce()`. I can optimize this simple calculation.
+
+## 2024-05-25 - [Refactoring RSVP stats and grouped RSVPs]
+**Learning:** `getGlobalRSVPStats` in `src/lib/rsvp-utils.ts` was using `.flatMap()` to aggregate RSVPs across multiple invitations. This creates intermediate array allocations that put unnecessary pressure on the garbage collector and slow down processing for large arrays.
+**Action:** Replaced the `.flatMap()` call with nested `for...of` loops, avoiding intermediate arrays and performing the computation in a single pass with O(1) memory overhead.
