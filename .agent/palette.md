@@ -29,3 +29,6 @@
 ## 2026-04-18 - Keyboard Accessibility for Hover Dropdowns
 **Learning:** Dropdown menus that appear on `group-hover` are completely inaccessible to keyboard users unless explicitly styled for focus. When a user tabs into the trigger, and then tabs into the dropdown items, the focus moves but the menu remains invisible, causing extreme confusion.
 **Action:** For hover-based dropdowns, always combine `group-hover:opacity-100 group-hover:visible` with `group-focus-within:opacity-100 group-focus-within:visible`. This ensures the dropdown becomes visible when any of its internal links receive keyboard focus. Additionally, add `aria-haspopup="true"` to the trigger button.
+## 2026-04-18 - Missing label association for template filters
+**Learning:** React select dropdowns used as custom filters (like Occasion and Theme in the template selector) often have visually descriptive text placed near them via `<label>` tags but they often lack the explicit `htmlFor` property tying them to the `id` of the `<select>`. This makes them inaccessible to screen readers which require the association.
+**Action:** When creating or editing forms and filter components, explicitly use `<label htmlFor="unique-id">` and ensure the target input/select has `id="unique-id"`.
