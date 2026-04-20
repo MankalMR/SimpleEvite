@@ -117,5 +117,6 @@ CREATE TRIGGER set_updated_at
 --   ADD COLUMN IF NOT EXISTS hide_description BOOLEAN DEFAULT false,
 --   ADD COLUMN IF NOT EXISTS organizer_notes TEXT,
 --   ADD COLUMN IF NOT EXISTS text_font_family TEXT DEFAULT 'inter',
---   ADD COLUMN IF NOT EXISTS text_size TEXT DEFAULT 'large';
+--   ADD COLUMN IF NOT EXISTS text_size TEXT DEFAULT 'large',
+--   ADD COLUMN IF NOT EXISTS rsvp_deadline DATE;
 
