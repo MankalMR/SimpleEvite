@@ -30,11 +30,26 @@ export async function POST(request: NextRequest) {
 
     const { name, response, comment, guest_count } = validation.sanitizedData!;
 
+
     // Find the invitation
     const invitation = state.invitationsMap.get(invitation_id);
     if (!invitation) {
         return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
+
+    // Check if RSVP deadline has passed
+    if (invitation.rsvp_deadline) {
+        const deadlineDate = new Date(invitation.rsvp_deadline);
+        const currentDate = new Date();
+        // Reset time components for accurate date comparison
+        deadlineDate.setHours(0, 0, 0, 0);
+        currentDate.setHours(0, 0, 0, 0);
+
+        if (currentDate > deadlineDate) {
+            return NextResponse.json({ error: 'RSVPs are closed for this event' }, { status: 400 });
+        }
+    }
+
 
     const newRSVP: RSVP = {
         id: crypto.randomUUID(),

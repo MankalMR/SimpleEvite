@@ -8,7 +8,7 @@
 import { DefaultTemplate } from '@/lib/supabase';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 
-export const SEED_VERSION = '2026-03-07-v1';
+export const SEED_VERSION = '2026-03-07-v2';
 
 // Fixed UUIDs for deterministic share tokens
 const INVITATION_IDS = {
@@ -48,6 +48,7 @@ function makeInvitations(): InvitationWithRSVPs[] {
         description: 'Join us for an amazing backyard BBQ with burgers, games, and good vibes! Bring your swimsuit — the pool will be open!',
         event_date: futureDate(21),
         event_time: '16:00',
+        rsvp_deadline: futureDate(14),
         location: '123 Oak Lane, Austin, TX',
         design_id: 'demo-template-birthday-vibrant',
         share_token: SHARE_TOKENS.bbq,
@@ -129,6 +130,7 @@ function makeInvitations(): InvitationWithRSVPs[] {
         description: 'Come celebrate Ava turning 5! Bouncy castle, face painting, and cake!',
         event_date: futureDate(45),
         event_time: '14:00',
+        rsvp_deadline: futureDate(30),
         location: '456 Elm Street, Austin, TX',
         design_id: 'demo-template-birthday-elegant',
         share_token: SHARE_TOKENS.birthday,
@@ -169,6 +171,7 @@ function makeInvitations(): InvitationWithRSVPs[] {
         description: 'Annual Thanksgiving dinner. Turkey, mashed potatoes, and pumpkin pie!',
         event_date: pastDate(90),
         event_time: '17:00',
+        rsvp_deadline: pastDate(100),
         location: '789 Maple Drive, Austin, TX',
         design_id: 'demo-template-thanksgiving-elegant',
         share_token: SHARE_TOKENS.thanksgiving,

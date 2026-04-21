@@ -164,8 +164,11 @@ export default function DemoPublicInvite() {
         );
     }
 
-    const rsvpStats = getRSVPStats(invitation.rsvps || []);
-    const eventPassed = isDateInPast(invitation.event_date);
+
+  const rsvpStats = getRSVPStats(invitation.rsvps || []);
+  const eventPassed = isDateInPast(invitation.event_date);
+  const deadlinePassed = invitation.rsvp_deadline ? isDateInPast(invitation.rsvp_deadline) : false;
+
 
     return (
         <>
@@ -258,11 +261,17 @@ export default function DemoPublicInvite() {
                                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Thank you for your RSVP!</h3>
                                 <p className="text-gray-600">Your response has been recorded.</p>
                             </div>
-                        ) : eventPassed ? (
-                            <div className="text-center py-8">
-                                <p className="text-gray-600">This event has already passed. RSVPs are no longer being accepted.</p>
-                            </div>
-                        ) : showRSVPForm ? (
+
+            ) : eventPassed ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">This event has already passed. RSVPs are no longer being accepted.</p>
+              </div>
+            ) : deadlinePassed ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">The RSVP deadline has passed. RSVPs are no longer being accepted.</p>
+              </div>
+            ) : showRSVPForm ? (
+
                             <form onSubmit={handleRSVPSubmit} className="space-y-6">
                                 <div>
                                     <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">

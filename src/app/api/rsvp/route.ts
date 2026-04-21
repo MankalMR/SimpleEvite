@@ -47,14 +47,29 @@ export async function POST(request: NextRequest) {
         // Check if invitation exists and matches the share_token
         const { data: invitation, error: invitationError } = await supabase
           .from('invitations')
-          .select('id, user_id, title, event_date, event_time, location, description, organizer_notes, share_token')
+          .select('id, user_id, title, event_date, event_time, rsvp_deadline, location, description, organizer_notes, share_token')
           .eq('id', invitation_id)
           .eq('share_token', share_token)
           .single();
 
+
         if (invitationError || !invitation) {
           return NextResponse.json({ error: 'Invitation not found or invalid share token' }, { status: 404 });
         }
+
+        // Check if RSVP deadline has passed
+        if (invitation.rsvp_deadline) {
+          const deadlineDate = new Date(invitation.rsvp_deadline);
+          const currentDate = new Date();
+          // Reset time components for accurate date comparison
+          deadlineDate.setHours(0, 0, 0, 0);
+          currentDate.setHours(0, 0, 0, 0);
+
+          if (currentDate > deadlineDate) {
+            return NextResponse.json({ error: 'RSVPs are closed for this event' }, { status: 400 });
+          }
+        }
+
         // Fetch host email for notification
         let hostEmail = undefined;
         if (invitation.user_id) {
