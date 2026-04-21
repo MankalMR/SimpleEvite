@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
 
     const { name, response, comment, guest_count } = validation.sanitizedData!;
 
+
     // Find the invitation
     const invitation = state.invitationsMap.get(invitation_id);
     if (!invitation) {

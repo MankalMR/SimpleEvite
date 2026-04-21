@@ -199,6 +199,13 @@ export default function InvitationView() {
                   <p className="text-gray-800 font-medium">{formatTime(invitation.event_time)}</p>
                 </div>
               )}
+              {invitation.rsvp_deadline && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">RSVP Deadline</h3>
+                  <p className="text-gray-800 font-medium">{formatDisplayDate(invitation.rsvp_deadline)}</p>
+                </div>
+              )}
+
 
               {invitation.location && (
                 <div>

@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
           .eq('share_token', share_token)
           .single();
 
+
         if (invitationError || !invitation) {
           return NextResponse.json({ error: 'Invitation not found or invalid share token' }, { status: 404 });
         }

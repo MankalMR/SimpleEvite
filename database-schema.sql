@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS public.invitations (
   description TEXT,
   event_date DATE NOT NULL,
   event_time TIME,
+  rsvp_deadline DATE,
   location TEXT,
   design_id UUID REFERENCES public.designs(id) ON DELETE SET NULL,
   share_token UUID DEFAULT uuid_generate_v4() UNIQUE NOT NULL,
