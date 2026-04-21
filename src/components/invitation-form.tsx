@@ -35,6 +35,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     description: '',
     event_date: '',
     event_time: '',
+    rsvp_deadline: '',
     location: '',
     design_id: '',
     // Text overlay styling options
@@ -71,6 +72,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
         description: initialData.description || '',
         event_date: initialData.event_date ? (initialData.event_date.includes('T') ? initialData.event_date.split('T')[0] : initialData.event_date) : '',
         event_time: initialData.event_time || '',
+        rsvp_deadline: initialData.rsvp_deadline ? (initialData.rsvp_deadline.includes('T') ? initialData.rsvp_deadline.split('T')[0] : initialData.rsvp_deadline) : '',
         location: initialData.location || '',
         design_id: initialData.design_id || '',
         // Text overlay styling options
@@ -262,6 +264,21 @@ const handleDesignSelect = (designId: string) => {
                           className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
+                      <div>
+                        <label htmlFor="rsvp_deadline" className="block text-sm font-semibold text-gray-900 mb-2">
+                          RSVP Deadline
+                        </label>
+                        <input
+                          type="date"
+                          id="rsvp_deadline"
+                          name="rsvp_deadline"
+                          value={formData.rsvp_deadline}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        {formErrors.rsvp_deadline && <p className="text-red-600 text-sm mt-1">{formErrors.rsvp_deadline}</p>}
+                      </div>
+
                     </div>
 
                     <div>

@@ -5,6 +5,7 @@ import { withSecurity, validateRequestBody, addSecurityHeaders, RATE_LIMIT_PRESE
 import { validateRSVPData } from '@/lib/security';
 import { logger } from "@/lib/logger";
 import { sendRsvpConfirmationEmail, sendHostRsvpNotificationEmail } from '@/lib/email-service';
+import { isDateInPast } from '@/lib/date-utils';
 
 // POST /api/rsvp - Create RSVP (public endpoint)
 export async function POST(request: NextRequest) {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
           }, { status: 400 });
         }
 
-        // Get all data from validation result (body already parsed by validateRequestBody)
+        // Get all data from validation result
         const body = validation.rawData as Record<string, unknown>;
         const { name, response, comment, guest_count } = validation.data!;
         const { invitation_id, share_token, email, notification_preferences } = body;
@@ -47,14 +48,21 @@ export async function POST(request: NextRequest) {
         // Check if invitation exists and matches the share_token
         const { data: invitation, error: invitationError } = await supabase
           .from('invitations')
-          .select('id, user_id, title, event_date, event_time, location, description, organizer_notes, share_token')
+          .select('id, user_id, title, event_date, event_time, rsvp_deadline, location, description, organizer_notes, share_token')
           .eq('id', invitation_id)
           .eq('share_token', share_token)
           .single();
 
+
         if (invitationError || !invitation) {
           return NextResponse.json({ error: 'Invitation not found or invalid share token' }, { status: 404 });
         }
+
+        // Check if RSVP deadline has passed
+        if (invitation.rsvp_deadline && isDateInPast(invitation.rsvp_deadline)) {
+          return NextResponse.json({ error: 'RSVPs are closed for this event' }, { status: 400 });
+        }
+
         // Fetch host email for notification
         let hostEmail = undefined;
         if (invitation.user_id) {
@@ -150,7 +158,7 @@ export async function POST(request: NextRequest) {
               guestName: name,
               response: response as 'yes' | 'no' | 'maybe',
               comment: comment || undefined,
-            eventTitle: invitation.title,
+              eventTitle: invitation.title,
               inviteUrl: dashboardUrl,
             }).catch(e => {
               logger.error({ error: e }, 'Failed to send host RSVP notification email');

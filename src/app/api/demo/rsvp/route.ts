@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { demoGuard } from '@/lib/demo/demo-guards';
 import { RSVP } from '@/lib/supabase';
 import { validateRSVPData } from '@/lib/security';
+import { isDateInPast } from '@/lib/date-utils';
 
 export async function POST(request: NextRequest) {
     const guard = demoGuard(request);
@@ -30,10 +31,16 @@ export async function POST(request: NextRequest) {
 
     const { name, response, comment, guest_count } = validation.sanitizedData!;
 
+
     // Find the invitation
     const invitation = state.invitationsMap.get(invitation_id);
     if (!invitation) {
         return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
+    }
+
+    // Check if RSVP deadline has passed
+    if (invitation.rsvp_deadline && isDateInPast(invitation.rsvp_deadline)) {
+        return NextResponse.json({ error: 'RSVPs are closed for this event' }, { status: 400 });
     }
 
     const newRSVP: RSVP = {
