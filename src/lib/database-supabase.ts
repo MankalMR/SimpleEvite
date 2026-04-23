@@ -67,17 +67,21 @@ async function enrichInvitationsWithTemplates(invitations: InvitationWithRSVPs[]
   }
 
   try {
-    // 1. Try fetching from custom designs
-    const { data: designData } = await supabaseAdmin
-      .from('designs')
-      .select('*')
-      .in('id', missingDesignIds);
-
-    // 2. Try fetching from default templates
-    const { data: templateData } = await supabaseAdmin
-      .from('default_templates')
-      .select('*')
-      .in('id', missingDesignIds);
+    // ⚡ Bolt: Fetch custom designs and default templates concurrently
+    // using Promise.all to eliminate sequential network wait times and O(N) waterfalls
+    const [
+      { data: designData },
+      { data: templateData }
+    ] = await Promise.all([
+      supabaseAdmin
+        .from('designs')
+        .select('*')
+        .in('id', missingDesignIds),
+      supabaseAdmin
+        .from('default_templates')
+        .select('*')
+        .in('id', missingDesignIds)
+    ]);
 
     const designDict: Record<string, Design> = {};
     for (const d of designData || []) designDict[d.id] = rowToDesign(d);
