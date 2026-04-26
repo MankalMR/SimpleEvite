@@ -59,12 +59,15 @@ export async function POST(request: NextRequest) {
 
     // If using a demo template, attach it
     if (body.design_id) {
-        const template = state.templates.find(t => t.id === body.design_id);
+        const template = state.templates.get(body.design_id);
         if (template) {
             newInvitation.default_templates = template;
         }
     }
 
     state.invitations.unshift(newInvitation);
+    state.invitationsMap.set(newInvitation.id, newInvitation);
+    state.invitationsByTokenMap.set(newInvitation.share_token, newInvitation);
+
     return NextResponse.json({ invitation: newInvitation }, { status: 201 });
 }

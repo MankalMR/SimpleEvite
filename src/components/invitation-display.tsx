@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo } from 'react';
 import Image from 'next/image';
 import { Invitation } from '@/lib/supabase';
 import {
@@ -22,17 +23,22 @@ interface InvitationDisplayProps {
   } | null;
   className?: string;
   showPlaceholder?: boolean;
+  priority?: boolean;
 }
 
 /**
  * Unified component for displaying invitations with text overlay
  * Used across live preview, public view, and private view
+ * ⚡ Bolt: Wrapped with React.memo() to prevent unnecessary re-renders when
+ * typed form state changes in parent preview components, significantly
+ * improving perceived performance and reducing main thread blocking.
  */
-export function InvitationDisplay({
+export const InvitationDisplay = memo(function InvitationDisplay({
   invitation,
   design,
   className = "h-96",
-  showPlaceholder = false
+  showPlaceholder = false,
+  priority = false
 }: InvitationDisplayProps) {
   // Create beautiful gradient backgrounds for when no design is selected
   const gradientBackgrounds = [
@@ -81,6 +87,8 @@ export function InvitationDisplay({
             className="object-cover"
             style={{ zIndex: 1 }}
             unoptimized
+            // ⚡ Bolt: Disable lazy loading for hero image to significantly improve LCP
+            priority={priority}
             onError={(e) => {
               logger.error({ data0: design.image_url, e }, 'Image failed to load:');
             }}
@@ -152,4 +160,4 @@ export function InvitationDisplay({
       )}
     </div>
   );
-}
+});
