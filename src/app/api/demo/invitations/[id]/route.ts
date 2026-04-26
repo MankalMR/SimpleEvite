@@ -6,7 +6,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { demoGuard } from '@/lib/demo/demo-guards';
-import { InvitationWithRSVPs } from '@/lib/database-supabase';
 
 export async function GET(
     request: NextRequest,

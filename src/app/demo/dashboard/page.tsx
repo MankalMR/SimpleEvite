@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { DemoBanner } from '@/components/DemoBanner';
 import { formatShortDate, isDateInPast } from '@/lib/date-utils';
-import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-utils';
+import { getRSVPStats, getGlobalRSVPStats } from '@/lib/rsvp-utils';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
@@ -101,7 +101,6 @@ export default function DemoDashboard() {
     // Stats
     const globalStats = getGlobalRSVPStats(invitations);
     const totalInvitations = invitations.length;
-    const totalRSVPs = getTotalRSVPCount(invitations);
 
     if (loading) {
         return (
