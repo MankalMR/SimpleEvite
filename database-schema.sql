@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS public.invitations (
   description TEXT,
   event_date DATE NOT NULL,
   event_time TIME,
+  rsvp_deadline DATE,
   location TEXT,
   design_id UUID REFERENCES public.designs(id) ON DELETE SET NULL,
   share_token UUID DEFAULT uuid_generate_v4() UNIQUE NOT NULL,
@@ -71,6 +72,7 @@ CREATE TABLE IF NOT EXISTS public.rsvps (
   invitation_id UUID REFERENCES public.invitations(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   response TEXT CHECK (response IN ('yes', 'no', 'maybe')) NOT NULL,
+  guest_count INT DEFAULT 1 CHECK (guest_count >= 1),
   comment TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -116,5 +118,6 @@ CREATE TRIGGER set_updated_at
 --   ADD COLUMN IF NOT EXISTS hide_description BOOLEAN DEFAULT false,
 --   ADD COLUMN IF NOT EXISTS organizer_notes TEXT,
 --   ADD COLUMN IF NOT EXISTS text_font_family TEXT DEFAULT 'inter',
---   ADD COLUMN IF NOT EXISTS text_size TEXT DEFAULT 'large';
+--   ADD COLUMN IF NOT EXISTS text_size TEXT DEFAULT 'large',
+--   ADD COLUMN IF NOT EXISTS rsvp_deadline DATE;
 

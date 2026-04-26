@@ -124,7 +124,7 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
         <div className="text-red-600 mb-4">{error}</div>
         <button
           onClick={fetchAllTemplates}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Try Again
         </button>
@@ -137,10 +137,11 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="template-occasion-filter" className="block text-sm font-medium text-gray-700 mb-2">
             Occasion
           </label>
           <select
+            id="template-occasion-filter"
             value={selectedOccasion}
             onChange={(e) => setSelectedOccasion(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium"
@@ -154,10 +155,11 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
         </div>
 
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="template-theme-filter" className="block text-sm font-medium text-gray-700 mb-2">
             Theme
           </label>
           <select
+            id="template-theme-filter"
             value={selectedTheme}
             onChange={(e) => setSelectedTheme(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium"
@@ -180,7 +182,7 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
               setSelectedOccasion('');
               setSelectedTheme('');
             }}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
           >
             Clear Filters
           </button>
@@ -188,14 +190,16 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template) => (
-            <div
+            <button
               key={template.id}
-              className={`relative bg-white rounded-lg shadow-sm border-2 transition-all cursor-pointer hover:shadow-md ${
+              type="button"
+              className={`relative bg-white rounded-lg shadow-sm border-2 transition-all cursor-pointer hover:shadow-md w-full text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 selectedTemplateId === template.id
                   ? 'border-blue-500 ring-2 ring-blue-200'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
               onClick={() => onSelectTemplate(template)}
+              aria-pressed={selectedTemplateId === template.id}
             >
               {/* Template Preview */}
               <div className="relative h-48 w-full rounded-t-lg overflow-hidden bg-gray-100">
@@ -238,7 +242,7 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
                   <p className="text-sm text-gray-600 line-clamp-2">{template.description}</p>
                 )}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

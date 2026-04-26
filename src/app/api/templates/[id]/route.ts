@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from "@/lib/logger";
 
 // GET /api/templates/[id] - Get single template by ID
 export async function GET(
@@ -21,13 +22,21 @@ export async function GET(
       if (error.code === 'PGRST116') {
         return NextResponse.json({ error: 'Template not found' }, { status: 404 });
       }
-      console.error('Error fetching template:', error);
+      logger.error({ error }, 'Error fetching template:');
       return NextResponse.json({ error: 'Failed to fetch template' }, { status: 500 });
     }
 
-    return NextResponse.json({ template: data });
+    // ⚡ Bolt: Added Cache-Control to reduce DB load and improve TTFB for infrequently changing default templates
+    return NextResponse.json(
+      { template: data },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    );
   } catch (error) {
-    console.error('Error in GET /api/templates/[id]:', error);
+    logger.error({ error }, 'Error in GET /api/templates/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -55,13 +64,13 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Error updating template:', error);
+      logger.error({ error }, 'Error updating template:');
       return NextResponse.json({ error: 'Failed to update template' }, { status: 500 });
     }
 
     return NextResponse.json({ template: data });
   } catch (error) {
-    console.error('Error in PUT /api/templates/[id]:', error);
+    logger.error({ error }, 'Error in PUT /api/templates/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -85,13 +94,13 @@ export async function DELETE(
       .eq('id', resolvedParams.id);
 
     if (error) {
-      console.error('Error deleting template:', error);
+      logger.error({ error }, 'Error deleting template:');
       return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Template deleted successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/templates/[id]:', error);
+    logger.error({ error }, 'Error in DELETE /api/templates/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

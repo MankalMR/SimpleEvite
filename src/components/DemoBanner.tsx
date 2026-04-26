@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from "@/lib/logger";
+import { Spinner } from '@/components/spinner';
 
 interface DemoBannerProps {
     onReset?: () => void;
@@ -22,7 +24,7 @@ export function DemoBanner({ onReset }: DemoBannerProps) {
             }
             onReset?.();
         } catch (error) {
-            console.error('Failed to reset demo:', error);
+            logger.error({ error }, 'Failed to reset demo:');
         } finally {
             setResetting(false);
         }
@@ -43,8 +45,10 @@ export function DemoBanner({ onReset }: DemoBannerProps) {
                 <button
                     onClick={handleReset}
                     disabled={resetting}
-                    className="text-sm bg-amber-200 hover:bg-amber-300 text-amber-900 px-4 py-1.5 rounded-md font-medium transition-colors disabled:opacity-50"
+                    aria-live="polite"
+                    className="text-sm bg-amber-200 hover:bg-amber-300 text-amber-900 px-4 py-1.5 rounded-md font-medium transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 focus:ring-offset-amber-50 flex items-center gap-1.5"
                 >
+                    {resetting && <Spinner className="w-4 h-4 animate-spin" />}
                     {resetting ? 'Resetting…' : 'Reset Demo Data'}
                 </button>
             </div>

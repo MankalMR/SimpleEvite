@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/security';
+import { logger } from "@/lib/logger";
 
 /**
  * Security middleware for API routes
@@ -98,7 +99,7 @@ export async function withSecurity(
 
     return handler(request);
   } catch (error) {
-    console.error('Security middleware error:', error);
+    logger.error({ error }, 'Security middleware error:');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -181,7 +182,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
  * Generate unique request ID for logging
  */
 function generateRequestId(): string {
-  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+  return `req_${Date.now()}_${crypto.randomUUID()}`;
 }
 
 /**
@@ -200,7 +201,7 @@ export function logSecurityEvent(
   };
 
   // In production, send to monitoring service (e.g., Sentry, DataDog)
-  console.warn('Security Event:', logEntry);
+  logger.warn({ logEntry }, 'Security Event:');
 }
 
 /**

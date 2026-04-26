@@ -52,12 +52,19 @@ export function validateInvitationForm(formData: {
  */
 export function validateRSVPForm(formData: {
   name: string;
+  email?: string;
   response: string | 'yes' | 'no' | 'maybe';
 }): FormValidationResult {
   const errors: Record<string, string> = {};
 
   if (!formData.name.trim()) {
     errors.name = 'Name is required';
+  }
+
+  if (!formData.email || !formData.email.trim()) {
+    errors.email = 'Email is required';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+    errors.email = 'Please provide a valid email address';
   }
 
   if (!formData.response || formData.response === '') {
@@ -100,6 +107,7 @@ export function formatInvitationForSubmission(formData: Record<string, unknown>)
     event_date: formData.event_date as string,
     event_time: formData.event_time as string,
     location: (formData.location as string).trim(),
+    rsvp_deadline: formData.rsvp_deadline as string | undefined,
     design_id: formData.design_id as string | undefined,
     // Text overlay fields
     text_overlay_style: (formData.text_overlay_style as Invitation['text_overlay_style']) || 'light',

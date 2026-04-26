@@ -12,7 +12,9 @@ import { TemplateSelector } from '@/components/template-selector';
 import { DefaultTemplate, Invitation } from '@/lib/supabase';
 import { Spinner } from '@/components/spinner';
 import { InlineError } from '@/components/inline-error';
-
+import { logger } from "@/lib/logger";
+import { useGenerateCopy } from '@/hooks/useGenerateCopy';
+import { SmartCopySection } from '@/components/smart-copy-section';
 
 interface InvitationFormProps {
   mode: 'create' | 'edit';
@@ -33,6 +35,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     description: '',
     event_date: '',
     event_time: '',
+    rsvp_deadline: '',
     location: '',
     design_id: '',
     // Text overlay styling options
@@ -49,6 +52,8 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  const { hasTitleBlurred, setHasTitleBlurred, isGenerating, generatedText, setGeneratedText, generateError, generateCopy } = useGenerateCopy();
 
   const {
     designs,
@@ -67,6 +72,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
         description: initialData.description || '',
         event_date: initialData.event_date ? (initialData.event_date.includes('T') ? initialData.event_date.split('T')[0] : initialData.event_date) : '',
         event_time: initialData.event_time || '',
+        rsvp_deadline: initialData.rsvp_deadline ? (initialData.rsvp_deadline.includes('T') ? initialData.rsvp_deadline.split('T')[0] : initialData.rsvp_deadline) : '',
         location: initialData.location || '',
         design_id: initialData.design_id || '',
         // Text overlay styling options
@@ -122,7 +128,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
       const formattedData = formatInvitationForSubmission(formData);
       await onSubmit(formattedData);
     } catch (error) {
-      console.error(`${mode} invitation error:`, error);
+      logger.error({ error }, `${mode} invitation error:`);
       setSubmissionError(error instanceof Error ? error.message : `Failed to ${mode} invitation`);
     }
   };
@@ -135,7 +141,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
     });
   };
 
-  const handleDesignSelect = (designId: string) => {
+const handleDesignSelect = (designId: string) => {
     setFormData({
       ...formData,
       design_id: designId,
@@ -185,7 +191,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                 </h1>
                 <button
                   onClick={onCancel}
-                  className="text-gray-600 hover:text-gray-800 transition-colors"
+                  className="text-gray-600 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 rounded px-2 py-1"
                 >
                   Cancel
                 </button>
@@ -206,8 +212,10 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         id="title"
                         name="title"
                         required
+                        autoFocus
                         value={formData.title}
                         onChange={handleChange}
+                        onBlur={() => setHasTitleBlurred(true)}
                         className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter event title"
                       />
@@ -224,30 +232,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                       </label>
                     </div>
 
-                    <div>
-                      <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
-                        Description
-                      </label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        rows={4}
-                        value={formData.description}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Describe your event"
-                      />
-                      <label className="flex items-center mt-2">
-                        <input
-                          type="checkbox"
-                          name="hide_description"
-                          checked={formData.hide_description}
-                          onChange={handleChange}
-                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
-                      </label>
-                    </div>
+
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
@@ -279,6 +264,21 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                           className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
+                      <div>
+                        <label htmlFor="rsvp_deadline" className="block text-sm font-semibold text-gray-900 mb-2">
+                          RSVP Deadline
+                        </label>
+                        <input
+                          type="date"
+                          id="rsvp_deadline"
+                          name="rsvp_deadline"
+                          value={formData.rsvp_deadline}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        {formErrors.rsvp_deadline && <p className="text-red-600 text-sm mt-1">{formErrors.rsvp_deadline}</p>}
+                      </div>
+
                     </div>
 
                     <div>
@@ -294,6 +294,41 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter event location"
                       />
+                    </div>
+
+                    <div>
+                      <SmartCopySection
+                        hasTitleBlurred={hasTitleBlurred}
+                        title={formData.title}
+                        isGenerating={isGenerating}
+                        generatedText={generatedText}
+                        generateError={generateError}
+                        onGenerate={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time })}
+                        onDiscard={() => setGeneratedText(null)}
+                        onApply={() => {
+                          setFormData({ ...formData, description: generatedText || "" });
+                          setGeneratedText(null);
+                        }}
+                      />
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows={4}
+                        value={formData.description}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Describe your event"
+                      />
+                      <label className="flex items-center mt-2">
+                        <input
+                          type="checkbox"
+                          name="hide_description"
+                          checked={formData.hide_description}
+                          onChange={handleChange}
+                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
+                      </label>
                     </div>
 
                     <div>
@@ -325,7 +360,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         <button
                           type="button"
                           onClick={() => setDesignTab('template')}
-                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${designTab === 'template'
+                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${designTab === 'template'
                             ? 'border-blue-500 text-blue-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
@@ -335,7 +370,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         <button
                           type="button"
                           onClick={() => setDesignTab('custom')}
-                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${designTab === 'custom'
+                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${designTab === 'custom'
                             ? 'border-blue-500 text-blue-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
@@ -363,12 +398,14 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
 
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {/* No Design Option */}
-                        <div
-                          className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${formData.design_id === ''
+                        <button
+                          type="button"
+                          className={`cursor-pointer border-2 rounded-lg p-4 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${formData.design_id === ''
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-300 hover:border-gray-400'
                             }`}
                           onClick={() => handleDesignSelect('')}
+                          aria-pressed={formData.design_id === ''}
                         >
                           <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 flex items-center justify-center">
                             <span className="text-gray-500 text-sm">No Design</span>
@@ -376,17 +413,19 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                           <p className="text-sm text-center text-gray-800 font-medium">
                             Plain Invitation
                           </p>
-                        </div>
+                        </button>
 
                         {/* Available Designs */}
                         {designs.map((design) => (
-                          <div
+                          <button
                             key={design.id}
-                            className={`cursor-pointer border-2 rounded-lg p-4 transition-colors ${formData.design_id === design.id
+                            type="button"
+                            className={`cursor-pointer border-2 rounded-lg p-4 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${formData.design_id === design.id
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-300 hover:border-gray-400'
                               }`}
                             onClick={() => handleDesignSelect(design.id)}
+                            aria-pressed={formData.design_id === design.id}
                           >
                             <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
                               <Image
@@ -400,7 +439,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                             <p className="text-sm text-center text-gray-800 font-medium truncate">
                               {design.name}
                             </p>
-                          </div>
+                          </button>
                         ))}
                       </div>
 
@@ -410,7 +449,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                           <button
                             type="button"
                             onClick={() => router.push('/designs')}
-                            className="text-blue-600 hover:text-blue-700 font-medium"
+                            className="text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-1"
                           >
                             Upload your first design →
                           </button>
@@ -541,7 +580,7 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                         step="0.1"
                         value={formData.text_background_opacity}
                         onChange={(e) => setFormData({ ...formData, text_background_opacity: parseFloat(e.target.value) })}
-                        className="w-full"
+                        className="w-full focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                       />
                     </div>
                   )}
@@ -554,14 +593,14 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
                     <button
                       type="button"
                     onClick={onCancel}
-                    className="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                   >
                     Cancel
                   </button>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                       {loading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
                       {loading ? `${mode === 'create' ? 'Creating' : 'Updating'}...` : `${mode === 'create' ? 'Create' : 'Update'} Invitation`}

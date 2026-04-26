@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 /**
  * Utility functions for clipboard operations
  */
@@ -10,7 +12,7 @@ export async function copyInviteLink(shareToken: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(url);
   } catch (error) {
-    console.error('Failed to copy to clipboard:', error);
+    logger.error({ error }, 'Failed to copy to clipboard:');
     throw new Error('Failed to copy to clipboard');
   }
 }
@@ -22,7 +24,7 @@ export async function copyToClipboard(text: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(text);
   } catch (error) {
-    console.error('Failed to copy to clipboard:', error);
+    logger.error({ error }, 'Failed to copy to clipboard:');
     throw new Error('Failed to copy to clipboard');
   }
 }
