@@ -4,24 +4,15 @@ import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { sanitizeText } from '@/lib/security';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string })?.id;
 
-    if (!session?.user?.email) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user from database
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (userError) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const formData = await request.formData();
@@ -44,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const fileExtension = file.name.split('.').pop() || 'jpg';
-    const fileName = `${userData.id}/${uuidv4()}.${fileExtension}`;
+    const fileName = `${userId}/${uuidv4()}.${fileExtension}`;
 
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
@@ -58,7 +49,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      logger.error({ uploadError }, 'Upload error:');
       return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
     }
 
@@ -77,16 +68,16 @@ export async function POST(request: NextRequest) {
     let dbError;
     try {
       design = await supabaseDb.createDesign({
-        user_id: userData.id,
+        user_id: userId,
         name: designName,
         image_url: publicUrl,
-      }, userData.id);
+      }, userId);
     } catch (error) {
       dbError = error;
     }
 
     if (dbError) {
-      console.error('Database error:', dbError);
+      logger.error({ dbError }, 'Database error:');
 
       // Clean up uploaded file if database insert fails
       await supabaseDb.deleteDesignImage(fileName);
@@ -96,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ design }, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/upload:', error);
+    logger.error({ error }, 'Error in POST /api/upload:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

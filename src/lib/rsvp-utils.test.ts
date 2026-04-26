@@ -13,7 +13,8 @@ import {
   filterRSVPsByResponse,
   getMostRecentRSVP,
   hasPendingResponses,
-  getRSVPResponseColorClasses
+  getRSVPResponseColorClasses,
+  isInvitationOwner
 } from './rsvp-utils';
 import { RSVP } from './supabase';
 
@@ -24,6 +25,7 @@ describe('rsvp-utils', () => {
       invitation_id: 'inv1',
       name: 'Alice',
       response: 'yes',
+      guest_count: 2,
       created_at: '2024-01-01T10:00:00Z',
     },
     {
@@ -50,24 +52,34 @@ describe('rsvp-utils', () => {
   ];
 
   describe('getRSVPStats', () => {
-    it('should calculate statistics correctly', () => {
+    it('should calculate statistics correctly from an array of RSVPs', () => {
       const stats = getRSVPStats(mockRSVPs);
       expect(stats).toEqual({
-        yes: 2,
+        yes: 2, // Alice & David
         no: 1,
         maybe: 1,
         total: 4,
+        attendingCount: 3, // Alice (2) + David (1)
       });
     });
 
-    it('should return zeros for an empty array', () => {
+    it('should return all zeros for an empty array', () => {
       const stats = getRSVPStats([]);
       expect(stats).toEqual({
         yes: 0,
         no: 0,
         maybe: 0,
         total: 0,
+        attendingCount: 0,
       });
+    });
+
+    it('should correctly sum counts with only one type of response', () => {
+      const allYes: RSVP[] = [
+        { id: '1', invitation_id: 'inv1', name: 'A', response: 'yes', created_at: '2024-01-01T10:00:00Z' },
+        { id: '2', invitation_id: 'inv1', name: 'B', response: 'yes', created_at: '2024-01-02T10:00:00Z' },
+      ];
+      expect(getRSVPStats(allYes)).toEqual({ yes: 2, no: 0, maybe: 0, total: 2, attendingCount: 2 });
     });
   });
 
@@ -91,7 +103,7 @@ describe('rsvp-utils', () => {
   });
 
   describe('getFormattedRSVPCounts', () => {
-    it('should return formatted strings', () => {
+    it('should return formatted strings based on counts', () => {
       const formatted = getFormattedRSVPCounts(mockRSVPs);
       expect(formatted).toEqual({
         yesCount: '2 Yes',
@@ -99,10 +111,19 @@ describe('rsvp-utils', () => {
         noCount: '1 No',
       });
     });
+
+    it('should return 0 formatted strings for an empty array', () => {
+      const formatted = getFormattedRSVPCounts([]);
+      expect(formatted).toEqual({
+        yesCount: '0 Yes',
+        maybeCount: '0 Maybe',
+        noCount: '0 No',
+      });
+    });
   });
 
   describe('hasRSVPs', () => {
-    it('should return true if there are RSVPs', () => {
+    it('should return true if there are RSVPs present in invitation', () => {
       expect(hasRSVPs({ rsvps: mockRSVPs })).toBe(true);
     });
 
@@ -113,11 +134,11 @@ describe('rsvp-utils', () => {
   });
 
   describe('getRSVPResponseColor', () => {
-    it('should return correct color classes', () => {
+    it('should return correct color classes for each response', () => {
       expect(getRSVPResponseColor('yes')).toBe('text-green-600');
       expect(getRSVPResponseColor('no')).toBe('text-red-600');
       expect(getRSVPResponseColor('maybe')).toBe('text-yellow-600');
-      // @ts-expect-error - testing default case
+      // @ts-expect-error - testing default case / edge case not typed
       expect(getRSVPResponseColor('unknown')).toBe('text-gray-600');
     });
   });
@@ -129,26 +150,49 @@ describe('rsvp-utils', () => {
       expect(sorted[3].name).toBe('Alice');
       expect(new Date(sorted[0].created_at).getTime()).toBeGreaterThan(new Date(sorted[1].created_at).getTime());
     });
+
+    it('should not mutate original array', () => {
+      const original = [...mockRSVPs];
+      sortRSVPsByDate(mockRSVPs);
+      expect(mockRSVPs).toEqual(original);
+    });
   });
 
   describe('getGlobalRSVPStats', () => {
-    it('should aggregate stats across invitations', () => {
+    it('should aggregate stats across multiple invitations', () => {
       const invitations = [
         { rsvps: [mockRSVPs[0]] }, // Alice (yes)
         { rsvps: [mockRSVPs[1], mockRSVPs[2]] }, // Bob (no), Charlie (maybe)
       ];
       const stats = getGlobalRSVPStats(invitations);
       expect(stats).toEqual({
-        yes: 1,
+        yes: 1, // Alice
         no: 1,
         maybe: 1,
         total: 3,
+        attendingCount: 2, // Alice (2)
+      });
+    });
+
+    it('should handle invitations without rsvps gracefully', () => {
+      const invitations = [
+        { rsvps: [mockRSVPs[0]] },
+        {}, // missing rsvps property
+        { rsvps: [] } // empty rsvps array
+      ];
+      const stats = getGlobalRSVPStats(invitations);
+      expect(stats).toEqual({
+        yes: 1, // Alice
+        no: 0,
+        maybe: 0,
+        total: 1,
+        attendingCount: 2, // Alice (2)
       });
     });
   });
 
   describe('filterRSVPsByResponse', () => {
-    it('should filter correctly', () => {
+    it('should filter RSVPs properly by response type', () => {
       expect(filterRSVPsByResponse(mockRSVPs, 'yes').length).toBe(2);
       expect(filterRSVPsByResponse(mockRSVPs, 'no').length).toBe(1);
       expect(filterRSVPsByResponse(mockRSVPs, 'maybe').length).toBe(1);
@@ -167,18 +211,18 @@ describe('rsvp-utils', () => {
   });
 
   describe('hasPendingResponses', () => {
-    it('should return true if no RSVPs', () => {
+    it('should return true if no RSVPs exist yet', () => {
       expect(hasPendingResponses({ rsvps: [] })).toBe(true);
       expect(hasPendingResponses({})).toBe(true);
     });
 
-    it('should return false if there are RSVPs', () => {
+    it('should return false if there are RSVPs present', () => {
       expect(hasPendingResponses({ rsvps: mockRSVPs })).toBe(false);
     });
   });
 
   describe('getRSVPResponseColorClasses', () => {
-    it('should return correct class objects', () => {
+    it('should return correct complex class objects for response types', () => {
       expect(getRSVPResponseColorClasses('yes')).toEqual({
         text: 'text-green-600',
         bg: 'bg-green-50',
@@ -200,6 +244,44 @@ describe('rsvp-utils', () => {
         bg: 'bg-gray-50',
         border: 'border-gray-200',
       });
+    });
+  });
+
+  describe('isInvitationOwner', () => {
+    const userId = 'user-123';
+
+    it('should return true if data is an object with matching user_id (New Logic)', () => {
+      const data = { user_id: userId };
+      expect(isInvitationOwner(data, userId)).toBe(true);
+    });
+
+    it('should return true if data is an array with matching user_id', () => {
+      const data = [{ user_id: userId }];
+      expect(isInvitationOwner(data, userId)).toBe(true);
+    });
+
+    it('should return false if user_id does not match', () => {
+      expect(isInvitationOwner({ user_id: 'other' }, userId)).toBe(false);
+      expect(isInvitationOwner([{ user_id: 'other' }], userId)).toBe(false);
+    });
+
+    it('should return false if data is missing', () => {
+      expect(isInvitationOwner(null, userId)).toBe(false);
+      expect(isInvitationOwner(undefined, userId)).toBe(false);
+    });
+
+    // This specifically captures the bug scenario
+    it('demonstrates the fix for the object-vs-array bug', () => {
+      const objectData = { user_id: userId };
+      
+      // Old logic would have done: (objectData as any)[0]?.user_id
+      // This would be undefined because you can't access an object with index [0]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const oldLogicResult = (objectData as any)[0]?.user_id === userId;
+      expect(oldLogicResult).toBe(false); // This was why it was failing!
+      
+      // New logic uses the utility function which correctly handles the object
+      expect(isInvitationOwner(objectData, userId)).toBe(true); // This proves the fix!
     });
   });
 });

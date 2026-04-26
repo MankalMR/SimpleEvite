@@ -69,11 +69,9 @@ graph TD
 ### 3.3 Data Access Layer (DAL)
 *   **Location**: `src/lib/database-supabase.ts`
 *   **Responsibilities**:
-    *   **Repository Pattern**: Encapsulates all SQL/Supabase logic.
-    *   **DTO Conversion**: Maps `snake_case` DB rows to `camelCase` TS objects (`rowToInvitation`).
-    *   **Complex Joins**: handles fetching Invitations + RSVPs + Designs in a single method (`getInvitations`).
-*   **Key Modules**:
-    *   `supabaseAdmin`: A service-role client used by the BFF to bypass RLS when necessary (or when operating on behalf of a guest).
+    *   **Supabase Adapter**: Directly manages user/account sessions in the `next_auth` schema, eliminating the need for manual `email -> id` lookups.
+    *   **supabaseAdmin**: A service-role client used by the BFF to bypass RLS when necessary (or when operating on behalf of a guest).
+    *   **Structured Logging**: Integrated **Pino** for JSON-formatted, high-performance logging across both client and server.
 
 ### 3.4 Service Layer: Email
 *   **Location**: `src/lib/email-service.ts`

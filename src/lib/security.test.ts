@@ -171,6 +171,7 @@ describe('security', () => {
         name: 'John Doe',
         response: 'yes',
         comment: 'Can\'t wait!',
+        email: 'john@example.com',
       };
       const result = validateRSVPData(data);
       expect(result.isValid).toBe(true);
@@ -186,6 +187,7 @@ describe('security', () => {
       expect(result.isValid).toBe(false);
       expect(result.errors.name).toBeDefined();
       expect(result.errors.response).toBeDefined();
+      expect(result.errors.email).toBeDefined();
     });
   });
 
