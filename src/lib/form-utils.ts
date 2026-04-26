@@ -52,12 +52,19 @@ export function validateInvitationForm(formData: {
  */
 export function validateRSVPForm(formData: {
   name: string;
+  email?: string;
   response: string | 'yes' | 'no' | 'maybe';
 }): FormValidationResult {
   const errors: Record<string, string> = {};
 
   if (!formData.name.trim()) {
     errors.name = 'Name is required';
+  }
+
+  if (!formData.email || !formData.email.trim()) {
+    errors.email = 'Email is required';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+    errors.email = 'Please provide a valid email address';
   }
 
   if (!formData.response || formData.response === '') {
