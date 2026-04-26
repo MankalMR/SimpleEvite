@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { supabaseDb } from '@/lib/database-supabase';
 import { withSecurity, validateRequestBody, addSecurityHeaders, RATE_LIMIT_PRESETS, logSecurityEvent } from '@/lib/api-security';
 import { validateRSVPData } from '@/lib/security';
@@ -45,16 +44,10 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Valid share token is required' }, { status: 401 });
         }
 
-        // Check if invitation exists and matches the share_token
-        const { data: invitation, error: invitationError } = await supabase
-          .from('invitations')
-          .select('id, user_id, title, event_date, event_time, rsvp_deadline, location, description, organizer_notes, share_token')
-          .eq('id', invitation_id)
-          .eq('share_token', share_token)
-          .single();
+        // Check if invitation exists and matches the share_token via DAL
+        const invitation = await supabaseDb.getInvitationByToken(share_token);
 
-
-        if (invitationError || !invitation) {
+        if (!invitation || invitation.id !== invitation_id) {
           return NextResponse.json({ error: 'Invitation not found or invalid share token' }, { status: 404 });
         }
 
