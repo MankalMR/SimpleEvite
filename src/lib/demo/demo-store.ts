@@ -16,7 +16,10 @@ import { buildSeedData, SEED_VERSION } from './demo-seed-data';
 
 export interface DemoState {
     invitations: InvitationWithRSVPs[];
-    templates: DefaultTemplate[];
+    // Optimized lookups
+    invitationsMap: Map<string, InvitationWithRSVPs>;
+    invitationsByTokenMap: Map<string, InvitationWithRSVPs>;
+    templates: Map<string, DefaultTemplate>;
     seedVersion: string;
     lastAccessed: number;
 }
@@ -78,7 +81,9 @@ function createFreshState(): DemoState {
     const { invitations, templates } = buildSeedData();
     return {
         invitations,
-        templates,
+        invitationsMap: new Map(invitations.map(i => [i.id, i])),
+        invitationsByTokenMap: new Map(invitations.map(i => [i.share_token, i])),
+        templates: new Map(templates.map(t => [t.id, t])),
         seedVersion: SEED_VERSION,
         lastAccessed: Date.now(),
     };
