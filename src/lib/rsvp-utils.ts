@@ -9,6 +9,21 @@ export interface RSVPStats {
 }
 
 /**
+ * Internal helper to mutate stats object based on a single RSVP
+ */
+function addRSVPToStats(stats: RSVPStats, rsvp: RSVP): void {
+  if (rsvp.response === 'yes') {
+    stats.yes++;
+    stats.attendingCount += (rsvp.guest_count !== undefined ? Number(rsvp.guest_count) : 1);
+  } else if (rsvp.response === 'no') {
+    stats.no++;
+  } else if (rsvp.response === 'maybe') {
+    stats.maybe++;
+  }
+  stats.total++;
+}
+
+/**
  * Calculate RSVP statistics from an array of RSVPs
  * ⚡ Bolt: Using for...of instead of reduce for better performance on large arrays
  */
@@ -18,13 +33,7 @@ export function getRSVPStats(rsvps: RSVP[]): RSVPStats {
   if (!rsvps || !rsvps.length) return stats;
 
   for (const rsvp of rsvps) {
-    if (rsvp.response === 'yes') {
-      stats.yes++;
-      stats.attendingCount += (rsvp.guest_count !== undefined ? Number(rsvp.guest_count) : 1);
-    }
-    else if (rsvp.response === 'no') stats.no++;
-    else if (rsvp.response === 'maybe') stats.maybe++;
-    stats.total++;
+    addRSVPToStats(stats, rsvp);
   }
 
   return stats;
@@ -98,7 +107,7 @@ export function sortRSVPsByDate(rsvps: RSVP[]): RSVP[] {
 
 /**
  * Get RSVP statistics across multiple invitations
- * ⚡ Bolt: Using nested for...of to avoid array allocation (flatMap)
+ * ⚡ Bolt: Using nested for...of loops instead of flatMap to avoid intermediate array allocation
  */
 export function getGlobalRSVPStats(invitations: Array<{ rsvps?: RSVP[] }>): RSVPStats {
   const stats = { yes: 0, no: 0, maybe: 0, total: 0, attendingCount: 0 };
@@ -106,16 +115,10 @@ export function getGlobalRSVPStats(invitations: Array<{ rsvps?: RSVP[] }>): RSVP
   if (!invitations || !invitations.length) return stats;
 
   for (const invitation of invitations) {
-    if (!invitation.rsvps) continue;
+    if (!invitation.rsvps || !invitation.rsvps.length) continue;
 
     for (const rsvp of invitation.rsvps) {
-      if (rsvp.response === 'yes') {
-        stats.yes++;
-        stats.attendingCount += (rsvp.guest_count !== undefined ? Number(rsvp.guest_count) : 1);
-      }
-      else if (rsvp.response === 'no') stats.no++;
-      else if (rsvp.response === 'maybe') stats.maybe++;
-      stats.total++;
+      addRSVPToStats(stats, rsvp);
     }
   }
 

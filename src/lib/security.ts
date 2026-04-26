@@ -78,6 +78,14 @@ export function validateInvitationData(data: Record<string, unknown>) {
     }
   }
 
+  // RSVP deadline validation
+  if (data.rsvp_deadline && typeof data.rsvp_deadline === 'string') {
+    const deadlineDate = new Date(data.rsvp_deadline);
+    if (isNaN(deadlineDate.getTime())) {
+      errors.rsvp_deadline = 'Invalid RSVP deadline';
+    }
+  }
+
   // Location validation
   if (data.location && typeof data.location === 'string') {
     if (data.location.length > 200) {
@@ -109,6 +117,7 @@ export function validateInvitationData(data: Record<string, unknown>) {
       location: sanitizeText((data.location as string) || ''),
       event_date: data.event_date,
       event_time: data.event_time,
+      rsvp_deadline: data.rsvp_deadline as string | undefined,
       hide_title: !!data.hide_title,
       hide_description: !!data.hide_description,
       organizer_notes: data.organizer_notes ? sanitizeText(data.organizer_notes as string) : undefined,
@@ -120,7 +129,7 @@ export function validateInvitationData(data: Record<string, unknown>) {
 /**
  * Validate and sanitize RSVP data
  */
-export function validateRSVPData(data: unknown): { isValid: boolean; errors: Record<string, string>; sanitizedData?: { name: string; response: unknown; comment: string; guest_count: number; } } {
+export function validateRSVPData(data: unknown): { isValid: boolean; errors: Record<string, string>; sanitizedData?: { name: string; response: unknown; comment: string; guest_count: number; email: string; } } {
   if (!data || typeof data !== 'object') {
     return {
       isValid: false,
@@ -138,6 +147,16 @@ export function validateRSVPData(data: unknown): { isValid: boolean; errors: Rec
     errors.name = 'Name must be between 2 and 50 characters';
   } else if (!VALIDATION_PATTERNS.NAME.test(record.name)) {
     errors.name = 'Name contains invalid characters';
+  }
+
+  // Email validation
+  if (!record.email || typeof record.email !== 'string') {
+    errors.email = 'Email is required';
+  } else {
+    const emailTrimmed = record.email.trim();
+    if (!VALIDATION_PATTERNS.EMAIL.test(emailTrimmed)) {
+      errors.email = 'Please provide a valid email address';
+    }
   }
 
   // Response validation
@@ -171,6 +190,7 @@ export function validateRSVPData(data: unknown): { isValid: boolean; errors: Rec
       response: record.response,
       comment: sanitizeText((record.comment as string) || ''),
       guest_count: guestCount,
+      email: (record.email as string).trim(),
     } : undefined,
   };
 }
