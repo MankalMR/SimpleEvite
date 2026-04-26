@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 
 type DeleteState = 'idle' | 'confirming' | 'deleting';
 
@@ -91,7 +92,7 @@ export function ConfirmDeleteButton({
         ? 'px-2 py-1 text-xs'
         : 'px-3 py-2 text-sm';
 
-    const baseClasses = `${sizeClasses} rounded font-medium transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1`;
+    const baseClasses = `${sizeClasses} rounded font-medium transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 flex items-center justify-center gap-1.5`;
 
     const stateClasses = {
         idle: 'border border-red-300 text-red-700 hover:bg-red-50 focus:ring-red-400',
@@ -107,9 +108,11 @@ export function ConfirmDeleteButton({
 
     const displayText = {
         idle: label,
-        confirming: `⚠️ ${confirmLabel}`,
+        confirming: confirmLabel,
         deleting: 'Deleting…',
     };
+
+    const Icon = state === 'idle' ? Trash2 : state === 'confirming' ? AlertTriangle : Loader2;
 
     return (
         <button
@@ -120,6 +123,7 @@ export function ConfirmDeleteButton({
             aria-label={ariaLabels[state]}
             aria-live="assertive"
         >
+            <Icon className={`w-4 h-4 flex-shrink-0 ${state === 'deleting' ? 'animate-spin' : ''}`} />
             {displayText[state]}
         </button>
     );

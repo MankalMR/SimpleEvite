@@ -130,6 +130,7 @@ src/
 ### Invitation Management
 - Create invitations with custom designs
 - Share via unique, unguessable links
+- Generate and display QR Codes for quick link sharing
 - Edit and delete invitations
 - View RSVP statistics
 
@@ -179,7 +180,7 @@ Make sure to update these for production:
 1. Sign in with Google
 2. Create a new invitation with event details
 3. Upload or select a design (optional)
-4. Share the generated invitation link
+4. Share the generated invitation link or display its scannable QR Code
 5. Monitor RSVPs on your dashboard
 
 ### For Guests
