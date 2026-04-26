@@ -78,6 +78,14 @@ export function validateInvitationData(data: Record<string, unknown>) {
     }
   }
 
+  // RSVP deadline validation
+  if (data.rsvp_deadline && typeof data.rsvp_deadline === 'string') {
+    const deadlineDate = new Date(data.rsvp_deadline);
+    if (isNaN(deadlineDate.getTime())) {
+      errors.rsvp_deadline = 'Invalid RSVP deadline';
+    }
+  }
+
   // Location validation
   if (data.location && typeof data.location === 'string') {
     if (data.location.length > 200) {
@@ -109,6 +117,7 @@ export function validateInvitationData(data: Record<string, unknown>) {
       location: sanitizeText((data.location as string) || ''),
       event_date: data.event_date,
       event_time: data.event_time,
+      rsvp_deadline: data.rsvp_deadline as string | undefined,
       hide_title: !!data.hide_title,
       hide_description: !!data.hide_description,
       organizer_notes: data.organizer_notes ? sanitizeText(data.organizer_notes as string) : undefined,
@@ -120,7 +129,7 @@ export function validateInvitationData(data: Record<string, unknown>) {
 /**
  * Validate and sanitize RSVP data
  */
-export function validateRSVPData(data: unknown): { isValid: boolean; errors: Record<string, string>; sanitizedData?: { name: string; response: unknown; comment: string; } } {
+export function validateRSVPData(data: unknown): { isValid: boolean; errors: Record<string, string>; sanitizedData?: { name: string; response: unknown; comment: string; guest_count: number; email: string; } } {
   if (!data || typeof data !== 'object') {
     return {
       isValid: false,
@@ -140,9 +149,30 @@ export function validateRSVPData(data: unknown): { isValid: boolean; errors: Rec
     errors.name = 'Name contains invalid characters';
   }
 
+  // Email validation
+  if (!record.email || typeof record.email !== 'string') {
+    errors.email = 'Email is required';
+  } else {
+    const emailTrimmed = record.email.trim();
+    if (!VALIDATION_PATTERNS.EMAIL.test(emailTrimmed)) {
+      errors.email = 'Please provide a valid email address';
+    }
+  }
+
   // Response validation
   if (!record.response || !['yes', 'no', 'maybe'].includes(record.response as string)) {
     errors.response = 'Please select a valid response';
+  }
+
+  // Guest count validation
+  let guestCount = 1;
+  if (record.response === 'yes' && record.guest_count !== undefined && record.guest_count !== null) {
+      const parsed = typeof record.guest_count === 'string' ? parseInt(record.guest_count, 10) : Number(record.guest_count);
+      if (isNaN(parsed) || parsed < 1 || parsed > 100) {
+          errors.guest_count = 'Guest count must be a number between 1 and 100';
+      } else {
+          guestCount = parsed;
+      }
   }
 
   // Comment validation
@@ -159,18 +189,23 @@ export function validateRSVPData(data: unknown): { isValid: boolean; errors: Rec
       name: sanitizeText(record.name as string),
       response: record.response,
       comment: sanitizeText((record.comment as string) || ''),
+      guest_count: guestCount,
+      email: (record.email as string).trim(),
     } : undefined,
   };
 }
 
 /**
- * Generate a secure random token
+ * Generate a secure random token using cryptographically secure PRNG
  */
 export function generateSecureToken(length: number = 32): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+
   let result = '';
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars.charAt(array[i] % chars.length);
   }
   return result;
 }
@@ -199,9 +234,33 @@ export function containsDangerousContent(input: string): boolean {
  * Escape special characters for safe HTML output
  */
 export function escapeHTML(text: string): string {
+  if (typeof document === 'undefined') {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+/**
+ * Safely serialize an object to JSON for use in <script type="application/ld+json">
+ * Escapes <, >, &, and other characters to prevent XSS.
+ */
+export function serializeJsonLd(data: unknown): string {
+  const json = JSON.stringify(data);
+  return json.replace(/[<>&]/g, (char) => {
+    switch (char) {
+      case '<': return '\\u003c';
+      case '>': return '\\u003e';
+      case '&': return '\\u0026';
+      default: return char;
+    }
+  });
 }
 
 /**

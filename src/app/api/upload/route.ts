@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
+import { sanitizeText } from '@/lib/security';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string })?.id;
 
-    if (!session?.user?.email) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user from database
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (userError) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const formData = await request.formData();
@@ -43,60 +35,59 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const fileExtension = file.name.split('.').pop() || 'jpg';
-    const fileName = `${userData.id}/${uuidv4()}.${fileExtension}`;
+    const fileName = `${userId}/${uuidv4()}.${fileExtension}`;
 
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
 
     // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from('designs')
-      .upload(fileName, buffer, {
-        contentType: file.type,
-        upsert: false,
-      });
+    const { error: uploadError } = await supabaseDb.uploadDesignImage(
+      fileName,
+      buffer,
+      file.type
+    );
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      logger.error({ uploadError }, 'Upload error:');
       return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('designs')
-      .getPublicUrl(fileName);
+    const publicUrl = supabaseDb.getDesignPublicUrl(fileName);
 
-    if (!urlData.publicUrl) {
+    if (!publicUrl) {
       return NextResponse.json({ error: 'Failed to get file URL' }, { status: 500 });
     }
 
     // Create design record in database
-    const designName = name || file.name.replace(/\.[^/.]+$/, '');
-    const { data: design, error: dbError } = await supabase
-      .from('designs')
-      .insert({
-        user_id: userData.id,
+    const rawDesignName = name || file.name.replace(/\.[^/.]+$/, '');
+    const designName = sanitizeText(rawDesignName);
+
+    let design;
+    let dbError;
+    try {
+      design = await supabaseDb.createDesign({
+        user_id: userId,
         name: designName,
-        image_url: urlData.publicUrl,
-      })
-      .select()
-      .single();
+        image_url: publicUrl,
+      }, userId);
+    } catch (error) {
+      dbError = error;
+    }
 
     if (dbError) {
-      console.error('Database error:', dbError);
+      logger.error({ dbError }, 'Database error:');
 
       // Clean up uploaded file if database insert fails
-      await supabase.storage
-        .from('designs')
-        .remove([fileName]);
+      await supabaseDb.deleteDesignImage(fileName);
 
       return NextResponse.json({ error: 'Failed to save design' }, { status: 500 });
     }
 
     return NextResponse.json({ design }, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/upload:', error);
+    logger.error({ error }, 'Error in POST /api/upload:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

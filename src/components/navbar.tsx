@@ -3,6 +3,7 @@
 import { useSession, signOut, signIn } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { logger } from "@/lib/logger";
 
 export function Navbar() {
   const { data: session, status } = useSession();
@@ -11,7 +12,7 @@ export function Navbar() {
     try {
       await signIn('google', { callbackUrl: '/dashboard' });
     } catch (error) {
-      console.error('Error signing in:', error);
+      logger.error({ error }, 'Error signing in:');
     }
   };
 
@@ -21,7 +22,7 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Brand - Always prioritized, never compressed */}
           <div className="flex items-center flex-shrink-0">
-            <Link href="/" className="flex items-center space-x-2 min-w-0">
+            <Link href="/" className="flex items-center space-x-2 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg">
               <Image
                 src="/sEvite.png"
                 alt="Simple Evite Logo"
@@ -42,7 +43,12 @@ export function Navbar() {
             ) : session ? (
               <div className="relative group">
                 {/* Mobile-first user menu button */}
-                <button className="flex items-center space-x-1 sm:space-x-2 text-gray-700 hover:text-gray-900 px-2 sm:px-3 py-2 rounded-md transition-colors min-w-0">
+                <button
+                  aria-label="User menu"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  className="flex items-center space-x-1 sm:space-x-2 text-gray-700 hover:text-gray-900 px-2 sm:px-3 py-2 rounded-md transition-colors min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
                   <Image
                     src={session.user?.image || '/placeholder-avatar.svg'}
                     alt={session.user?.name || 'User'}
@@ -64,26 +70,26 @@ export function Navbar() {
                 </button>
 
                 {/* Dropdown menu */}
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200">
                   {/* Show full name in dropdown on mobile */}
                   <div className="sm:hidden px-4 py-2 text-sm font-medium text-gray-900 border-b border-gray-100">
                     {session.user?.name}
                   </div>
                   <Link
                     href="/dashboard"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:text-gray-900"
                   >
                     Dashboard
                   </Link>
                   <Link
                     href="/designs"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:text-gray-900"
                   >
                     My Designs
                   </Link>
                   <button
                     onClick={() => signOut()}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:text-gray-900"
                   >
                     Sign Out
                   </button>
@@ -92,7 +98,7 @@ export function Navbar() {
             ) : (
               <button
                 onClick={handleSignIn}
-                className="bg-slate-700 hover:bg-slate-600 text-white px-3 sm:px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2"
+                className="bg-slate-700 hover:bg-slate-600 text-white px-3 sm:px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

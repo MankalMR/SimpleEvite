@@ -3,14 +3,15 @@
 ## Core Tables
 The database is hosted on **Supabase** (PostgreSQL).
 
-### `users`
-- Stores profile info for Creators.
-- Linked to NextAuth sessions via email.
+### `next_auth.users` (Migrated)
+- Stores profile info for Creators (managed by NextAuth adapter).
+- Moved from `public.users` to `next_auth` schema for standard compatibility.
+- Linked via UUIDs instead of email strings for foreign key integrity.
 
 ### `invitations`
 - **Primary Entity**.
 - Key Fields:
-  - `user_id`: Owner (Creator).
+  - `user_id`: Owner (Creator). References `next_auth.users(id)`.
   - `share_token`: **UUID** used for Guest Access (Capabilities Pattern).
   - `design_id`: Link to custom design image.
 

@@ -5,31 +5,56 @@ export interface RSVPStats {
   no: number;
   maybe: number;
   total: number;
+  attendingCount: number;
+}
+
+/**
+ * Internal helper to mutate stats object based on a single RSVP
+ */
+function addRSVPToStats(stats: RSVPStats, rsvp: RSVP): void {
+  if (rsvp.response === 'yes') {
+    stats.yes++;
+    stats.attendingCount += (rsvp.guest_count !== undefined ? Number(rsvp.guest_count) : 1);
+  } else if (rsvp.response === 'no') {
+    stats.no++;
+  } else if (rsvp.response === 'maybe') {
+    stats.maybe++;
+  }
+  stats.total++;
 }
 
 /**
  * Calculate RSVP statistics from an array of RSVPs
+ * ⚡ Bolt: Using for...of instead of reduce for better performance on large arrays
  */
 export function getRSVPStats(rsvps: RSVP[]): RSVPStats {
-  const stats = rsvps.reduce(
-    (acc, rsvp) => {
-      acc[rsvp.response]++;
-      acc.total++;
-      return acc;
-    },
-    { yes: 0, no: 0, maybe: 0, total: 0 }
-  );
+  const stats = { yes: 0, no: 0, maybe: 0, total: 0, attendingCount: 0 };
+
+  if (!rsvps || !rsvps.length) return stats;
+
+  for (const rsvp of rsvps) {
+    addRSVPToStats(stats, rsvp);
+  }
 
   return stats;
 }
 
 /**
  * Get the total count of all RSVPs across multiple invitations
+ * ⚡ Bolt: Using for...of instead of reduce for better performance
  */
 export function getTotalRSVPCount(invitations: Array<{ rsvps?: RSVP[] }>): number {
-  return invitations.reduce((total, invitation) => {
-    return total + (invitation.rsvps?.length || 0);
-  }, 0);
+  let total = 0;
+
+  if (!invitations || !invitations.length) return total;
+
+  for (const invitation of invitations) {
+    if (invitation.rsvps?.length) {
+      total += invitation.rsvps.length;
+    }
+  }
+
+  return total;
 }
 
 /**
@@ -82,10 +107,22 @@ export function sortRSVPsByDate(rsvps: RSVP[]): RSVP[] {
 
 /**
  * Get RSVP statistics across multiple invitations
+ * ⚡ Bolt: Using nested for...of loops instead of flatMap to avoid intermediate array allocation
  */
 export function getGlobalRSVPStats(invitations: Array<{ rsvps?: RSVP[] }>): RSVPStats {
-  const allRSVPs = invitations.flatMap(inv => inv.rsvps || []);
-  return getRSVPStats(allRSVPs);
+  const stats = { yes: 0, no: 0, maybe: 0, total: 0, attendingCount: 0 };
+
+  if (!invitations || !invitations.length) return stats;
+
+  for (const invitation of invitations) {
+    if (!invitation.rsvps || !invitation.rsvps.length) continue;
+
+    for (const rsvp of invitation.rsvps) {
+      addRSVPToStats(stats, rsvp);
+    }
+  }
+
+  return stats;
 }
 
 /**
@@ -144,4 +181,21 @@ export function getRSVPResponseColorClasses(response: 'yes' | 'no' | 'maybe'): {
         border: 'border-gray-200',
       };
   }
+}
+
+/**
+ * Check if a user is the owner of an invitation associated with an RSVP
+ * This function handles both object and array formats returned by Supabase joins
+ */
+export function isInvitationOwner(
+  invitationsData: { user_id: string } | { user_id: string }[] | undefined | null,
+  userId: string
+): boolean {
+  if (!invitationsData) return false;
+  
+  const invitation = Array.isArray(invitationsData) 
+    ? invitationsData[0] 
+    : (invitationsData as { user_id: string });
+    
+  return invitation?.user_id === userId;
 }

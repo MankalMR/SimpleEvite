@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { logger } from "@/lib/logger";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -29,7 +30,7 @@ export default function Home() {
         }
       }
     } catch (error) {
-      console.error('Error checking invitations:', error);
+      logger.error({ error }, 'Error checking invitations:');
     } finally {
       setLoading(false);
       setCheckedInvitations(true);
@@ -48,7 +49,7 @@ export default function Home() {
     try {
       await signIn('google', { callbackUrl: '/dashboard' });
     } catch (error) {
-      console.error('Error signing in:', error);
+      logger.error({ error }, 'Error signing in:');
       setSignInLoading(false);
     }
   };
