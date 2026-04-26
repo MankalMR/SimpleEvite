@@ -102,7 +102,6 @@ export default function DemoDashboard() {
     const globalStats = getGlobalRSVPStats(invitations);
     const totalInvitations = invitations.length;
 
-
     if (loading) {
         return (
             <>

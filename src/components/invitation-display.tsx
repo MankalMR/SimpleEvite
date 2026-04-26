@@ -87,7 +87,6 @@ export const InvitationDisplay = memo(function InvitationDisplay({
             className="object-cover"
             style={{ zIndex: 1 }}
             unoptimized
-            // ⚡ Bolt: Disable lazy loading for hero image to significantly improve LCP
             priority={priority}
             onError={(e) => {
               logger.error({ data0: design.image_url, e }, 'Image failed to load:');
