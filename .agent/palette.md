@@ -15,3 +15,20 @@
 **Learning:** When forms are conditionally rendered below existing content (e.g., clicking 'RSVP Now' reveals the RSVP form), keyboard users and screen readers are not automatically directed to the new content, causing friction. Although `autoFocus` can sometimes cause unexpected scrolling on page load, it is highly beneficial for *conditionally* revealed inputs like the first field of an expanding RSVP form.
 
 **Action:** Always add `autoFocus` to the first primary input of conditionally rendered forms to immediately shift focus and improve accessibility for keyboard and screen reader users.
+## 2025-03-20 - Demo Banner Feedback
+**Learning:** Utility banners (like the Demo Mode warning) often neglect basic interactive states because they are "temporary" UI. Missing focus rings and loading states make them feel broken to keyboard users and during slow network requests.
+**Action:** Always apply the standard application focus styles (`focus:ring-2`) and loading feedback (`Spinner`) even to development/demo-specific UI elements to maintain a consistent standard of quality.
+
+## 2025-03-27 - [Accessible Grid Cards]
+**Learning:** In complex form components (like template or design selectors), interactive `div` elements used as selection cards completely break keyboard navigation and screen reader support, leaving keyboard users unable to select an option.
+**Action:** Always use semantic `<button type="button">` elements for custom clickable cards in a grid layout, ensuring to add `aria-pressed` for selection state and `focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500` for clear visual focus rings.
+## 2025-02-28 - Adding Focus Indicators to Navigation
+**Learning:** Custom interactive elements (like the mobile user menu dropdown and the "Sign In" button in `Navbar`) often miss the default focus indicators when styled with Tailwind CSS without explicit `focus:` variants.
+**Action:** When creating or reviewing components with interactive elements, especially custom buttons and dropdown toggles, always ensure `focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2` (or equivalent) is applied to maintain keyboard navigation accessibility.
+
+## 2026-04-18 - Keyboard Accessibility for Hover Dropdowns
+**Learning:** Dropdown menus that appear on `group-hover` are completely inaccessible to keyboard users unless explicitly styled for focus. When a user tabs into the trigger, and then tabs into the dropdown items, the focus moves but the menu remains invisible, causing extreme confusion.
+**Action:** For hover-based dropdowns, always combine `group-hover:opacity-100 group-hover:visible` with `group-focus-within:opacity-100 group-focus-within:visible`. This ensures the dropdown becomes visible when any of its internal links receive keyboard focus. Additionally, add `aria-haspopup="true"` to the trigger button.
+## 2026-04-18 - Missing label association for template filters
+**Learning:** React select dropdowns used as custom filters (like Occasion and Theme in the template selector) often have visually descriptive text placed near them via `<label>` tags but they often lack the explicit `htmlFor` property tying them to the `id` of the `<select>`. This makes them inaccessible to screen readers which require the association.
+**Action:** When creating or editing forms and filter components, explicitly use `<label htmlFor="unique-id">` and ensure the target input/select has `id="unique-id"`.

@@ -22,6 +22,17 @@
 ## 2026-03-17 - Optimize email dispatching in cron jobs
  **Learning:** When refactoring sequential async network requests (e.g., sending emails via Resend in `src/app/api/cron/*` routes), use `Promise.all` with batched tasks to execute them concurrently. This eliminates N+1 performance bottlenecks and prevents cron job timeouts.
  **Action:** Refactored the `/api/cron/send-reminders` route to push async tasks to an array and resolve them concurrently in chunks using `Promise.all`.
-## 2026-03-19 - Cache-Control for Default Templates API
-**Learning:** Public API routes serving static or infrequently changing data (like `/api/templates` and `/api/templates/[id]`) should use `Cache-Control` headers. This enables CDN/Edge caching, reduces database load, and significantly improves Time To First Byte (TTFB).
-**Action:** Added `Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400` to the Next.js API routes serving default templates.
+
+## 2024-05-24 - Template Selector Bottleneck
+**Learning:** The default templates API route (`/api/templates`) does not include caching headers. Since these templates change infrequently, every client request incurs an unnecessary roundtrip to the Supabase database.
+**Action:** Added a `Cache-Control` header (`public, s-maxage=3600, stale-while-revalidate=86400`) to `src/app/api/templates/route.ts` to allow Vercel/CDN to cache the response, significantly improving Time To First Byte (TTFB) and reducing database load.
+## 2024-05-24 - [Refactoring RSVP stats and grouped RSVPs]
+**Learning:** `src/app/invite/[token]/page.tsx` and `src/app/demo/i/[token]/page.tsx` and `src/lib/rsvp-utils.ts` use `reduce` to aggregate RSVP stats (`yes: 0, no: 0, maybe: 0`). For large amounts of RSVPs, `for...of` loops are significantly faster in V8 than `.reduce()`. I can optimize this simple calculation.
+
+## 2026-04-09 - Zero-allocation getGlobalRSVPStats & Demo Cache
+**Learning:** The `getGlobalRSVPStats` function was creating an intermediate array using `flatMap`. The demo route was missing `Cache-Control`.
+**Action:** Refactored `getGlobalRSVPStats` to use nested `for...of` loops and added `Cache-Control` header to demo route for parity with production.
+
+## 2024-05-26 - Concurrent DB queries in DAL
+ **Learning:** The function `enrichInvitationsWithTemplates` in `src/lib/database-supabase.ts` was executing two Supabase queries (`designs` and `default_templates`) sequentially. This resulted in an O(N) waterfall where network latency of the second query was entirely blocked by the first query.
+ **Action:** Refactored the queries to use `Promise.all` to fetch both `designs` and `default_templates` concurrently. This optimization reduces the total database wait time from `O(request1 + request2)` to `O(max(request1, request2))`, directly improving the TTFB of public `/api/invite/[token]` endpoints and private `/api/invitations` routes.

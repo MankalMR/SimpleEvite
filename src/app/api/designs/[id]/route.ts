@@ -71,20 +71,27 @@ export async function DELETE(
 
     // Extract file path from URL and delete from Supabase Storage
     if (design.image_url && design.image_url.includes('/storage/v1/object/public/designs/')) {
-      try {
-        const rawFilePath = design.image_url.split('/storage/v1/object/public/designs/')[1];
-        if (rawFilePath) {
+      const rawFilePath = design.image_url.split('/storage/v1/object/public/designs/')[1];
+      if (rawFilePath) {
+        try {
           const filePath = decodeURIComponent(rawFilePath);
-          // Prevent directory traversal by strictly validating the path structure: userId/filename
           const pathParts = filePath.split('/');
-          if (pathParts.length === 2 && pathParts[0] === userId && !pathParts[1].includes('..')) {
-            await supabaseAdmin.storage.from('designs').remove([filePath]);
+
+          // Strict validation: must be exactly userId/filename and no directory traversal
+          if (
+            pathParts.length === 2 &&
+            pathParts[0] === userId &&
+            !filePath.includes('..')
+          ) {
+            await supabaseAdmin.storage
+              .from('designs')
+              .remove([filePath]);
           } else {
-            logger.warn({ filePath, userId }, 'Suspicious file deletion attempt blocked');
+            logger.warn({ userId, filePath }, 'Attempted path traversal or invalid file path in design deletion');
           }
+        } catch (decodeError) {
+          logger.warn({ userId, rawFilePath, error: decodeError }, 'Malformed URI in design image URL during deletion');
         }
-      } catch (e) {
-        logger.error({ e }, 'Error parsing design image URL for deletion:');
       }
     }
 

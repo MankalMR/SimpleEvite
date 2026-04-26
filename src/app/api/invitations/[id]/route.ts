@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { validateInvitationData } from '@/lib/security';
 import { logger } from "@/lib/logger";
+import { sendEventUpdateEmail } from '@/lib/email-service';
 
 // GET /api/invitations/[id] - Get invitation by ID (for owner)
 export async function GET(
@@ -64,6 +65,7 @@ export async function PUT(
       description,
       event_date,
       event_time,
+      rsvp_deadline,
       location,
       hide_title,
       hide_description,
@@ -82,6 +84,20 @@ export async function PUT(
       text_background_opacity,
     } = body;
 
+    // Fetch original invitation to compare fields
+    const originalInvitation = await supabaseDb.getInvitation(resolvedParams.id, userId);
+
+    if (!originalInvitation) {
+      return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
+    }
+
+    const hasCoreDetailsChanged =
+      originalInvitation.event_date !== event_date ||
+      originalInvitation.event_time !== event_time ||
+      originalInvitation.rsvp_deadline !== rsvp_deadline ||
+      originalInvitation.location !== location ||
+      originalInvitation.organizer_notes !== organizer_notes;
+
     // Update invitation using the database layer
     const invitation = await supabaseDb.updateInvitation(resolvedParams.id, {
       title,
@@ -89,6 +105,7 @@ export async function PUT(
       event_date: event_date as string,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       event_time: event_time as string | any,
+      rsvp_deadline: rsvp_deadline as string | undefined,
       location,
       design_id: design_id || null,
       text_overlay_style,
@@ -105,6 +122,41 @@ export async function PUT(
 
     if (!invitation) {
       return NextResponse.json({ error: 'Invitation not found or unauthorized' }, { status: 404 });
+    }
+
+    // Send event update emails
+    if (hasCoreDetailsChanged) {
+      try {
+        const rsvps = await supabaseDb.getRSVPs(resolvedParams.id);
+        const yesRsvps = rsvps.filter(r => r.response === 'yes' && r.email);
+
+        if (yesRsvps.length > 0) {
+          const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://evite.mankala.space'}/invite/${invitation.share_token}`;
+
+          const emailPromises = yesRsvps
+            .filter(rsvp => {
+              // Check if email notifications are enabled, assuming true by default
+              const prefs = rsvp.notification_preferences as { email?: boolean } | null;
+              return prefs?.email !== false;
+            })
+            .map(rsvp => sendEventUpdateEmail({
+              to: rsvp.email as string,
+              guestName: rsvp.name,
+              eventTitle: invitation.title,
+              eventDate: invitation.event_date,
+              eventTime: invitation.event_time,
+              location: invitation.location,
+              description: invitation.description || undefined,
+              inviteUrl,
+              organizerNotes: invitation.organizer_notes || undefined,
+            }));
+
+          // Await to ensure serverless function doesn't exit before sending
+          await Promise.allSettled(emailPromises);
+        }
+      } catch (e) {
+        logger.error({ e }, 'Error sending event update emails');
+      }
     }
 
     return NextResponse.json({ invitation });

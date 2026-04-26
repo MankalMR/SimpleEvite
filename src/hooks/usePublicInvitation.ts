@@ -29,16 +29,20 @@ export function usePublicInvitation(token: string) {
     invitation_id: string;
     name: string;
     response: 'yes' | 'no' | 'maybe';
+    guest_count?: number;
     comment?: string;
     email?: string;
     notification_preferences?: { email: boolean };
-  }): Promise<RSVP> => {
+  }): Promise<{ rsvp: RSVP; isUpdate: boolean }> => {
     const response = await fetch('/api/rsvp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(rsvpData),
+      body: JSON.stringify({
+        ...rsvpData,
+        share_token: token,
+      }),
     });
 
     if (!response.ok) {
@@ -49,8 +53,8 @@ export function usePublicInvitation(token: string) {
     }
 
     const data = await response.json();
-    return data.rsvp;
-  }, []);
+    return { rsvp: data.rsvp, isUpdate: data.isUpdate || false };
+  }, [token]);
 
   const invitationRequest = useApiRequest(fetchInvitation);
   const rsvpRequest = useApiRequest(submitRSVP);

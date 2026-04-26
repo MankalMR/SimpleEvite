@@ -35,6 +35,7 @@ export interface Invitation {
   description: string;
   event_date: string;
   event_time: string;
+  rsvp_deadline?: string;
   location: string;
   design_id?: string; // UUID that references either designs.id or default_templates.id
   share_token: string;
@@ -58,6 +59,7 @@ export interface RSVP {
   invitation_id: string;
   name: string;
   response: 'yes' | 'no' | 'maybe';
+    guest_count?: number;
   comment?: string;
   email?: string;
   notification_preferences?: {
