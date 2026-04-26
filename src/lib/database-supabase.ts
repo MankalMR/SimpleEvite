@@ -444,7 +444,7 @@ export const supabaseDb = {
       return { rsvp: newRsvp, isUpdate: false };
     }
 
-    const { data: existing, error: findError } = await supabaseAdmin
+    const { data: existing } = await supabaseAdmin
       .from('rsvps')
       .select('id')
       .eq('invitation_id', invitationId)
