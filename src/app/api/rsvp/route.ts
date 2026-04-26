@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
 
         // Get all data from validation result
         const body = validation.rawData as Record<string, unknown>;
-        const { name, response, comment, guest_count } = validation.data!;
-        const { invitation_id, share_token, email, notification_preferences } = body;
+        const { name, response, comment, guest_count, email } = validation.data!;
+        const { invitation_id, share_token, notification_preferences } = body;
 
         // Validate invitation_id separately as it's not in the RSVP data validation
         if (!invitation_id || typeof invitation_id !== 'string') {
@@ -76,26 +76,19 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Validate email if provided
-        let sanitizedEmail = undefined;
-        if (email && typeof email === 'string') {
-          const emailTrimmed = email.trim();
-          // Basic email validation
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (emailRegex.test(emailTrimmed)) {
-            sanitizedEmail = emailTrimmed;
-          }
-        }
+        // Email is already validated by validateRSVPData
+        const sanitizedEmail = email;
 
         // Validate notification preferences
         const sanitizedNotificationPrefs = notification_preferences && typeof notification_preferences === 'object'
           ? { email: (notification_preferences as { email?: boolean }).email === true }
           : { email: true };
 
-        // Create RSVP with sanitized data
+        // Create or update RSVP with sanitized data
         let rsvp;
+        let isUpdate = false;
         try {
-          rsvp = await supabaseDb.createRSVP({
+          const result = await supabaseDb.upsertRSVP({
             name,
             response: response as 'yes' | 'no' | 'maybe',
             comment: comment || undefined,
@@ -104,6 +97,8 @@ export async function POST(request: NextRequest) {
             notification_preferences: sanitizedNotificationPrefs,
             reminder_status: sanitizedEmail && response === 'yes' && sanitizedNotificationPrefs.email ? 'pending' : 'skipped',
           }, invitation_id as string);
+          rsvp = result.rsvp;
+          isUpdate = result.isUpdate;
         } catch (error) {
           logger.error({ error }, 'Error creating RSVP:');
           const clientIP = req.headers.get('x-forwarded-for') ||
@@ -171,7 +166,7 @@ export async function POST(request: NextRequest) {
           await Promise.allSettled(emailPromises);
         }
 
-        const apiResponse = NextResponse.json({ rsvp }, { status: 201 });
+        const apiResponse = NextResponse.json({ rsvp, isUpdate }, { status: isUpdate ? 200 : 201 });
         return addSecurityHeaders(apiResponse);
       } catch (error) {
         logger.error({ error }, 'Error in POST /api/rsvp:');

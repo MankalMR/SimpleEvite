@@ -434,6 +434,46 @@ export const supabaseDb = {
     return rowToRSVP(data);
   },
 
+  // Create or Update RSVP by Email
+  async upsertRSVP(
+    rsvp: Omit<RSVP, 'id' | 'created_at' | 'invitation_id'>,
+    invitationId: string
+  ): Promise<{ rsvp: RSVP; isUpdate: boolean }> {
+    if (!rsvp.email) {
+      const newRsvp = await this.createRSVP(rsvp, invitationId);
+      return { rsvp: newRsvp, isUpdate: false };
+    }
+
+    const { data: existing, error: findError } = await supabaseAdmin
+      .from('rsvps')
+      .select('id')
+      .eq('invitation_id', invitationId)
+      .eq('email', rsvp.email)
+      .single();
+
+    if (existing) {
+      const { data, error } = await supabaseAdmin
+        .from('rsvps')
+        .update({
+          name: rsvp.name,
+          response: rsvp.response,
+          guest_count: rsvp.guest_count || 1,
+          comment: rsvp.comment,
+          notification_preferences: rsvp.notification_preferences,
+          reminder_status: rsvp.reminder_status,
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return { rsvp: rowToRSVP(data), isUpdate: true };
+    } else {
+      const newRsvp = await this.createRSVP(rsvp, invitationId);
+      return { rsvp: newRsvp, isUpdate: false };
+    }
+  },
+
   // Delete an RSVP
   async deleteRSVP(id: string): Promise<boolean> {
     const { error } = await supabaseAdmin

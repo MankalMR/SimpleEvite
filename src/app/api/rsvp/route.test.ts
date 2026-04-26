@@ -15,7 +15,7 @@ jest.mock('@/lib/supabase', () => ({
 jest.mock('@/lib/database-supabase', () => ({
   supabaseDb: {
     getUserEmail: jest.fn(),
-    createRSVP: jest.fn(),
+    upsertRSVP: jest.fn(),
   },
 }));
 
@@ -71,6 +71,7 @@ describe('POST /api/rsvp', () => {
         name: mockRsvpData.name,
         response: mockRsvpData.response,
         comment: mockRsvpData.comment,
+        email: mockRsvpData.email,
       },
       rawData: mockRsvpData,
     });
@@ -82,7 +83,7 @@ describe('POST /api/rsvp', () => {
     });
 
     (supabaseDb.getUserEmail as jest.Mock).mockResolvedValue('host@example.com');
-    (supabaseDb.createRSVP as jest.Mock).mockResolvedValue({ id: 'rsvp-001' });
+    (supabaseDb.upsertRSVP as jest.Mock).mockResolvedValue({ rsvp: { id: 'rsvp-001' }, isUpdate: false });
     (sendRsvpConfirmationEmail as jest.Mock).mockResolvedValue({ success: true });
     (sendHostRsvpNotificationEmail as jest.Mock).mockResolvedValue({ success: true });
   });
@@ -99,7 +100,7 @@ describe('POST /api/rsvp', () => {
     const response = await POST(req);
 
     expect(response.status).toBe(201);
-    expect(supabaseDb.createRSVP).toHaveBeenCalled();
+    expect(supabaseDb.upsertRSVP).toHaveBeenCalled();
     expect(sendRsvpConfirmationEmail).toHaveBeenCalled();
     expect(sendHostRsvpNotificationEmail).toHaveBeenCalled();
   });

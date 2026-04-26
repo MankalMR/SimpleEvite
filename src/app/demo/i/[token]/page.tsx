@@ -24,6 +24,7 @@ export default function DemoPublicInvite() {
     const [rsvpLoading, setRsvpLoading] = useState(false);
     const [showRSVPForm, setShowRSVPForm] = useState(false);
     const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
+    const [isUpdate, setIsUpdate] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [submissionError, setSubmissionError] = useState<string | null>(null);
     const [rsvpData, setRsvpData] = useState<{
@@ -31,11 +32,13 @@ export default function DemoPublicInvite() {
         response: 'yes' | 'no' | 'maybe' | '';
         guest_count: number;
         comment: string;
+        email: string;
     }>({
         name: '',
         response: '',
         guest_count: 1,
         comment: '',
+        email: '',
     });
 
     // Initialize session
@@ -109,8 +112,16 @@ export default function DemoPublicInvite() {
                     response: rsvpData.response,
                     guest_count: rsvpData.guest_count,
                     comment: rsvpData.comment.trim() || undefined,
+                    email: rsvpData.email.trim(),
                 }),
             });
+
+            const data = await res.json();
+            if (data.isUpdate) {
+                setIsUpdate(true);
+            } else {
+                setIsUpdate(false);
+            }
 
             if (!res.ok) {
                 throw new Error('Failed to submit RSVP');
@@ -118,7 +129,10 @@ export default function DemoPublicInvite() {
 
             setRsvpSubmitted(true);
             setShowRSVPForm(false);
-            setRsvpData({ name: '', response: '', guest_count: 1, comment: '' });
+            setRsvpData({ name: '', response: '', guest_count: 1,
+        comment: '',
+        email: '',
+    });
             // Refresh to see new RSVP
             fetchInvitation();
         } catch {
@@ -258,7 +272,7 @@ export default function DemoPublicInvite() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-semibold text-gray-900 mb-2">Thank you for your RSVP!</h3>
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">{isUpdate ? 'Your RSVP has been updated!' : 'Your RSVP has been confirmed!'}</h3>
                                 <p className="text-gray-600">Your response has been recorded.</p>
                             </div>
 
@@ -335,6 +349,33 @@ export default function DemoPublicInvite() {
                                 )}
 
 
+
+                                {/* Email Section */}
+                                <div className="border-t border-gray-200 pt-6 mt-6 mb-6">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
+                                                Email Address *
+                                            </label>
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                required
+                                                value={rsvpData.email}
+                                                onChange={(e) => setRsvpData({ ...rsvpData, email: e.target.value })}
+                                                className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                                placeholder="your.email@example.com"
+                                            />
+                                            {formErrors.email && (
+                                                <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                                            )}
+                                            <p className="mt-1.5 text-xs text-gray-500">
+                                                We use your email to let you update your RSVP later.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <label htmlFor="comment" className="block text-sm font-semibold text-gray-900 mb-2">
                                         Message (Optional)
@@ -360,7 +401,7 @@ export default function DemoPublicInvite() {
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response}
+                                        disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response || !rsvpData.email.trim()}
                                         className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                                     >
                                         {rsvpLoading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
