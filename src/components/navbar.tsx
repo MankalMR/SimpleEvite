@@ -44,6 +44,7 @@ export function Navbar() {
               <div className="relative group">
                 {/* Mobile-first user menu button */}
                 <button
+                  aria-label="User menu"
                   aria-expanded="false"
                   aria-haspopup="true"
                   className="flex items-center space-x-1 sm:space-x-2 text-gray-700 hover:text-gray-900 px-2 sm:px-3 py-2 rounded-md transition-colors min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
