@@ -38,6 +38,7 @@ export default function DemoPublicInvite() {
         response: '',
         guest_count: 1,
         comment: '',
+        email: '',
     });
 
     // Initialize session
