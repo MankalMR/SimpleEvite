@@ -1,7 +1,7 @@
 # Feature Ticket: Guest Headcount & Plus Ones
 
 ## Status
-done
+`done`
 
 ## Implementation Notes
 - Files changed: `src/lib/supabase.ts`, `src/lib/database-supabase.ts`, `src/lib/security.ts`, `src/app/api/rsvp/route.ts`, `src/app/api/demo/rsvp/route.ts`, `src/app/invite/[token]/page.tsx`, `src/app/demo/i/[token]/page.tsx`, `src/lib/rsvp-utils.ts`, `src/app/invitations/[id]/page.tsx`, `src/app/demo/dashboard/page.tsx`, `src/hooks/usePublicInvitation.ts`, `src/lib/rsvp-utils.test.ts`

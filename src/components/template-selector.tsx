@@ -137,10 +137,11 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="template-occasion-filter" className="block text-sm font-medium text-gray-700 mb-2">
             Occasion
           </label>
           <select
+            id="template-occasion-filter"
             value={selectedOccasion}
             onChange={(e) => setSelectedOccasion(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium"
@@ -154,10 +155,11 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
         </div>
 
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="template-theme-filter" className="block text-sm font-medium text-gray-700 mb-2">
             Theme
           </label>
           <select
+            id="template-theme-filter"
             value={selectedTheme}
             onChange={(e) => setSelectedTheme(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium"

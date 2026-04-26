@@ -78,6 +78,14 @@ export function validateInvitationData(data: Record<string, unknown>) {
     }
   }
 
+  // RSVP deadline validation
+  if (data.rsvp_deadline && typeof data.rsvp_deadline === 'string') {
+    const deadlineDate = new Date(data.rsvp_deadline);
+    if (isNaN(deadlineDate.getTime())) {
+      errors.rsvp_deadline = 'Invalid RSVP deadline';
+    }
+  }
+
   // Location validation
   if (data.location && typeof data.location === 'string') {
     if (data.location.length > 200) {
@@ -109,6 +117,7 @@ export function validateInvitationData(data: Record<string, unknown>) {
       location: sanitizeText((data.location as string) || ''),
       event_date: data.event_date,
       event_time: data.event_time,
+      rsvp_deadline: data.rsvp_deadline as string | undefined,
       hide_title: !!data.hide_title,
       hide_description: !!data.hide_description,
       organizer_notes: data.organizer_notes ? sanitizeText(data.organizer_notes as string) : undefined,
@@ -120,7 +129,7 @@ export function validateInvitationData(data: Record<string, unknown>) {
 /**
  * Validate and sanitize RSVP data
  */
-export function validateRSVPData(data: unknown): { isValid: boolean; errors: Record<string, string>; sanitizedData?: { name: string; response: unknown; comment: string; } } {
+export function validateRSVPData(data: unknown): { isValid: boolean; errors: Record<string, string>; sanitizedData?: { name: string; response: unknown; comment: string; guest_count: number; email: string; } } {
   if (!data || typeof data !== 'object') {
     return {
       isValid: false,
@@ -140,9 +149,30 @@ export function validateRSVPData(data: unknown): { isValid: boolean; errors: Rec
     errors.name = 'Name contains invalid characters';
   }
 
+  // Email validation
+  if (!record.email || typeof record.email !== 'string') {
+    errors.email = 'Email is required';
+  } else {
+    const emailTrimmed = record.email.trim();
+    if (!VALIDATION_PATTERNS.EMAIL.test(emailTrimmed)) {
+      errors.email = 'Please provide a valid email address';
+    }
+  }
+
   // Response validation
   if (!record.response || !['yes', 'no', 'maybe'].includes(record.response as string)) {
     errors.response = 'Please select a valid response';
+  }
+
+  // Guest count validation
+  let guestCount = 1;
+  if (record.response === 'yes' && record.guest_count !== undefined && record.guest_count !== null) {
+      const parsed = typeof record.guest_count === 'string' ? parseInt(record.guest_count, 10) : Number(record.guest_count);
+      if (isNaN(parsed) || parsed < 1 || parsed > 100) {
+          errors.guest_count = 'Guest count must be a number between 1 and 100';
+      } else {
+          guestCount = parsed;
+      }
   }
 
   // Comment validation
@@ -159,6 +189,8 @@ export function validateRSVPData(data: unknown): { isValid: boolean; errors: Rec
       name: sanitizeText(record.name as string),
       response: record.response,
       comment: sanitizeText((record.comment as string) || ''),
+      guest_count: guestCount,
+      email: (record.email as string).trim(),
     } : undefined,
   };
 }

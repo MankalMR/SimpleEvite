@@ -11,7 +11,7 @@ import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-uti
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { InlineError } from '@/components/inline-error';
 import { Eye } from 'lucide-react';
-import { CopyLinkButton } from '@/components/copy-link-button';
+import { ShareLinkGroup } from '@/components/share-link-group';
 
 export default function Dashboard() {
   const [actionError, setActionError] = useState<string | null>(null);
@@ -93,8 +93,8 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-blue-600">{stats.totalInvitations}</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total RSVPs</h3>
-                <p className="text-3xl font-bold text-green-600">{stats.totalRSVPs}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Attending</h3>
+                <p className="text-3xl font-bold text-green-600">{stats.globalStats.attendingCount}</p>
                 <div className="text-sm text-gray-600 mt-1">
                   {stats.globalStats.yes} Yes, {stats.globalStats.maybe} Maybe, {stats.globalStats.no} No
                 </div>
@@ -149,8 +149,8 @@ export default function Dashboard() {
                           {invitation.title}
                         </h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${isUpcoming
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
                           }`}>
                           {isUpcoming ? 'Upcoming' : 'Past'}
                         </span>
@@ -163,7 +163,7 @@ export default function Dashboard() {
 
                       <div className="flex justify-between text-sm text-gray-600 mb-4">
                         <span className="text-green-600 font-medium">
-                          ✓ {rsvpStats.yes} Yes
+                          ✓ {rsvpStats.attendingCount} Attending
                         </span>
                         <span className="text-yellow-600 font-medium">
                           ? {rsvpStats.maybe} Maybe
@@ -173,18 +173,24 @@ export default function Dashboard() {
                         </span>
                       </div>
 
-                      <div className="flex gap-2">
-                        <CopyLinkButton shareToken={invitation.share_token} />
-                        <Link
-                          href={`/invitations/${invitation.id}`}
-                          className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
-                        >
-                          <Eye className="w-4 h-4 flex-shrink-0" />
-                          View
-                        </Link>
-                        <ConfirmDeleteButton
-                          onConfirm={() => handleDeleteInvitation(invitation.id)}
+                      <div className="flex flex-col gap-2 mt-2">
+                        <ShareLinkGroup 
+                          shareToken={invitation.share_token} 
+                          className="w-full"
                         />
+                        <div className="flex gap-2 w-full">
+                          <Link
+                            href={`/invitations/${invitation.id}`}
+                            className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
+                          >
+                            <Eye className="w-4 h-4 flex-shrink-0" />
+                            View
+                          </Link>
+                          <ConfirmDeleteButton
+                            onConfirm={() => handleDeleteInvitation(invitation.id)}
+                            className="flex-1"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
