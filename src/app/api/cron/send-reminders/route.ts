@@ -140,7 +140,6 @@ export async function GET(request: NextRequest) {
       }
       group.push(rsvp as RSVP);
     }
-
     // Prepare all email sending tasks
     const emailTasks: Array<() => Promise<void>> = [];
 
