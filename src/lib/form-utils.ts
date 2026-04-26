@@ -107,6 +107,7 @@ export function formatInvitationForSubmission(formData: Record<string, unknown>)
     event_date: formData.event_date as string,
     event_time: formData.event_time as string,
     location: (formData.location as string).trim(),
+    rsvp_deadline: formData.rsvp_deadline as string | undefined,
     design_id: formData.design_id as string | undefined,
     // Text overlay fields
     text_overlay_style: (formData.text_overlay_style as Invitation['text_overlay_style']) || 'light',

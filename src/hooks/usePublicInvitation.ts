@@ -33,7 +33,7 @@ export function usePublicInvitation(token: string) {
     comment?: string;
     email?: string;
     notification_preferences?: { email: boolean };
-  }): Promise<RSVP> => {
+  }): Promise<{ rsvp: RSVP; isUpdate: boolean }> => {
     const response = await fetch('/api/rsvp', {
       method: 'POST',
       headers: {
@@ -53,7 +53,7 @@ export function usePublicInvitation(token: string) {
     }
 
     const data = await response.json();
-    return data.rsvp;
+    return { rsvp: data.rsvp, isUpdate: data.isUpdate || false };
   }, [token]);
 
   const invitationRequest = useApiRequest(fetchInvitation);

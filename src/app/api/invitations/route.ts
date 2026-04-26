@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       description,
       event_date,
       event_time,
+      rsvp_deadline,
       location,
       hide_title,
       hide_description,
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
       event_date: event_date as string,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       event_time: event_time as string | any,
+      rsvp_deadline: rsvp_deadline as string | undefined,
       location,
       design_id: design_id || null,
       share_token: shareToken,
