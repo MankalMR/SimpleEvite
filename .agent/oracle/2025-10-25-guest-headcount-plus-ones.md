@@ -3,6 +3,12 @@
 ## Status
 `done`
 
+## Implementation Notes
+- Files changed: `src/lib/supabase.ts`, `src/lib/database-supabase.ts`, `src/lib/security.ts`, `src/app/api/rsvp/route.ts`, `src/app/api/demo/rsvp/route.ts`, `src/app/invite/[token]/page.tsx`, `src/app/demo/i/[token]/page.tsx`, `src/lib/rsvp-utils.ts`, `src/app/invitations/[id]/page.tsx`, `src/app/demo/dashboard/page.tsx`, `src/hooks/usePublicInvitation.ts`, `src/lib/rsvp-utils.test.ts`
+- Behavior: Guests who respond 'Yes' to an event invitation are now prompted with an optional input to provide the number of attendees (defaulting to 1). This count is safely validated and persisted in the Supabase `rsvps` table as `guest_count`. The host dashboards have been updated to display the aggregate total attendee headcount, providing better logistics insights. The demo versions accurately simulate this feature as well.
+- Tests: Updated `src/lib/rsvp-utils.test.ts` to reflect the new properties and aggregate calculations. All core logic handles defaults and backwards compatibility correctly.
+- Known follow-ups: The underlying `rsvps` table in Supabase will require the actual schema migration (`ALTER TABLE rsvps ADD COLUMN guest_count INT DEFAULT 1;`) to be run, though the queries will currently function locally or ignore the field dynamically depending on the driver version.
+
 ## Context
 Currently, the Simple Evite RSVP form allows a single guest to respond "Yes", "No", or "Maybe". However, many events (like weddings, parties, or large gatherings) allow guests to bring "plus ones" or entire families. Without a way to specify the number of attendees per RSVP, hosts cannot get an accurate total headcount, leading to catering or seating issues.
 
