@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseDb } from '@/lib/database-supabase';
+import { logger } from "@/lib/logger";
 
 // GET /api/invite/[token] - Get invitation by share token (public endpoint)
 export async function GET(
@@ -29,7 +30,7 @@ export async function GET(
       }
     );
   } catch (error) {
-    console.error('Error in GET /api/invite/[token]:', error);
+    logger.error({ error }, 'Error in GET /api/invite/[token]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

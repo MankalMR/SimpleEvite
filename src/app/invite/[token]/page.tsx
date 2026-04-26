@@ -2,14 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { RSVP } from '@/lib/supabase';
 import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
+import { getRSVPStats } from '@/lib/rsvp-utils';
 import { InvitationDisplay } from '@/components/invitation-display';
 import { validateRSVPForm } from '@/lib/form-utils';
 import { usePublicInvitation } from '@/hooks/usePublicInvitation';
 import { getInvitationDesign } from '@/lib/invitation-utils';
 import { generateStructuredData } from '@/lib/seo';
+import { serializeJsonLd } from '@/lib/security';
 import Script from 'next/script';
+import { Spinner } from '@/components/spinner';
+import { InlineError } from '@/components/inline-error';
+import { logger } from "@/lib/logger";
+import { AddToCalendar } from '@/components/add-to-calendar';
 
 export default function PublicInvite() {
   const params = useParams();
@@ -26,16 +31,20 @@ export default function PublicInvite() {
 
   const [showRSVPForm, setShowRSVPForm] = useState(false);
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [rsvpData, setRsvpData] = useState<{
     name: string;
     response: 'yes' | 'no' | 'maybe' | '';
+    guest_count: number;
     comment: string;
     email: string;
     emailNotifications: boolean;
   }>({
     name: '',
     response: '',
+    guest_count: 1,
     comment: '',
     email: '',
     emailNotifications: true,
@@ -49,6 +58,7 @@ export default function PublicInvite() {
 
   const handleRSVPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmissionError(null);
 
     // Validate form
     const validation = validateRSVPForm(rsvpData);
@@ -61,23 +71,30 @@ export default function PublicInvite() {
 
     try {
       setFormErrors({});
-      await submitRSVP({
+      const result = await submitRSVP({
         invitation_id: invitation.id,
         name: rsvpData.name.trim(),
         response: rsvpData.response as 'yes' | 'no' | 'maybe',
+        guest_count: rsvpData.guest_count,
         comment: rsvpData.comment.trim() || undefined,
-        email: rsvpData.email.trim() || undefined,
+        email: rsvpData.email.trim(),
         notification_preferences: {
           email: rsvpData.emailNotifications,
         },
       });
 
+      if (result.isUpdate) {
+        setIsUpdate(true);
+      } else {
+        setIsUpdate(false);
+      }
+
       setRsvpSubmitted(true);
       setShowRSVPForm(false);
-      setRsvpData({ name: '', response: '', comment: '', email: '', emailNotifications: true });
+      setRsvpData({ name: '', response: '', guest_count: 1, comment: '', email: '', emailNotifications: true });
     } catch (error) {
-      console.error('RSVP submission error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to submit RSVP');
+      logger.error({ error }, 'RSVP submission error:');
+      setSubmissionError(error instanceof Error ? error.message : 'Failed to submit RSVP');
     }
   };
 
@@ -89,16 +106,6 @@ export default function PublicInvite() {
       minute: '2-digit',
       hour12: true,
     });
-  };
-
-  const getRSVPStats = (rsvps: RSVP[]) => {
-    return rsvps.reduce(
-      (acc, rsvp) => {
-        acc[rsvp.response]++;
-        return acc;
-      },
-      { yes: 0, no: 0, maybe: 0 }
-    );
   };
 
   if (loading) {
@@ -124,8 +131,11 @@ export default function PublicInvite() {
     );
   }
 
+
   const rsvpStats = getRSVPStats(invitation.rsvps || []);
   const eventPassed = isDateInPast(invitation.event_date);
+  const deadlinePassed = invitation.rsvp_deadline ? isDateInPast(invitation.rsvp_deadline) : false;
+
 
   return (
     <>
@@ -135,7 +145,7 @@ export default function PublicInvite() {
           id="structured-data"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateStructuredData(invitation)),
+            __html: serializeJsonLd(generateStructuredData(invitation)),
           }}
         />
       )}
@@ -147,13 +157,17 @@ export default function PublicInvite() {
             invitation={invitation}
             design={getInvitationDesign(invitation)}
             className="h-64 md:h-96"
+            priority={true}
           />
         </div>
 
         {/* Event Details */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+              {!eventPassed && <AddToCalendar invitation={invitation} />}
+            </div>
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="flex items-start space-x-3">
@@ -223,14 +237,20 @@ export default function PublicInvite() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Thank you for your RSVP!</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{isUpdate ? 'Your RSVP has been updated!' : 'Your RSVP has been confirmed!'}</h3>
                 <p className="text-gray-600">Your response has been recorded.</p>
               </div>
+
             ) : eventPassed ? (
               <div className="text-center py-8">
                 <p className="text-gray-600">This event has already passed. RSVPs are no longer being accepted.</p>
               </div>
+            ) : deadlinePassed ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">The RSVP deadline has passed. RSVPs are no longer being accepted.</p>
+              </div>
             ) : showRSVPForm ? (
+
               <form onSubmit={handleRSVPSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
@@ -240,6 +260,7 @@ export default function PublicInvite() {
                     type="text"
                     id="name"
                     required
+                    autoFocus
                     value={rsvpData.name}
                     onChange={(e) => setRsvpData({ ...rsvpData, name: e.target.value })}
                     className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
@@ -251,16 +272,18 @@ export default function PublicInvite() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                  <label id="rsvp-attend-label" className="block text-sm font-semibold text-gray-900 mb-3">
                     Will you attend? *
                   </label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div role="radiogroup" aria-labelledby="rsvp-attend-label" className="grid grid-cols-3 gap-3">
                     {(['yes', 'no', 'maybe'] as const).map((response) => (
                       <button
                         key={response}
                         type="button"
+                        role="radio"
+                        aria-checked={rsvpData.response === response}
                         onClick={() => setRsvpData({ ...rsvpData, response })}
-                        className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${rsvpData.response === response
+                        className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${rsvpData.response === response
                             ? response === 'yes'
                               ? 'border-green-500 bg-green-50 text-green-700'
                               : response === 'no'
@@ -278,6 +301,49 @@ export default function PublicInvite() {
                   {formErrors.response && (
                     <p className="mt-1 text-sm text-red-600">{formErrors.response}</p>
                   )}
+                </div>
+
+                {rsvpData.response === 'yes' && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                    <label htmlFor="guest_count" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Number of Guests (including yourself)
+                    </label>
+                    <input
+                      type="number"
+                      id="guest_count"
+                      min="1"
+                      max="20"
+                      value={rsvpData.guest_count}
+                      onChange={(e) => setRsvpData({ ...rsvpData, guest_count: parseInt(e.target.value) || 1 })}
+                      className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* Email Section (Mandatory) */}
+                <div className="border-t border-gray-200 pt-6 mt-6 mb-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        required
+                        value={rsvpData.email}
+                        onChange={(e) => setRsvpData({ ...rsvpData, email: e.target.value })}
+                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                        placeholder="your.email@example.com"
+                      />
+                      {formErrors.email && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                      )}
+                      <p className="mt-1.5 text-xs text-gray-500">
+                        We use your email to let you update your RSVP later.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -314,23 +380,6 @@ export default function PublicInvite() {
                     </div>
 
                     <div className="space-y-4">
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                          Email Address
-                        </label>
-                        <input
-                          type="email"
-                          id="email"
-                          value={rsvpData.email}
-                          onChange={(e) => setRsvpData({ ...rsvpData, email: e.target.value })}
-                          className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
-                          placeholder="your.email@example.com"
-                        />
-                        <p className="mt-1.5 text-xs text-gray-500">
-                          Your email will only be used for event reminders
-                        </p>
-                      </div>
-
                       {rsvpData.email && (
                         <div className="flex items-start">
                           <div className="flex items-center h-5">
@@ -356,19 +405,21 @@ export default function PublicInvite() {
                   </div>
                 )}
 
+                <InlineError error={submissionError} className="mb-4" />
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setShowRSVPForm(false)}
-                    className="flex-1 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                    className="flex-1 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response || !rsvpData.email.trim()}
+                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                   >
+                    {rsvpLoading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
                     {rsvpLoading ? 'Submitting...' : 'Submit RSVP'}
                   </button>
                 </div>
@@ -380,7 +431,7 @@ export default function PublicInvite() {
                 </p>
                 <button
                   onClick={() => setShowRSVPForm(true)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                 >
                   RSVP Now
                 </button>
@@ -403,7 +454,7 @@ export default function PublicInvite() {
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
+                        <h4 className="font-semibold text-gray-900">{rsvp.name}{rsvp.guest_count && rsvp.guest_count > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">+{rsvp.guest_count - 1} guest{rsvp.guest_count > 2 ? "s" : ""}</span>}</h4>
                         {rsvp.comment && (
                           <p className="text-gray-600 text-sm mt-1">&ldquo;{rsvp.comment}&rdquo;</p>
                         )}

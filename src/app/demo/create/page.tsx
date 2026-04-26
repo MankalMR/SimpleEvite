@@ -5,14 +5,20 @@ import { useRouter } from 'next/navigation';
 import { DemoBanner } from '@/components/DemoBanner';
 import { InvitationPreview } from '@/components/invitation-preview';
 import { DefaultTemplate } from '@/lib/supabase';
+import { Spinner } from '@/components/spinner';
 import { getTextOverlayStyleOptions, getTextPositionOptions, getTextSizeOptions, TextOverlayStyle, TextPosition, TextSize } from '@/lib/text-overlay-utils';
+import { logger } from "@/lib/logger";
+import { useGenerateCopy } from '@/hooks/useGenerateCopy';
+import { SmartCopySection } from '@/components/smart-copy-section';
 
 export default function DemoCreateInvitation() {
     const router = useRouter();
-    const [sessionId, setSessionId] = useState<string | null>(null);
+const [sessionId, setSessionId] = useState<string | null>(null);
     const [templates, setTemplates] = useState<DefaultTemplate[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const { hasTitleBlurred, setHasTitleBlurred, isGenerating, generatedText, setGeneratedText, generateError, generateCopy } = useGenerateCopy();
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -61,8 +67,16 @@ export default function DemoCreateInvitation() {
         })
             .then(res => res.json())
             .then(data => setTemplates(data.templates || []))
-            .catch(() => console.error('Failed to load templates'));
+            .catch(() => logger.error('Failed to load templates'));
     }, [sessionId]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+        }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -102,13 +116,6 @@ export default function DemoCreateInvitation() {
         window.location.href = '/demo/dashboard';
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
-        setFormData({
-            ...formData,
-            [e.target.name]: value,
-        });
-    };
 
     return (
         <>
@@ -164,8 +171,10 @@ export default function DemoCreateInvitation() {
                                                 id="title"
                                                 name="title"
                                                 required
+                                        autoFocus
                                                 value={formData.title}
                                                 onChange={handleChange}
+                                                onBlur={() => setHasTitleBlurred(true)}
                                                 className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 placeholder="e.g., Summer Pool Party"
                                             />
@@ -181,30 +190,7 @@ export default function DemoCreateInvitation() {
                                             </label>
                                         </div>
 
-                                        <div>
-                                            <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
-                                                Description
-                                            </label>
-                                            <textarea
-                                                id="description"
-                                                name="description"
-                                                rows={3}
-                                                value={formData.description}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                placeholder="Tell your guests what to expect..."
-                                            />
-                                            <label className="flex items-center mt-2">
-                                                <input
-                                                    type="checkbox"
-                                                    name="hide_description"
-                                                    checked={formData.hide_description}
-                                                    onChange={handleChange}
-                                                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                                                />
-                                                <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
-                                            </label>
-                                        </div>
+
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
@@ -249,6 +235,41 @@ export default function DemoCreateInvitation() {
                                                 className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 placeholder="e.g., 123 Main Street, Austin, TX"
                                             />
+                                        </div>
+
+                                        <div>
+                                            <SmartCopySection
+                                                hasTitleBlurred={hasTitleBlurred}
+                                                title={formData.title}
+                                                isGenerating={isGenerating}
+                                                generatedText={generatedText}
+                                                generateError={generateError}
+                                                onGenerate={() => generateCopy({ title: formData.title, location: formData.location, date: formData.event_date, time: formData.event_time, isDemo: true })}
+                                                onDiscard={() => setGeneratedText(null)}
+                                                onApply={() => {
+                                                    setFormData({ ...formData, description: generatedText || "" });
+                                                    setGeneratedText(null);
+                                                }}
+                                            />
+                                            <textarea
+                                                id="description"
+                                                name="description"
+                                                rows={3}
+                                                value={formData.description}
+                                                onChange={handleChange}
+                                                className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Tell your guests what to expect..."
+                                            />
+                                            <label className="flex items-center mt-2">
+                                                <input
+                                                    type="checkbox"
+                                                    name="hide_description"
+                                                    checked={formData.hide_description}
+                                                    onChange={handleChange}
+                                                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-600">Hide Description on Invitation</span>
+                                            </label>
                                         </div>
 
                                         <div>
@@ -447,8 +468,9 @@ export default function DemoCreateInvitation() {
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                     >
+                                        {submitting && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
                                         {submitting ? 'Creating...' : 'Create Invitation'}
                                     </button>
                                 </div>

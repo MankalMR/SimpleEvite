@@ -5,17 +5,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { DemoBanner } from '@/components/DemoBanner';
 import { formatShortDate, isDateInPast } from '@/lib/date-utils';
-import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-utils';
+import { getRSVPStats, getGlobalRSVPStats } from '@/lib/rsvp-utils';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
+import { InlineError } from '@/components/inline-error';
+import { Eye } from 'lucide-react';
+import { ShareLinkGroup } from '@/components/share-link-group';
 
 export default function DemoDashboard() {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [invitations, setInvitations] = useState<InvitationWithRSVPs[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [copySuccess, setCopySuccess] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
 
     // Initialize session
     useEffect(() => {
@@ -65,6 +68,7 @@ export default function DemoDashboard() {
 
     const handleDeleteInvitation = async (id: string) => {
         if (!sessionId) return;
+        setActionError(null);
 
         try {
             await fetch(`/api/demo/invitations/${id}`, {
@@ -73,16 +77,8 @@ export default function DemoDashboard() {
             });
             setInvitations(prev => prev.filter(i => i.id !== id));
         } catch {
-            alert('Failed to delete invitation');
+            setActionError('Failed to delete invitation');
         }
-    };
-
-    const handleCopyLink = (shareToken: string) => {
-        const url = `${window.location.origin}/demo/i/${shareToken}`;
-        navigator.clipboard.writeText(url).then(() => {
-            setCopySuccess(shareToken);
-            setTimeout(() => setCopySuccess(null), 2000);
-        });
     };
 
     const handleReset = () => {
@@ -105,7 +101,6 @@ export default function DemoDashboard() {
     // Stats
     const globalStats = getGlobalRSVPStats(invitations);
     const totalInvitations = invitations.length;
-    const totalRSVPs = getTotalRSVPCount(invitations);
 
     if (loading) {
         return (
@@ -138,17 +133,14 @@ export default function DemoDashboard() {
                         <h1 className="text-3xl font-bold text-gray-900">Demo Dashboard</h1>
                         <Link
                             href="/demo/create"
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                         >
                             Create New Invite
                         </Link>
                     </div>
 
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-                            {error}
-                        </div>
-                    )}
+                    <InlineError error={error} />
+                    <InlineError error={actionError} onDismiss={() => setActionError(null)} />
 
                     <div className="mb-8">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -157,8 +149,8 @@ export default function DemoDashboard() {
                                 <p className="text-3xl font-bold text-blue-600">{totalInvitations}</p>
                             </div>
                             <div className="bg-white p-6 rounded-lg shadow-sm border">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total RSVPs</h3>
-                                <p className="text-3xl font-bold text-green-600">{totalRSVPs}</p>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Attending</h3>
+                                <p className="text-3xl font-bold text-green-600">{globalStats.attendingCount}</p>
                                 <div className="text-sm text-gray-600 mt-1">
                                     {globalStats.yes} Yes, {globalStats.maybe} Maybe, {globalStats.no} No
                                 </div>
@@ -181,7 +173,7 @@ export default function DemoDashboard() {
                             </div>
                             <h3 className="text-xl font-semibold text-gray-900 mb-2">No invitations yet</h3>
                             <p className="text-gray-800 mb-6 font-medium">Get started by creating your first event invitation.</p>
-                            <Link href="/demo/create" className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            <Link href="/demo/create" className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1">
                                 Create Your First Invite
                             </Link>
                         </div>
@@ -221,27 +213,30 @@ export default function DemoDashboard() {
                                             </p>
 
                                             <div className="flex justify-between text-sm text-gray-600 mb-4">
-                                                <span className="text-green-600 font-medium">✓ {rsvpStats.yes} Yes</span>
+                                                <span className="text-green-600 font-medium">✓ {rsvpStats.attendingCount} Attending</span>
                                                 <span className="text-yellow-600 font-medium">? {rsvpStats.maybe} Maybe</span>
                                                 <span className="text-red-600 font-medium">✗ {rsvpStats.no} No</span>
                                             </div>
 
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleCopyLink(invitation.share_token)}
-                                                    className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors"
-                                                >
-                                                    {copySuccess === invitation.share_token ? 'Copied!' : 'Copy Link'}
-                                                </button>
-                                                <Link
-                                                    href={`/demo/i/${invitation.share_token}`}
-                                                    className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors"
-                                                >
-                                                    Preview
-                                                </Link>
-                                                <ConfirmDeleteButton
-                                                    onConfirm={() => handleDeleteInvitation(invitation.id)}
+                                            <div className="flex flex-col gap-2 mt-2">
+                                                <ShareLinkGroup
+                                                    shareToken={invitation.share_token}
+                                                    baseUrl={typeof window !== 'undefined' ? `${window.location.origin}/demo/i/` : ''}
+                                                    className="w-full"
                                                 />
+                                                <div className="flex gap-2 w-full">
+                                                    <Link
+                                                        href={`/demo/i/${invitation.share_token}`}
+                                                        className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
+                                                    >
+                                                        <Eye className="w-4 h-4 flex-shrink-0" />
+                                                        Preview
+                                                    </Link>
+                                                    <ConfirmDeleteButton
+                                                        onConfirm={() => handleDeleteInvitation(invitation.id)}
+                                                        className="flex-1"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

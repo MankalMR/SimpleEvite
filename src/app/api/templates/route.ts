@@ -1,5 +1,8 @@
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from "@/lib/logger";
 
 // GET /api/templates - Get all active templates with optional filtering
 export async function GET(request: NextRequest) {
@@ -25,13 +28,21 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching templates:', error);
+      logger.error({ error }, 'Error fetching templates:');
       return NextResponse.json({ error: 'Failed to fetch templates' }, { status: 500 });
     }
 
-    return NextResponse.json({ templates: data || [] });
+    // ⚡ Bolt: Added Cache-Control to reduce DB load and improve TTFB for template selector
+    return NextResponse.json(
+      { templates: data || [] },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    );
   } catch (error) {
-    console.error('Error in GET /api/templates:', error);
+    logger.error({ error }, 'Error in GET /api/templates:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -39,6 +50,12 @@ export async function GET(request: NextRequest) {
 // POST /api/templates - Create new template (admin only)
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       name,
@@ -93,13 +110,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating template:', error);
+      logger.error({ error }, 'Error creating template:');
       return NextResponse.json({ error: 'Failed to create template' }, { status: 500 });
     }
 
     return NextResponse.json({ template: data }, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/templates:', error);
+    logger.error({ error }, 'Error in POST /api/templates:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

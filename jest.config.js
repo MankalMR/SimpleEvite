@@ -4,11 +4,13 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: [
-    '**/__tests__/**/*.test.ts',
-    '**/?(*.)+(spec|test).ts'
+    '**/__tests__/**/*.test.(ts|tsx)',
+    '**/?(*.)+(spec|test).(ts|tsx)'
   ],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      tsconfig: 'tsconfig.jest.json'
+    }],
   },
   collectCoverageFrom: [
     'src/lib/**/*.ts',
@@ -29,9 +31,10 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@auth/supabase-adapter$': '<rootDir>/__mocks__/@auth/supabase-adapter.js',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(uuid)/)',
+    'node_modules/(?!(uuid|@auth)/)',
   ],
   testTimeout: 10000,
 };

@@ -101,6 +101,7 @@ class ApiClient {
   // RSVP endpoints
   async createRSVP(rsvpData: {
     invitation_id: string;
+    share_token: string;
     name: string;
     response: 'yes' | 'no' | 'maybe';
     comment?: string;

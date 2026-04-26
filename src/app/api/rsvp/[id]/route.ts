@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from "@/lib/logger";
+import { isInvitationOwner } from '@/lib/rsvp-utils';
 
 // DELETE /api/rsvp/[id] - Delete RSVP (only invitation owner can delete)
 export async function DELETE(
@@ -10,27 +12,16 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string })?.id;
 
-    if (!session?.user?.email) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const resolvedParams = await params;
 
-    // Get user from database
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (userError || !userData) {
-      console.error('User lookup failed:', userError, 'Email:', session.user.email);
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
     // First check if the user owns the invitation this RSVP belongs to
-    const { data: rsvp, error: rsvpError } = await supabaseAdmin
+    const { data: rsvpData, error: rsvpError } = await supabaseAdmin
       .from('rsvps')
       .select(`
         id,
@@ -41,15 +32,19 @@ export async function DELETE(
       .eq('id', resolvedParams.id)
       .single();
 
-    if (rsvpError || !rsvp) {
+    if (rsvpError || !rsvpData) {
       return NextResponse.json({ error: 'RSVP not found' }, { status: 404 });
     }
 
-    // Check if the current user owns the invitation
-    const invitation = rsvp.invitations as unknown as { user_id: string };
-
-    if (!invitation || invitation.user_id !== userData.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    // Check if the current user owns the invitation (host)
+    type QueryResult = { invitations: { user_id: string } | { user_id: string }[] };
+    const rsvp = rsvpData as unknown as QueryResult;
+    
+    if (!isInvitationOwner(rsvp.invitations, userId)) {
+      return NextResponse.json(
+        { error: 'Unauthorized. You do not own the invitation for this RSVP.' },
+        { status: 403 }
+      );
     }
 
     // Delete the RSVP
@@ -59,13 +54,13 @@ export async function DELETE(
       .eq('id', resolvedParams.id);
 
     if (error) {
-      console.error('Error deleting RSVP:', error);
+      logger.error({ error }, 'Error deleting RSVP:');
       return NextResponse.json({ error: 'Failed to delete RSVP' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'RSVP deleted successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/rsvp/[id]:', error);
+    logger.error({ error }, 'Error in DELETE /api/rsvp/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

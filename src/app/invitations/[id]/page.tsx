@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/protected-route';
@@ -10,11 +10,13 @@ import { useInvitations } from '@/hooks/useInvitations';
 import { InvitationDisplay } from '@/components/invitation-display';
 import { getInvitationDesign } from '@/lib/invitation-utils';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
+import { logger } from "@/lib/logger";
+import { Edit, Eye } from 'lucide-react';
+import { ShareLinkGroup } from '@/components/share-link-group';
 
 export default function InvitationView() {
   const params = useParams();
   const id = params.id as string;
-  const [copySuccess, setCopySuccess] = useState(false);
 
   const {
     invitation,
@@ -29,15 +31,6 @@ export default function InvitationView() {
     }
   }, [id, fetchInvitation]);
 
-  const handleCopyInviteLink = () => {
-    if (!invitation) return;
-    const url = `${window.location.origin}/invite/${invitation.share_token}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    });
-  };
-
   const deleteRSVP = async (rsvpId: string) => {
     try {
       const response = await fetch(`/api/rsvp/${rsvpId}`, {
@@ -51,7 +44,7 @@ export default function InvitationView() {
       // Refresh invitation data to get updated RSVP list
       await fetchInvitation(id);
     } catch (error) {
-      console.error(error instanceof Error ? error.message : 'Failed to delete RSVP');
+      logger.error(error instanceof Error ? error.message : 'Failed to delete RSVP');
     }
   };
 
@@ -71,7 +64,7 @@ export default function InvitationView() {
       // Redirect to dashboard
       window.location.href = '/dashboard';
     } catch (error) {
-      console.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
+      logger.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
     }
   };
 
@@ -117,7 +110,7 @@ export default function InvitationView() {
             </p>
             <Link
               href="/dashboard"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
             >
               Return to Dashboard
             </Link>
@@ -143,41 +136,37 @@ export default function InvitationView() {
                 </p>
               </div>
 
-              {/* Mobile: Stack actions vertically, Desktop: Horizontal */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-                {/* Primary actions - most important first on mobile */}
-                <button
-                  onClick={handleCopyInviteLink}
-                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-center ${copySuccess
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-                  aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-                >
-                  {copySuccess ? 'Copied!' : 'Copy Invite Link'}
-                </button>
+              {/* Mobile: Stack actions vertically, Desktop: Neatly group into two rows */}
+              <div className="flex flex-col gap-3 w-full sm:w-auto sm:items-end">
+                {/* Primary actions - Share */}
+                <ShareLinkGroup
+                  shareToken={invitation.share_token}
+                  className="w-full sm:w-auto"
+                />
 
-                <div className="flex gap-2">
+                {/* Secondary actions - Edit, Preview, Delete */}
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
                   <Link
                     href={`/invitations/${invitation.id}/edit`}
-                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center"
+                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
                   >
+                    <Edit className="w-4 h-4 flex-shrink-0" />
                     Edit
                   </Link>
                   <Link
                     href={`/invite/${invitation.share_token}`}
                     target="_blank"
-                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center"
+                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
                   >
+                    <Eye className="w-4 h-4 flex-shrink-0" />
                     Preview
                   </Link>
+                  <ConfirmDeleteButton
+                    onConfirm={deleteInvitation}
+                    confirmLabel="Delete permanently?"
+                    className="flex-1 sm:flex-initial"
+                  />
                 </div>
-
-                {/* Destructive action - separated and less prominent on mobile */}
-                <ConfirmDeleteButton
-                  onConfirm={deleteInvitation}
-                  confirmLabel="Delete permanently?"
-                />
               </div>
             </div>
           </div>
@@ -208,6 +197,13 @@ export default function InvitationView() {
                   <p className="text-gray-800 font-medium">{formatTime(invitation.event_time)}</p>
                 </div>
               )}
+              {invitation.rsvp_deadline && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">RSVP Deadline</h3>
+                  <p className="text-gray-800 font-medium">{formatDisplayDate(invitation.rsvp_deadline)}</p>
+                </div>
+              )}
+
 
               {invitation.location && (
                 <div>
@@ -240,8 +236,8 @@ export default function InvitationView() {
 
             <div className="grid grid-cols-3 gap-6 mb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">{rsvpStats.yes}</div>
-                <div className="text-sm text-gray-800 font-medium">Yes</div>
+                <div className="text-3xl font-bold text-green-600 mb-2">{rsvpStats.attendingCount}</div>
+                <div className="text-sm text-gray-800 font-medium">Attending</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-yellow-600 mb-2">{rsvpStats.maybe}</div>
@@ -279,7 +275,7 @@ export default function InvitationView() {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="font-semibold text-gray-900">{rsvp.name}</h4>
+                            <h4 className="font-semibold text-gray-900">{rsvp.name}{rsvp.guest_count && rsvp.guest_count > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">+{rsvp.guest_count - 1} guest{rsvp.guest_count > 2 ? "s" : ""}</span>}</h4>
                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${rsvp.response === 'yes'
                               ? 'bg-green-100 text-green-800'
                               : rsvp.response === 'no'
@@ -377,16 +373,13 @@ export default function InvitationView() {
               <p className="text-gray-600 mb-6">
                 Share your invitation link to start receiving responses.
               </p>
-              <button
-                onClick={handleCopyInviteLink}
-                className={`w-full px-6 py-3 rounded-lg font-semibold transition-colors mb-4 ${copySuccess
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                aria-label={copySuccess ? 'Link copied to clipboard' : 'Copy invite link to clipboard'}
-              >
-                {copySuccess ? 'Copied!' : 'Copy Invite Link'}
-              </button>
+              <ShareLinkGroup
+                shareToken={invitation.share_token}
+                orientation="vertical"
+                className="w-full mb-4"
+                copyButtonClassName="flex-1 px-6 py-3 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                qrButtonClassName="sm:w-auto w-full px-6 py-3 rounded-lg font-semibold transition-colors bg-gray-100 hover:bg-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+              />
             </div>
           )}
         </div>
