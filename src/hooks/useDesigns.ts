@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useApiRequest } from './useApiRequest';
 import { Design } from '@/lib/supabase';

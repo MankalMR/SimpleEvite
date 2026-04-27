@@ -100,7 +100,7 @@ export default async function TemplatesPage() {
             <div>
               <h3 className="text-xl font-semibold">Real-Time RSVP Tracking</h3>
               <p className="text-gray-600">
-                Every template comes with built-in guest management. See who is coming, who isn't, and 
+                Every template comes with built-in guest management. See who is coming, who isn&apos;t, and 
                 get notified immediately when a guest responds.
               </p>
             </div>
@@ -114,7 +114,7 @@ export default async function TemplatesPage() {
             <div>
               <h3 className="text-xl font-semibold">No Guest Accounts Needed</h3>
               <p className="text-gray-600">
-                We respect your guests' privacy. They can respond to your invitation with a single click, 
+                We respect your guests&apos; privacy. They can respond to your invitation with a single click, 
                 making it the easiest experience for everyone involved.
               </p>
             </div>

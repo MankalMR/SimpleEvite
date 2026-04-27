@@ -5,7 +5,7 @@
 import { authOptions } from './auth';
 
 // Mock NextAuth
-jest.mock('next-auth', () => ({
+jest.mock('next-auth/next', () => ({
   NextAuthOptions: jest.fn()
 }));
 

@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server';
 import { DELETE } from './route';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { supabaseDb } from '@/lib/database-supabase';
 
 // Mock dependencies
-jest.mock('next-auth', () => ({
+jest.mock('next-auth/next', () => ({
   getServerSession: jest.fn(),
 }));
 

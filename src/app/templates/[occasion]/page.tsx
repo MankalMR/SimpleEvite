@@ -133,7 +133,7 @@ export default async function OccasionTemplatesPage({ params }: PageProps) {
           
           <div className="mt-12 bg-gray-50 p-8 rounded-2xl">
             <p className="text-gray-700 font-medium italic">
-              "Simple Evite made my {name} planning so much easier. The RSVPs started coming in within minutes!"
+              &quot;Simple Evite made my {name} planning so much easier. The RSVPs started coming in within minutes!&quot;
             </p>
             <p className="mt-4 text-sm text-gray-500 font-semibold">— Happy User</p>
           </div>
