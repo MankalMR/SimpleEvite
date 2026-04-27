@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
+import { sanitizeText } from '@/lib/security';
 import { logger } from "@/lib/logger";
 
 // PUT /api/designs/[id] - Update design
@@ -25,8 +26,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
+    const sanitizedName = sanitizeText(name);
+
     // Update design using the database layer
-    const design = await supabaseDb.updateDesign(resolvedParams.id, { name }, userId);
+    const design = await supabaseDb.updateDesign(resolvedParams.id, { name: sanitizedName }, userId);
 
     if (!design) {
       return NextResponse.json({ error: 'Design not found or unauthorized' }, { status: 404 });
