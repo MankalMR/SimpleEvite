@@ -1,4 +1,4 @@
-import { sendTestEmail, sendRsvpConfirmationEmail, sendEventUpdateEmail, sendHostRsvpNotificationEmail } from './email-service';
+import { sendTestEmail, sendRsvpConfirmationEmail, sendEventUpdateEmail, sendHostRsvpNotificationEmail, sendEventReminderEmail } from './email-service';
 import { Resend } from 'resend';
 
 // Create a mock setup directly in the module mock
@@ -172,6 +172,42 @@ describe('sendHostRsvpNotificationEmail', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('Unexpected Error');
+  });
+});
+
+
+describe('sendEventReminderEmail', () => {
+  let mockSend: jest.Mock;
+
+  beforeEach(() => {
+    mockSend = new Resend().emails.send as jest.Mock;
+    mockSend.mockClear();
+  });
+
+  const validParams = {
+    to: 'guest@example.com',
+    guestName: 'John Reminder',
+    eventTitle: 'Reunion',
+    eventDate: '2025-06-10',
+    eventTime: '10:00',
+    location: 'Beach House',
+    description: 'Don\'t forget your swimsuit!',
+    inviteUrl: 'https://example.com/invite/token789',
+  };
+
+  it('sends reminder email successfully', async () => {
+    mockSend.mockResolvedValueOnce({ data: { id: 'rem-1' }, error: null });
+
+    const result = await sendEventReminderEmail(validParams);
+
+    expect(result.success).toBe(true);
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'guest@example.com',
+        subject: `Reminder: ${validParams.eventTitle} is coming up soon! 🎉`,
+        html: expect.stringContaining('Beach House'),
+      })
+    );
   });
 });
 

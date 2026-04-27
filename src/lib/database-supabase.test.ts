@@ -36,6 +36,9 @@ const mockQueryBuilder: Record<string, unknown> = {
   update: mockUpdate,
   delete: mockDelete,
   single: mockSingle,
+  gte: jest.fn().mockReturnThis(),
+  lte: jest.fn().mockReturnThis(),
+  not: jest.fn().mockReturnThis(),
   then: jest.fn(),
 };
 
@@ -357,6 +360,123 @@ describe('supabaseDb', () => {
         (mockQueryBuilder.then as jest.Mock).mockImplementationOnce((resolve: ResolveFn) => resolve({ error: null }));
         const result = await supabaseDb.deleteRSVP('r1');
         expect(result).toBe(true);
+      });
+    });
+
+    describe('deleteRSVPWithOwnerCheck', () => {
+      it('should delete if user owns the invitation', async () => {
+        mockSingle.mockResolvedValueOnce({ 
+          data: { id: 'r1', invitations: { user_id: 'user1' } }, 
+          error: null 
+        });
+        (mockQueryBuilder.then as jest.Mock).mockImplementationOnce((resolve: ResolveFn) => resolve({ error: null }));
+        
+        const result = await supabaseDb.deleteRSVPWithOwnerCheck('r1', 'user1');
+        expect(result).toBe(true);
+        expect(mockDelete).toHaveBeenCalled();
+      });
+
+      it('should return false if user does not own the invitation', async () => {
+        mockSingle.mockResolvedValueOnce({ 
+          data: { id: 'r1', invitations: { user_id: 'other' } }, 
+          error: null 
+        });
+        const result = await supabaseDb.deleteRSVPWithOwnerCheck('r1', 'user1');
+        expect(result).toBe(false);
+      });
+
+      it('should return false if RSVP not found', async () => {
+        mockSingle.mockResolvedValueOnce({ data: null, error: { message: 'Not found' } });
+        const result = await supabaseDb.deleteRSVPWithOwnerCheck('r1', 'user1');
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('Cron and Notification Helpers', () => {
+      describe('getInvitationsForReminders', () => {
+        it('should fetch invitations within date range', async () => {
+          (mockQueryBuilder.then as jest.Mock).mockImplementationOnce((resolve: ResolveFn) => 
+            resolve({ data: [{ id: 'inv1' }], error: null })
+          );
+          const result = await supabaseDb.getInvitationsForReminders('2026-01-01', '2026-01-03');
+          expect(mockEq).not.toHaveBeenCalled(); // gte/lte used instead
+          expect(result).toHaveLength(1);
+        });
+      });
+
+      describe('getPendingRSVPsForInvitations', () => {
+        it('should fetch pending RSVPs', async () => {
+          (mockQueryBuilder.then as jest.Mock).mockImplementationOnce((resolve: ResolveFn) => 
+            resolve({ data: [{ id: 'r1', response: 'yes' }], error: null })
+          );
+          const result = await supabaseDb.getPendingRSVPsForInvitations(['inv1']);
+          expect(mockIn).toHaveBeenCalledWith('invitation_id', ['inv1']);
+          expect(result).toHaveLength(1);
+        });
+      });
+
+      describe('batchUpdateRSVPStatuses', () => {
+        it('should update statuses in batches', async () => {
+          (mockQueryBuilder.then as jest.Mock).mockImplementation((resolve: ResolveFn) => resolve({ error: null }));
+          await supabaseDb.batchUpdateRSVPStatuses([
+            { id: 'r1', status: 'sent' },
+            { id: 'r2', status: 'failed' }
+          ]);
+          expect(mockUpdate).toHaveBeenCalledTimes(2);
+          expect(mockIn).toHaveBeenCalledWith('id', ['r1']);
+          expect(mockIn).toHaveBeenCalledWith('id', ['r2']);
+        });
+      });
+
+      describe('batchInsertNotificationLogs', () => {
+        it('should insert logs', async () => {
+          (mockQueryBuilder.then as jest.Mock).mockImplementationOnce((resolve: ResolveFn) => resolve({ error: null }));
+          await supabaseDb.batchInsertNotificationLogs([{ rsvp_id: 'r1' }]);
+          expect(mockInsert).toHaveBeenCalledWith([{ rsvp_id: 'r1' }]);
+        });
+      });
+    });
+
+    describe('Default Templates', () => {
+      describe('getTemplates', () => {
+        it('should fetch active templates with filters', async () => {
+          (mockQueryBuilder.then as jest.Mock).mockImplementationOnce((resolve: ResolveFn) => resolve({ data: [{ id: 't1' }], error: null }));
+          const result = await supabaseDb.getTemplates({ occasion: 'birthday' });
+          expect(mockEq).toHaveBeenCalledWith('occasion', 'birthday');
+          expect(result).toHaveLength(1);
+        });
+      });
+
+      describe('getDefaultTemplate', () => {
+        it('should fetch single template', async () => {
+          mockSingle.mockResolvedValueOnce({ data: { id: 't1' }, error: null });
+          const result = await supabaseDb.getDefaultTemplate('t1');
+          expect(result?.id).toBe('t1');
+        });
+      });
+
+      describe('upsertDefaultTemplate', () => {
+        it('should insert if no id provided', async () => {
+          mockSingle.mockResolvedValueOnce({ data: { id: 't1' }, error: null });
+          const result = await supabaseDb.upsertDefaultTemplate({ name: 'New' } as Parameters<typeof supabaseDb.upsertDefaultTemplate>[0]);
+          expect(mockInsert).toHaveBeenCalled();
+          expect(result.id).toBe('t1');
+        });
+
+        it('should update if id provided', async () => {
+          mockSingle.mockResolvedValueOnce({ data: { id: 't1' }, error: null });
+          const result = await supabaseDb.upsertDefaultTemplate({ name: 'Update' } as Parameters<typeof supabaseDb.upsertDefaultTemplate>[0], 't1');
+          expect(mockUpdate).toHaveBeenCalled();
+          expect(result.id).toBe('t1');
+        });
+      });
+
+      describe('deleteDefaultTemplate', () => {
+        it('should delete template', async () => {
+          (mockQueryBuilder.then as jest.Mock).mockImplementationOnce((resolve: ResolveFn) => resolve({ error: null }));
+          const result = await supabaseDb.deleteDefaultTemplate('t1');
+          expect(result).toBe(true);
+        });
       });
     });
   });

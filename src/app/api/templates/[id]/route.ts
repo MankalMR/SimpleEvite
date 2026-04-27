@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
 import { logger } from "@/lib/logger";
 
 // GET /api/templates/[id] - Get single template by ID
@@ -11,24 +11,15 @@ export async function GET(
 ) {
   try {
     const resolvedParams = await params;
-    const { data, error } = await supabaseAdmin
-      .from('default_templates')
-      .select('*')
-      .eq('id', resolvedParams.id)
-      .eq('is_active', true)
-      .single();
+    const template = await supabaseDb.getDefaultTemplate(resolvedParams.id);
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return NextResponse.json({ error: 'Template not found' }, { status: 404 });
-      }
-      logger.error({ error }, 'Error fetching template:');
-      return NextResponse.json({ error: 'Failed to fetch template' }, { status: 500 });
+    if (!template) {
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
     // ⚡ Bolt: Added Cache-Control to reduce DB load and improve TTFB for infrequently changing default templates
     return NextResponse.json(
-      { template: data },
+      { template: template },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
@@ -56,19 +47,9 @@ export async function PUT(
     const resolvedParams = await params;
     const body = await request.json();
 
-    const { data, error } = await supabaseAdmin
-      .from('default_templates')
-      .update(body)
-      .eq('id', resolvedParams.id)
-      .select()
-      .single();
+    const template = await supabaseDb.upsertDefaultTemplate(body, resolvedParams.id);
 
-    if (error) {
-      logger.error({ error }, 'Error updating template:');
-      return NextResponse.json({ error: 'Failed to update template' }, { status: 500 });
-    }
-
-    return NextResponse.json({ template: data });
+    return NextResponse.json({ template });
   } catch (error) {
     logger.error({ error }, 'Error in PUT /api/templates/[id]:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -88,13 +69,9 @@ export async function DELETE(
     }
 
     const resolvedParams = await params;
-    const { error } = await supabaseAdmin
-      .from('default_templates')
-      .delete()
-      .eq('id', resolvedParams.id);
+    const success = await supabaseDb.deleteDefaultTemplate(resolvedParams.id);
 
-    if (error) {
-      logger.error({ error }, 'Error deleting template:');
+    if (!success) {
       return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
     }
 

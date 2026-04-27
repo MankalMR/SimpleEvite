@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
-import { supabaseAdmin } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
 
 // PUT /api/designs/[id] - Update design
@@ -83,9 +82,7 @@ export async function DELETE(
             pathParts[0] === userId &&
             !filePath.includes('..')
           ) {
-            await supabaseAdmin.storage
-              .from('designs')
-              .remove([filePath]);
+            await supabaseDb.deleteDesignImage(filePath);
           } else {
             logger.warn({ userId, filePath }, 'Attempted path traversal or invalid file path in design deletion');
           }
