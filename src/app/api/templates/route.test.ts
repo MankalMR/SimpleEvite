@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { POST } from './route';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 
 // Mock next-auth
 jest.mock('next-auth', () => ({

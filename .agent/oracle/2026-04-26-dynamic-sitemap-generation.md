@@ -1,7 +1,7 @@
 # Feature Ticket: Dynamic Sitemap Generation
 
 ## Status
-pending-implementation
+completed
 
 ## Context
 The current `sitemap.ts` is static and only includes a few main pages. It doesn't include public invitations or template categories, which prevents search engines from discovering the bulk of the site's content.

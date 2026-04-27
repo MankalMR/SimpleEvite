@@ -1,4 +1,5 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { useApiRequest } from './useApiRequest';
 import { Design } from '@/lib/supabase';
 
@@ -6,15 +7,25 @@ import { Design } from '@/lib/supabase';
  * Custom hook for managing designs data
  */
 export function useDesigns() {
+  const { status } = useSession();
+
   // Fetch all user designs
   const fetchDesigns = useCallback(async (): Promise<Design[]> => {
+    if (status !== 'authenticated') {
+      return [];
+    }
+
     const response = await fetch('/api/designs');
+    if (response.status === 401) {
+      return []; // Return empty on unauthorized instead of throwing
+    }
+    
     if (!response.ok) {
       throw new Error('Failed to fetch designs');
     }
     const data = await response.json();
     return data.designs || [];
-  }, []);
+  }, [status]);
 
   // Delete design
   const deleteDesign = useCallback(async (id: string): Promise<void> => {

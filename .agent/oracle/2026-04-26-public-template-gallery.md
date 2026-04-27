@@ -1,7 +1,7 @@
 # Feature Ticket: Public Template Gallery
 
 ## Status
-pending-implementation
+completed
 
 ## Context
 Currently, templates are only viewable after signing in. This prevents search engines from indexing the "long-tail" keywords associated with specific events (e.g., "Free Birthday Invitations").

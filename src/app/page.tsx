@@ -1,73 +1,31 @@
-'use client';
-
-import { useSession, signIn } from 'next-auth/react';
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import Link from 'next/link';
 import Image from 'next/image';
-import { logger } from "@/lib/logger";
+import HomeHeroActions from '@/components/home/HomeHeroActions';
+import HomeRedirect from '@/components/home/HomeRedirect';
+import { generateSoftwareSchema, generateWebSiteSchema } from '@/lib/seo';
 
-export default function Home() {
-  const { data: session } = useSession();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [signInLoading, setSignInLoading] = useState(false);
-  const [, setHasInvitations] = useState(false);
-  const [checkedInvitations, setCheckedInvitations] = useState(false);
-
-  const checkUserInvitations = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/invitations');
-      if (response.ok) {
-        const data = await response.json();
-        const invitations = data.invitations || [];
-        setHasInvitations(invitations.length > 0);
-
-        // Redirect to dashboard if user has invitations
-        if (invitations.length > 0) {
-          router.push('/dashboard');
-        }
-      }
-    } catch (error) {
-      logger.error({ error }, 'Error checking invitations:');
-    } finally {
-      setLoading(false);
-      setCheckedInvitations(true);
-    }
-  }, [router, setHasInvitations]);
-
-  // Check if user has invitations and redirect to dashboard
-  useEffect(() => {
-    if (session && !checkedInvitations) {
-      checkUserInvitations();
-    }
-  }, [session, checkedInvitations, checkUserInvitations]);
-
-  const handleGoogleSignIn = async () => {
-    setSignInLoading(true);
-    try {
-      await signIn('google', { callbackUrl: '/dashboard' });
-    } catch (error) {
-      logger.error({ error }, 'Error signing in:');
-      setSignInLoading(false);
-    }
-  };
-
-  // Show loading state while checking for existing invitations
-  if (session && loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your invitations...</p>
-        </div>
-      </div>
-    );
-  }
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+  
+  const softwareSchema = generateSoftwareSchema();
+  const websiteSchema = generateWebSiteSchema();
 
   return (
     <div className="min-h-screen">
+      {/* Structured Data for Google */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      {/* Client-side logic for redirection if needed */}
+      <HomeRedirect />
+
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,60 +37,20 @@ export default function Home() {
                 width={80}
                 height={80}
                 className="rounded-2xl shadow-lg"
+                priority
               />
             </div>
             <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
-              Create Beautiful
-              <span className="block text-blue-600">Event Invitations</span>
+              Beautiful & Free
+              <span className="block text-blue-600">Digital Invitations</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Design stunning invitations, track RSVPs, and manage your events with ease.
-              No complex setup required.
+              Design stunning invites, track RSVPs in real-time, and manage your guests with ease. 
+              The simplest online invitation maker for any occasion.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {session ? (
-                <>
-                  <Link
-                    href="/create"
-                    className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-                  >
-                    Create Your First Invite
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="border border-blue-600 text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-colors"
-                  >
-                    View Dashboard
-                  </Link>
-                </>
-              ) : (
-                <button
-                  onClick={handleGoogleSignIn}
-                  disabled={signInLoading}
-                  className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-4 rounded-2xl text-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 min-w-[280px]"
-                >
-                  {signInLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Signing you in...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-6 h-6" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                      </svg>
-                      Continue with Google
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+            
+            {/* Interactive Hero Actions */}
+            <HomeHeroActions isAuthenticated={!!session} />
 
             {/* Additional Navigation Links */}
             <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm">
@@ -226,40 +144,8 @@ export default function Home() {
           <p className="text-xl text-blue-100 mb-8">
             Join thousands of users who trust Simple Evite for their events
           </p>
-          {session ? (
-            <Link
-              href="/create"
-              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Create Your First Invite
-            </Link>
-          ) : (
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={signInLoading}
-              className="bg-white text-slate-700 px-8 py-4 rounded-2xl text-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 min-w-[280px] border border-gray-200 mx-auto"
-            >
-              {signInLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-700"></div>
-                  Signing you in...
-                </>
-              ) : (
-                <>
-                  <svg className="w-6 h-6" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                  </svg>
-                  Continue with Google
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </>
-              )}
-            </button>
-          )}
+          
+          <HomeHeroActions isAuthenticated={!!session} />
         </div>
       </div>
 
@@ -307,7 +193,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

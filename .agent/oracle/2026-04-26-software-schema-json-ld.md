@@ -1,7 +1,7 @@
 # Feature Ticket: Software and Event Schema (JSON-LD)
 
 ## Status
-pending-implementation
+completed
 
 ## Context
 Google uses structured data to provide "Rich Snippets" in search results. Currently, the homepage lacks explicit schema to identify it as a Software Application or a Web Site.
