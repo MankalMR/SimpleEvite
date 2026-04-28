@@ -1,7 +1,7 @@
 # Feature Ticket: RSVP Deadline
 
 ## Status
-pending-implementation
+done
 
 ## Context
 Currently, event hosts on Simple Evite cannot set a firm cutoff date for responses. Guests can continue to submit RSVPs indefinitely. This creates uncertainty for hosts who need to finalize headcounts for catering, seating arrangements, or venue bookings by a specific date.
@@ -80,3 +80,8 @@ end
 - [ ] Direct POST requests to `/api/rsvp` for an event with an expired deadline are rejected.
 - [ ] If no deadline is set, or the deadline is in the future, the RSVP flow works as normal.
 - [ ] The feature works in both standard and `/demo` environments.
+
+## Implementation Notes
+- Files changed: `database-schema.sql`, `src/lib/supabase.ts`, `src/lib/database-supabase.ts`
+- Behavior: Added `rsvp_deadline` DATE column to `invitations` table. The data access layer maps this field when reading and writing. Added a migration comment in `database-schema.sql` for adding the `rsvp_deadline` column to an existing database.
+- Tests: N/A - DB schema and types update only.

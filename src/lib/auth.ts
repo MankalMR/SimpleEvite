@@ -19,9 +19,17 @@ export const authOptions: NextAuthOptions = {
   }) as NonNullable<NextAuthOptions['adapter']>,
   callbacks: {
     session: async ({ session, user }) => {
+      console.log('--- NextAuth Session Callback ---');
+      console.log('User from DB:', user);
+      console.log('Session before update:', session);
+      
       if (session?.user && user) {
         (session.user as { id: string }).id = user.id;
+        console.log('User ID mapped to session:', user.id);
+      } else {
+        console.warn('Session update skipped: session.user or user is missing');
       }
+      
       return session;
     },
   },

@@ -13,9 +13,10 @@
 **Learning:** When trying to optimize N+1 queries by embedding nested selects in Supabase (e.g. `designs:designs(...)`), PostgREST will throw a `PGRST200` error ("Could not find a relationship...") and crash the API route (returning a 500 status) if the underlying Postgres table lacks an explicit Foreign Key constraint. The `invitations` table does NOT have a strict foreign key to `designs` or `default_templates`.
 **Action:** Do NOT use nested `.select('*, relation(*)')` syntax in Supabase for relationships that aren't strictly defined by Postgres Foreign Keys. Always fallback to manual `O(1)` bulk filtering (`.in('id', ids)`) in the application layer to resolve these soft-relations safely without crashing.
 
-## 2024-03-15 - Improve LCP for Hero Images
-**Learning:** Next.js `<Image>` component lazy-loads images by default. When used for "above-the-fold" hero images (like `InvitationDisplay`), this causes a delay and hurts the Largest Contentful Paint (LCP) performance metric.
-**Action:** Add `priority={true}` to the `<Image>` component for hero images to disable lazy loading and significantly improve LCP.
+## 2024-03-10 - Next.js App Router: LCP Optimization
+**Learning:** The `<Image>` component in Next.js defaults to lazy loading. For above-the-fold images, such as the `InvitationDisplay` hero component shown immediately when a guest opens a public invitation, this lazy loading delays the Largest Contentful Paint (LCP) and negatively impacts perceived performance.
+**Action:** Added `priority={true}` to the `Image` component in `src/components/invitation-display.tsx` to explicitly disable lazy loading, significantly improving LCP and time-to-first-byte perception for guests viewing invitations.
+
 ## 2026-03-17 - React.memo on InvitationDisplay
  **Learning:** The `InvitationDisplay` component is a purely stateless visual component that is heavily re-rendered within the `InvitationPreview` and form components on every keystroke. Next.js App Router "use client" components like forms cause deep re-renders by default.
  **Action:** Wrapped `InvitationDisplay` in `React.memo` to eliminate unnecessary reconciliation cycles, significantly improving typing responsiveness in the creation/edit forms.
@@ -29,6 +30,10 @@
 ## 2024-05-24 - [Refactoring RSVP stats and grouped RSVPs]
 **Learning:** `src/app/invite/[token]/page.tsx` and `src/app/demo/i/[token]/page.tsx` and `src/lib/rsvp-utils.ts` use `reduce` to aggregate RSVP stats (`yes: 0, no: 0, maybe: 0`). For large amounts of RSVPs, `for...of` loops are significantly faster in V8 than `.reduce()`. I can optimize this simple calculation.
 
-## 2024-05-25 - [Refactoring RSVP stats and grouped RSVPs]
-**Learning:** `getGlobalRSVPStats` in `src/lib/rsvp-utils.ts` was using `.flatMap()` to aggregate RSVPs across multiple invitations. This creates intermediate array allocations that put unnecessary pressure on the garbage collector and slow down processing for large arrays.
-**Action:** Replaced the `.flatMap()` call with nested `for...of` loops, avoiding intermediate arrays and performing the computation in a single pass with O(1) memory overhead.
+## 2026-04-09 - Zero-allocation getGlobalRSVPStats & Demo Cache
+**Learning:** The `getGlobalRSVPStats` function was creating an intermediate array using `flatMap`. The demo route was missing `Cache-Control`.
+**Action:** Refactored `getGlobalRSVPStats` to use nested `for...of` loops and added `Cache-Control` header to demo route for parity with production.
+
+## 2024-05-26 - Concurrent DB queries in DAL
+ **Learning:** The function `enrichInvitationsWithTemplates` in `src/lib/database-supabase.ts` was executing two Supabase queries (`designs` and `default_templates`) sequentially. This resulted in an O(N) waterfall where network latency of the second query was entirely blocked by the first query.
+ **Action:** Refactored the queries to use `Promise.all` to fetch both `designs` and `default_templates` concurrently. This optimization reduces the total database wait time from `O(request1 + request2)` to `O(max(request1, request2))`, directly improving the TTFB of public `/api/invite/[token]` endpoints and private `/api/invitations` routes.

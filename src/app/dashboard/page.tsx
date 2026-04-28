@@ -173,18 +173,24 @@ export default function Dashboard() {
                         </span>
                       </div>
 
-                      <div className="flex gap-2">
-                        <ShareLinkGroup shareToken={invitation.share_token} />
-                        <Link
-                          href={`/invitations/${invitation.id}`}
-                          className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
-                        >
-                          <Eye className="w-4 h-4 flex-shrink-0" />
-                          View
-                        </Link>
-                        <ConfirmDeleteButton
-                          onConfirm={() => handleDeleteInvitation(invitation.id)}
+                      <div className="flex flex-col gap-2 mt-2">
+                        <ShareLinkGroup 
+                          shareToken={invitation.share_token} 
+                          className="w-full"
                         />
+                        <div className="flex gap-2 w-full">
+                          <Link
+                            href={`/invitations/${invitation.id}`}
+                            className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
+                          >
+                            <Eye className="w-4 h-4 flex-shrink-0" />
+                            View
+                          </Link>
+                          <ConfirmDeleteButton
+                            onConfirm={() => handleDeleteInvitation(invitation.id)}
+                            className="flex-1"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

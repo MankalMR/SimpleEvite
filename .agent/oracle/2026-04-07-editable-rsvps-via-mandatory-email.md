@@ -1,7 +1,7 @@
 # Feature Ticket: Editable RSVPs via Mandatory Email
 
 ## Status
-pending-implementation
+done
 
 ## Context
 Currently, the Simple Evite RSVP form allows guests to respond quickly using a public invitation link without creating an account. However, if a guest needs to change their RSVP status later (e.g., they initially said "Yes" but can no longer attend), they have no way to update their original response, especially across different devices. If they submit the form again, it creates a duplicate entry, confusing the host's headcount.
@@ -77,3 +77,12 @@ end
 - [ ] Submitting an RSVP with an email that *has* already been used for that specific invitation updates the existing RSVP record instead of creating a duplicate.
 - [ ] The guest sees appropriate success feedback whether it was a new submission or an update.
 - [ ] The feature works coherently in both standard and `/demo` environments.
+
+
+## Implementation Notes
+- Files changed: `src/lib/database-supabase.ts`, `src/lib/security.ts`, `src/lib/form-utils.ts`, `src/app/api/rsvp/route.ts`, `src/app/api/demo/rsvp/route.ts`, `src/app/invite/[token]/page.tsx`, `src/app/demo/i/[token]/page.tsx`, `src/hooks/usePublicInvitation.ts`
+- Behavior:
+  - The email field is now mandatory for all RSVPs (both in demo mode and live application).
+  - Submitting an RSVP with an email that already exists for a given invitation updates the existing record instead of creating a duplicate.
+  - The frontend dynamically displays "Your RSVP has been updated!" if the submission was an update, and "Your RSVP has been confirmed!" if it was a new submission.
+- Tests: Verified frontend with Playwright tests locally and successfully executed all project tests via `npm run test`.

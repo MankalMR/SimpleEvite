@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
-import { supabaseAdmin } from '@/lib/supabase';
+import { sanitizeText } from '@/lib/security';
 import { logger } from "@/lib/logger";
 
 // PUT /api/designs/[id] - Update design
@@ -14,7 +14,7 @@ export async function PUT(
     const session = await getServerSession(authOptions);
     const userId = (session?.user as { id?: string })?.id;
 
-    if (!userId) {
+    if (!userId || !session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -26,8 +26,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
+    const sanitizedName = sanitizeText(name);
+
     // Update design using the database layer
-    const design = await supabaseDb.updateDesign(resolvedParams.id, { name }, userId);
+    const design = await supabaseDb.updateDesign(resolvedParams.id, { name: sanitizedName }, userId);
 
     if (!design) {
       return NextResponse.json({ error: 'Design not found or unauthorized' }, { status: 404 });
@@ -49,7 +51,7 @@ export async function DELETE(
     const session = await getServerSession(authOptions);
     const userId = (session?.user as { id?: string })?.id;
 
-    if (!userId) {
+    if (!userId || !session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -83,9 +85,7 @@ export async function DELETE(
             pathParts[0] === userId &&
             !filePath.includes('..')
           ) {
-            await supabaseAdmin.storage
-              .from('designs')
-              .remove([filePath]);
+            await supabaseDb.deleteDesignImage(filePath);
           } else {
             logger.warn({ userId, filePath }, 'Attempted path traversal or invalid file path in design deletion');
           }

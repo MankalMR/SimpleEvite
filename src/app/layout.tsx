@@ -4,7 +4,6 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
 import { generateMetadata as generateSEOMetadata } from "@/lib/seo";
-import { getSiteKeywords } from "@/lib/url-utils";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -16,9 +15,9 @@ const pacifico = Pacifico({ weight: "400", subsets: ["latin"], variable: "--font
 const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" });
 
 export const metadata: Metadata = generateSEOMetadata({
-  title: "Simple Evite - Create Beautiful Event Invitations",
-  description: "Create stunning, personalized event invitations with RSVP tracking. Perfect for weddings, birthdays, corporate events, and celebrations. Free to use with beautiful templates.",
-  keywords: getSiteKeywords(),
+  title: "Simple Evite - Free Digital Invitations & Online RSVP Tracker",
+  description: "Create stunning, personalized event invitations with real-time RSVP tracking. Perfect for weddings, birthdays, and parties. Free, beautiful templates with no complex setup.",
+  keywords: ["digital invitations", "online rsvp tracker", "free evite alternative", "event invitation maker", "wedding rsvp website", "party invite builder"],
 });
 
 export const viewport: Viewport = {

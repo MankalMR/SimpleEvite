@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { DemoBanner } from '@/components/DemoBanner';
 import { formatShortDate, isDateInPast } from '@/lib/date-utils';
-import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-utils';
+import { getRSVPStats, getGlobalRSVPStats } from '@/lib/rsvp-utils';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
@@ -101,7 +101,6 @@ export default function DemoDashboard() {
     // Stats
     const globalStats = getGlobalRSVPStats(invitations);
     const totalInvitations = invitations.length;
-    const totalRSVPs = getTotalRSVPCount(invitations);
 
     if (loading) {
         return (
@@ -219,21 +218,25 @@ export default function DemoDashboard() {
                                                 <span className="text-red-600 font-medium">✗ {rsvpStats.no} No</span>
                                             </div>
 
-                                            <div className="flex gap-2">
+                                            <div className="flex flex-col gap-2 mt-2">
                                                 <ShareLinkGroup
                                                     shareToken={invitation.share_token}
                                                     baseUrl={typeof window !== 'undefined' ? `${window.location.origin}/demo/i/` : ''}
+                                                    className="w-full"
                                                 />
-                                                <Link
-                                                    href={`/demo/i/${invitation.share_token}`}
-                                                    className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
-                                                >
-                                                    <Eye className="w-4 h-4 flex-shrink-0" />
-                                                    Preview
-                                                </Link>
-                                                <ConfirmDeleteButton
-                                                    onConfirm={() => handleDeleteInvitation(invitation.id)}
-                                                />
+                                                <div className="flex gap-2 w-full">
+                                                    <Link
+                                                        href={`/demo/i/${invitation.share_token}`}
+                                                        className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
+                                                    >
+                                                        <Eye className="w-4 h-4 flex-shrink-0" />
+                                                        Preview
+                                                    </Link>
+                                                    <ConfirmDeleteButton
+                                                        onConfirm={() => handleDeleteInvitation(invitation.id)}
+                                                        className="flex-1"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

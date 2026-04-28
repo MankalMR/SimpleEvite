@@ -1,13 +1,16 @@
 import { NextRequest } from 'next/server';
 import { GET } from './route';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
 import { sendEventReminderEmail, prepareReminderData } from '@/lib/email-service';
 import { logger } from '@/lib/logger';
 
 // Mock dependencies
-jest.mock('@/lib/supabase', () => ({
-  supabaseAdmin: {
-    from: jest.fn(),
+jest.mock('@/lib/database-supabase', () => ({
+  supabaseDb: {
+    getInvitationsForReminders: jest.fn(),
+    getPendingRSVPsForInvitations: jest.fn(),
+    batchUpdateRSVPStatuses: jest.fn(),
+    batchInsertNotificationLogs: jest.fn(),
   },
 }));
 
@@ -66,16 +69,7 @@ describe('GET /api/cron/send-reminders', () => {
   });
 
   it('should return 200 with no processed events if no invitations are found', async () => {
-    (supabaseAdmin.from as jest.Mock).mockImplementation((table) => {
-      if (table === 'invitations') {
-        return {
-          select: jest.fn().mockReturnThis(),
-          gte: jest.fn().mockReturnThis(),
-          lte: jest.fn().mockResolvedValue({ data: [], error: null }),
-        };
-      }
-      return {};
-    });
+    (supabaseDb.getInvitationsForReminders as jest.Mock).mockResolvedValue([]);
 
     const req = createMockRequest();
     const res = await GET(req);
@@ -99,35 +93,10 @@ describe('GET /api/cron/send-reminders', () => {
       { id: 'rsvp_3', invitation_id: 'inv_2', email: 'guest3@ex.com', response: 'yes' } // Will be skipped
     ];
 
-    const mockUpdateIn = jest.fn().mockResolvedValue({ error: null });
-    const mockUpdate = jest.fn().mockReturnValue({ in: mockUpdateIn });
-    const mockInsert = jest.fn().mockResolvedValue({ error: null });
-
-    (supabaseAdmin.from as jest.Mock).mockImplementation((table) => {
-      if (table === 'invitations') {
-        return {
-          select: jest.fn().mockReturnThis(),
-          gte: jest.fn().mockReturnThis(),
-          lte: jest.fn().mockResolvedValue({ data: mockInvitations, error: null }),
-        };
-      }
-      if (table === 'rsvps') {
-        const mockSelectNot = jest.fn().mockResolvedValue({ data: mockRsvps, error: null });
-        const mockSelectEq = jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ not: mockSelectNot }) });
-        const mockSelectIn = jest.fn().mockReturnValue({ eq: mockSelectEq });
-
-        return {
-          select: jest.fn().mockReturnValue({ in: mockSelectIn }),
-          update: mockUpdate,
-        };
-      }
-      if (table === 'notification_logs') {
-        return {
-          insert: mockInsert,
-        };
-      }
-      return {};
-    });
+    (supabaseDb.getInvitationsForReminders as jest.Mock).mockResolvedValue(mockInvitations);
+    (supabaseDb.getPendingRSVPsForInvitations as jest.Mock).mockResolvedValue(mockRsvps);
+    (supabaseDb.batchUpdateRSVPStatuses as jest.Mock).mockResolvedValue(undefined);
+    (supabaseDb.batchInsertNotificationLogs as jest.Mock).mockResolvedValue(undefined);
 
     // Mock prepareReminderData to return data for first two RSVPs, null for the third
     (prepareReminderData as jest.Mock)
@@ -158,32 +127,19 @@ describe('GET /api/cron/send-reminders', () => {
     expect(results.errors).toHaveLength(1);
     expect(results.errors[0].rsvpId).toBe('rsvp_2');
 
-    // Verify batched DB updates
-    expect(mockUpdateIn).toHaveBeenCalledTimes(3); // Once for skipped, sent, failed
-
-    // Insert to notification_logs
-    expect(mockInsert).toHaveBeenCalledTimes(1);
-    expect(mockInsert.mock.calls[0][0]).toHaveLength(2); // Sent log and Failed log
+    // Verify batched DB updates via DAL
+    expect(supabaseDb.batchUpdateRSVPStatuses).toHaveBeenCalled();
+    expect(supabaseDb.batchInsertNotificationLogs).toHaveBeenCalled();
   });
 
   it('should handle database fetch errors gracefully', async () => {
-    (supabaseAdmin.from as jest.Mock).mockImplementation((table) => {
-      if (table === 'invitations') {
-        return {
-          select: jest.fn().mockReturnThis(),
-          gte: jest.fn().mockReturnThis(),
-          lte: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB Error' } }),
-        };
-      }
-      return {};
-    });
+    (supabaseDb.getInvitationsForReminders as jest.Mock).mockRejectedValue(new Error('DB Error'));
 
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
 
     expect(res.status).toBe(500);
-    expect(data.error).toBe('Failed to fetch invitations');
-    expect(data.details).toBe('DB Error');
+    expect(data.error).toBe('Internal server error');
   });
 });

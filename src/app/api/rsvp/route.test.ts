@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import { POST } from './route';
-import { supabase } from '@/lib/supabase';
 import { supabaseDb } from '@/lib/database-supabase';
 import { sendRsvpConfirmationEmail, sendHostRsvpNotificationEmail } from '@/lib/email-service';
 import { validateRequestBody } from '@/lib/api-security';
@@ -15,7 +14,8 @@ jest.mock('@/lib/supabase', () => ({
 jest.mock('@/lib/database-supabase', () => ({
   supabaseDb: {
     getUserEmail: jest.fn(),
-    createRSVP: jest.fn(),
+    upsertRSVP: jest.fn(),
+    getInvitationByToken: jest.fn(),
   },
 }));
 
@@ -71,18 +71,15 @@ describe('POST /api/rsvp', () => {
         name: mockRsvpData.name,
         response: mockRsvpData.response,
         comment: mockRsvpData.comment,
+        email: mockRsvpData.email,
       },
       rawData: mockRsvpData,
     });
 
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: mockInvitation, error: null }),
-    });
+    (supabaseDb.getInvitationByToken as jest.Mock).mockResolvedValue(mockInvitation);
 
     (supabaseDb.getUserEmail as jest.Mock).mockResolvedValue('host@example.com');
-    (supabaseDb.createRSVP as jest.Mock).mockResolvedValue({ id: 'rsvp-001' });
+    (supabaseDb.upsertRSVP as jest.Mock).mockResolvedValue({ rsvp: { id: 'rsvp-001' }, isUpdate: false });
     (sendRsvpConfirmationEmail as jest.Mock).mockResolvedValue({ success: true });
     (sendHostRsvpNotificationEmail as jest.Mock).mockResolvedValue({ success: true });
   });
@@ -99,7 +96,7 @@ describe('POST /api/rsvp', () => {
     const response = await POST(req);
 
     expect(response.status).toBe(201);
-    expect(supabaseDb.createRSVP).toHaveBeenCalled();
+    expect(supabaseDb.upsertRSVP).toHaveBeenCalled();
     expect(sendRsvpConfirmationEmail).toHaveBeenCalled();
     expect(sendHostRsvpNotificationEmail).toHaveBeenCalled();
   });
@@ -154,11 +151,7 @@ describe('POST /api/rsvp', () => {
   });
 
   it('should return 404 if share_token is invalid or does not match invitation', async () => {
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
-    });
+    (supabaseDb.getInvitationByToken as jest.Mock).mockResolvedValue(null);
 
     const req = createMockRequest();
     const response = await POST(req);

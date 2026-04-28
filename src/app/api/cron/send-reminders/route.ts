@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
 import { sendEventReminderEmail, prepareReminderData } from '@/lib/email-service';
 import type { Invitation, RSVP } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
+
+type InvitationWithUser = Invitation & { 
+  users: { name: string; email: string } | null 
+};
 
 /**
  * Cron job endpoint to send event reminders
@@ -55,26 +59,11 @@ export async function GET(request: NextRequest) {
     threeDaysFromNowEnd.setDate(threeDaysFromNowEnd.getDate() + 3);
     threeDaysFromNowEnd.setHours(23, 59, 59, 999);
 
-    // Fetch invitations with events happening in 1-3 days
-    const { data: invitations, error: invitationsError } = await supabaseAdmin
-      .from('invitations')
-      .select(`
-        *,
-        users (
-          name,
-          email
-        )
-      `)
-      .gte('event_date', oneDayFromNowStart.toISOString().split('T')[0])
-      .lte('event_date', threeDaysFromNowEnd.toISOString().split('T')[0]);
-
-    if (invitationsError) {
-      logger.error({ invitationsError }, 'Error fetching invitations:');
-      return NextResponse.json(
-        { error: 'Failed to fetch invitations', details: invitationsError.message },
-        { status: 500 }
-      );
-    }
+    // Fetch invitations with events happening in 1-3 days using DAL
+    const invitations = await supabaseDb.getInvitationsForReminders(
+      oneDayFromNowStart.toISOString().split('T')[0],
+      threeDaysFromNowEnd.toISOString().split('T')[0]
+    );
 
     if (!invitations || invitations.length === 0) {
       logger.info('No upcoming events found in the 1-3 day window');
@@ -106,29 +95,16 @@ export async function GET(request: NextRequest) {
       notification_type: 'email';
       recipient: string;
       status: 'sent' | 'failed';
-      provider_response?: unknown;
+      provider_response?: Record<string, unknown>;
       error_message?: string;
+      sent_at: string;
     }> = [];
 
     // Extract all invitation IDs to fetch RSVPs in one batch
     const invitationIds = invitations.map((inv) => inv.id);
 
-    // Fetch all pending RSVPs for these invitations in a single query
-    const { data: allRsvps, error: rsvpsError } = await supabaseAdmin
-      .from('rsvps')
-      .select('*')
-      .in('invitation_id', invitationIds)
-      .eq('response', 'yes')
-      .eq('reminder_status', 'pending')
-      .not('email', 'is', null);
-
-    if (rsvpsError) {
-      logger.error({ rsvpsError }, 'Error fetching pending RSVPs in batch:');
-      return NextResponse.json(
-        { error: 'Failed to fetch RSVPs', details: rsvpsError.message },
-        { status: 500 }
-      );
-    }
+    // Fetch all pending RSVPs for these invitations in a single query using DAL
+    const allRsvps = await supabaseDb.getPendingRSVPsForInvitations(invitationIds);
 
     // Group RSVPs by invitation_id for O(1) lookup using Map for better performance
     const rsvpsByInvitationId = new Map<string, RSVP[]>();
@@ -140,7 +116,6 @@ export async function GET(request: NextRequest) {
       }
       group.push(rsvp as RSVP);
     }
-
     // Prepare all email sending tasks
     const emailTasks: Array<() => Promise<void>> = [];
 
@@ -162,10 +137,11 @@ export async function GET(request: NextRequest) {
       for (const rsvp of rsvps) {
         try {
           // Prepare reminder data
+          const invWithUser = invitation as unknown as InvitationWithUser;
           const reminderData = prepareReminderData(
             rsvp as RSVP,
             invitation as Invitation,
-            invitation.users?.name
+            invWithUser.users?.name
           );
 
           if (!reminderData) {
@@ -193,7 +169,8 @@ export async function GET(request: NextRequest) {
                   notification_type: 'email',
                   recipient: reminderData.to,
                   status: 'sent',
-                  provider_response: emailResult.response,
+                  provider_response: emailResult.response as Record<string, unknown>,
+                  sent_at: new Date().toISOString(),
                 });
 
                 logger.info(`✓ Successfully sent reminder to ${reminderData.to}`);
@@ -212,6 +189,7 @@ export async function GET(request: NextRequest) {
                   recipient: reminderData.to,
                   status: 'failed',
                   error_message: emailResult.error,
+                  sent_at: new Date().toISOString(),
                 });
 
                 logger.error({ err: emailResult.error }, `✗ Failed to send reminder to ${reminderData.to}:`);
@@ -249,34 +227,20 @@ export async function GET(request: NextRequest) {
       await Promise.all(chunk.map((task) => task()));
     }
 
-    // Execute batch DB operations
+    // Execute batch DB operations using DAL
     try {
-      if (skippedRsvpIds.length > 0) {
-        await supabaseAdmin
-          .from('rsvps')
-          .update({ reminder_status: 'skipped' })
-          .in('id', skippedRsvpIds);
-      }
+      const batchUpdates: Array<{ id: string; status: string; sentAt?: string }> = [];
+      
+      skippedRsvpIds.forEach(id => batchUpdates.push({ id, status: 'skipped' }));
+      sentRsvpIds.forEach(id => batchUpdates.push({ id, status: 'sent', sentAt: new Date().toISOString() }));
+      failedRsvpIds.forEach(id => batchUpdates.push({ id, status: 'failed' }));
 
-      if (sentRsvpIds.length > 0) {
-        await supabaseAdmin
-          .from('rsvps')
-          .update({
-            reminder_sent_at: new Date().toISOString(),
-            reminder_status: 'sent',
-          })
-          .in('id', sentRsvpIds);
-      }
-
-      if (failedRsvpIds.length > 0) {
-        await supabaseAdmin
-          .from('rsvps')
-          .update({ reminder_status: 'failed' })
-          .in('id', failedRsvpIds);
+      if (batchUpdates.length > 0) {
+        await supabaseDb.batchUpdateRSVPStatuses(batchUpdates);
       }
 
       if (notificationLogsToInsert.length > 0) {
-        await supabaseAdmin.from('notification_logs').insert(notificationLogsToInsert);
+        await supabaseDb.batchInsertNotificationLogs(notificationLogsToInsert);
       }
     } catch (dbError) {
       logger.error({ dbError }, 'Error updating database status after processing reminders:');
