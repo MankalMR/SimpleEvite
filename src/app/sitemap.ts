@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/features`,
+      url: `${baseUrl}/demo`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: 0.8,
@@ -45,10 +45,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     // Fetch all active template categories (occasions) for dynamic SEO entry points
     const templates = await supabaseDb.getTemplates();
-    
+
     // Get unique occasions to create category pages in the sitemap
     const occasions = Array.from(new Set(templates.map(t => t.occasion)));
-    
+
     const templateRoutes: MetadataRoute.Sitemap = occasions.map(occasion => ({
       url: `${baseUrl}/templates/${occasion}`,
       lastModified: currentDate,
