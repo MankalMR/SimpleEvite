@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { supabaseAdmin } from '@/lib/supabase';
+import { sanitizeText } from '@/lib/security';
 import { logger } from "@/lib/logger";
 
 // GET /api/designs - Get user's designs
@@ -71,10 +72,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name and image URL are required' }, { status: 400 });
     }
 
+    const sanitizedName = sanitizeText(name);
+
     // Create design using the database layer
     const design = await supabaseDb.createDesign({
       user_id: userId,
-      name,
+      name: sanitizedName,
       image_url,
     }, userId);
 
