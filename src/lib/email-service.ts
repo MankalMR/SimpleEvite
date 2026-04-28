@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import type { Invitation, RSVP } from '@/lib/supabase';
 import { logger } from "@/lib/logger";
 import { generateGoogleCalendarUrl } from './calendar-utils';
+import { escapeHTML } from './security';
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY || 'mock_key_for_build');
@@ -166,6 +167,14 @@ function generateReminderEmailHTML(params: {
     organizerName,
   } = params;
 
+  const safeGuestName = escapeHTML(guestName);
+  const safeEventTitle = escapeHTML(eventTitle);
+  const safeEventDate = escapeHTML(eventDate);
+  const safeEventTime = escapeHTML(eventTime);
+  const safeLocation = escapeHTML(location);
+  const safeDescription = description ? escapeHTML(description) : undefined;
+  const safeOrganizerName = organizerName ? escapeHTML(organizerName) : undefined;
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -308,7 +317,7 @@ function generateReminderEmailHTML(params: {
     <!-- Content -->
     <div class="content">
       <div class="greeting">
-        Hi ${guestName},
+        Hi ${safeGuestName},
       </div>
 
       <p style="color: #374151; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
@@ -317,29 +326,29 @@ function generateReminderEmailHTML(params: {
 
       <!-- Event Details Card -->
       <div class="event-card">
-        <h2 class="event-title">${eventTitle}</h2>
+        <h2 class="event-title">${safeEventTitle}</h2>
 
         <div class="event-detail">
           <span class="event-detail-icon">📅</span>
-          <span class="event-detail-text"><strong>When:</strong> ${eventDate} at ${eventTime}</span>
+          <span class="event-detail-text"><strong>When:</strong> ${safeEventDate} at ${safeEventTime}</span>
         </div>
 
         <div class="event-detail">
           <span class="event-detail-icon">📍</span>
-          <span class="event-detail-text"><strong>Where:</strong> ${location}</span>
+          <span class="event-detail-text"><strong>Where:</strong> ${safeLocation}</span>
         </div>
 
-        ${organizerName ? `
+        ${safeOrganizerName ? `
         <div class="event-detail">
           <span class="event-detail-icon">👤</span>
-          <span class="event-detail-text"><strong>Hosted by:</strong> ${organizerName}</span>
+          <span class="event-detail-text"><strong>Hosted by:</strong> ${safeOrganizerName}</span>
         </div>
         ` : ''}
       </div>
 
-      ${description ? `
+      ${safeDescription ? `
       <div class="description">
-        "${description}"
+        "${safeDescription}"
       </div>
       ` : ''}
 
@@ -633,6 +642,14 @@ function generateConfirmationEmailHTML(params: {
     rawEventDate,
   } = params;
 
+  const safeGuestName = escapeHTML(guestName);
+  const safeEventTitle = escapeHTML(eventTitle);
+  const safeEventDate = escapeHTML(eventDate);
+  const safeEventTime = escapeHTML(eventTime);
+  const safeLocation = escapeHTML(location);
+  const safeDescription = description ? escapeHTML(description) : undefined;
+  const safeOrganizerNotes = organizerNotes ? escapeHTML(organizerNotes) : undefined;
+
   const googleCalendarUrl = generateGoogleCalendarUrl({
     title: eventTitle,
     event_date: rawEventDate,
@@ -782,7 +799,7 @@ function generateConfirmationEmailHTML(params: {
 
     <div class="content">
       <div class="greeting">
-        Hi ${guestName},
+        Hi ${safeGuestName},
       </div>
 
       <p style="color: #374151; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
@@ -790,22 +807,29 @@ function generateConfirmationEmailHTML(params: {
       </p>
 
       <div class="event-card">
-        <h2 class="event-title">${eventTitle}</h2>
+        <h2 class="event-title">${safeEventTitle}</h2>
 
         <div class="event-detail">
           <span class="event-detail-icon">📅</span>
-          <span class="event-detail-text"><strong>When:</strong> ${eventDate} at ${eventTime}</span>
+          <span class="event-detail-text"><strong>When:</strong> ${safeEventDate} at ${safeEventTime}</span>
         </div>
 
         <div class="event-detail">
           <span class="event-detail-icon">📍</span>
-          <span class="event-detail-text"><strong>Where:</strong> ${location}</span>
+          <span class="event-detail-text"><strong>Where:</strong> ${safeLocation}</span>
         </div>
       </div>
 
-      ${description ? `
+      ${safeDescription ? `
       <div class="description">
-        "${description}"
+        "${safeDescription}"
+      </div>
+      ` : ''}
+
+      ${safeOrganizerNotes ? `
+      <div class="description" style="margin-top: 16px; background-color: #ffffff; border-left: 3px solid #10b981; padding: 12px;">
+        <h3 style="margin: 0 0 4px 0; color: #059669; font-size: 13px; font-weight: 600;">A note from the organizer:</h3>
+        <p style="margin: 0; font-style: italic;">${safeOrganizerNotes}</p>
       </div>
       ` : ''}
 
@@ -862,6 +886,14 @@ function generateUpdateEmailHTML(params: {
     organizerNotes,
     rawEventDate,
   } = params;
+
+  const safeGuestName = escapeHTML(guestName);
+  const safeEventTitle = escapeHTML(eventTitle);
+  const safeEventDate = escapeHTML(eventDate);
+  const safeEventTime = escapeHTML(eventTime);
+  const safeLocation = escapeHTML(location);
+  const safeDescription = description ? escapeHTML(description) : undefined;
+  const safeOrganizerNotes = organizerNotes ? escapeHTML(organizerNotes) : undefined;
 
   const googleCalendarUrl = generateGoogleCalendarUrl({
     title: eventTitle,
@@ -1012,7 +1044,7 @@ function generateUpdateEmailHTML(params: {
 
     <div class="content">
       <div class="greeting">
-        Hi ${guestName},
+        Hi ${safeGuestName},
       </div>
 
       <p style="color: #374151; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
@@ -1020,22 +1052,29 @@ function generateUpdateEmailHTML(params: {
       </p>
 
       <div class="event-card">
-        <h2 class="event-title">${eventTitle}</h2>
+        <h2 class="event-title">${safeEventTitle}</h2>
 
         <div class="event-detail">
           <span class="event-detail-icon">📅</span>
-          <span class="event-detail-text"><strong>When:</strong> ${eventDate} at ${eventTime}</span>
+          <span class="event-detail-text"><strong>When:</strong> ${safeEventDate} at ${safeEventTime}</span>
         </div>
 
         <div class="event-detail">
           <span class="event-detail-icon">📍</span>
-          <span class="event-detail-text"><strong>Where:</strong> ${location}</span>
+          <span class="event-detail-text"><strong>Where:</strong> ${safeLocation}</span>
         </div>
       </div>
 
-      ${description ? `
+      ${safeDescription ? `
       <div class="description">
-        "${description}"
+        "${safeDescription}"
+      </div>
+      ` : ''}
+
+      ${safeOrganizerNotes ? `
+      <div class="description" style="margin-top: 16px; background-color: #ffffff; border-left: 3px solid #f59e0b; padding: 12px;">
+        <h3 style="margin: 0 0 4px 0; color: #d97706; font-size: 13px; font-weight: 600;">A note from the organizer:</h3>
+        <p style="margin: 0; font-style: italic;">${safeOrganizerNotes}</p>
       </div>
       ` : ''}
 
@@ -1188,6 +1227,10 @@ function generateHostNotificationEmailHTML(params: {
 }): string {
   const { guestName, response, comment, eventTitle, inviteUrl } = params;
 
+  const safeGuestName = escapeHTML(guestName);
+  const safeEventTitle = escapeHTML(eventTitle);
+  const safeComment = comment ? escapeHTML(comment) : undefined;
+
   const responseColor = response === 'yes' ? '#10b981' : response === 'no' ? '#ef4444' : '#f59e0b';
   const responseEmoji = response === 'yes' ? '✅' : response === 'no' ? '❌' : '❓';
 
@@ -1231,7 +1274,7 @@ function generateHostNotificationEmailHTML(params: {
       </div>
 
       <p style="color: #374151; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
-        You have a new response for your event <strong>${eventTitle}</strong>.
+        You have a new response for your event <strong>${safeEventTitle}</strong>.
       </p>
 
       <div class="rsvp-card">
@@ -1239,13 +1282,13 @@ function generateHostNotificationEmailHTML(params: {
 
         <div class="detail-row">
           <span class="detail-label">Guest Name</span>
-          <span class="detail-value"><strong>${guestName}</strong></span>
+          <span class="detail-value"><strong>${safeGuestName}</strong></span>
         </div>
 
-        ${comment ? `
+        ${safeComment ? `
         <div class="detail-row" style="margin-top: 20px;">
           <span class="detail-label">Message</span>
-          <div class="comment-box">"${comment}"</div>
+          <div class="comment-box">"${safeComment}"</div>
         </div>
         ` : ''}
       </div>
