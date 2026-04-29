@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  /* Atelier Light Theme */
+  --background: #F8F9FA;
   --foreground: #171717;
+  
+  --card: #FFFFFF;
+  --card-foreground: #171717;
+  
+  --primary: #2D5BFF;
+  --primary-foreground: #FFFFFF;
+  
+  --muted: #F1F3F5;
+  --muted-foreground: #6B7280;
+
+  --border: #E5E7EB;
+  
+  --radius: 0.75rem;
+}
+
+.dark {
+  /* Atelier Dark Theme */
+  --background: #0A0A0A;
+  --foreground: #EDEDED;
+  
+  --card: #141414;
+  --card-foreground: #EDEDED;
+  
+  --primary: #3B82F6; /* Slightly lighter blue for dark mode */
+  --primary-foreground: #FFFFFF;
+  
+  --muted: #1F2937;
+  --muted-foreground: #9CA3AF;
+
+  --border: #27272A;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --radius: var(--radius);
+  
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Smooth transitions for theme switching */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }

@@ -27,24 +27,26 @@ export default async function Home() {
       <HomeRedirect />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
+      <div className="bg-gradient-to-br from-background via-muted/50 to-background py-32 border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <Image
-                src="/sEvite.png"
-                alt="Simple Evite Logo"
-                width={80}
-                height={80}
-                className="rounded-2xl shadow-lg"
-                priority
-              />
+            <div className="flex justify-center mb-10">
+              <div className="p-4 bg-primary/5 rounded-3xl shadow-2xl shadow-primary/10">
+                <Image
+                  src="/sEvite.png"
+                  alt="Simple Evite Logo"
+                  width={100}
+                  height={100}
+                  className="rounded-2xl"
+                  priority
+                />
+              </div>
             </div>
-            <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tighter text-foreground mb-8">
               Beautiful & Free
-              <span className="block text-blue-600">Digital Invitations</span>
+              <span className="block text-primary">Digital Invitations</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
               Design stunning invites, track RSVPs in real-time, and manage your guests with ease. 
               The simplest online invitation maker for any occasion.
             </p>
@@ -53,30 +55,30 @@ export default async function Home() {
             <HomeHeroActions isAuthenticated={!!session} />
 
             {/* Additional Navigation Links */}
-            <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm">
+            <div className="mt-12 flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
               <Link
                 href="/demo/dashboard"
-                className="text-green-600 hover:text-green-700 font-semibold transition-colors"
+                className="hover:text-primary transition-colors"
               >
-                Try the Demo →
+                Experience Demo
               </Link>
               <Link
                 href="/features"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
+                className="hover:text-foreground transition-colors"
               >
                 Features
               </Link>
               <Link
                 href="/about"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
+                className="hover:text-foreground transition-colors"
               >
-                About
+                Our Story
               </Link>
               <Link
                 href="/contact"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
+                className="hover:text-foreground transition-colors"
               >
-                Contact
+                Concierge
               </Link>
             </div>
           </div>
@@ -84,51 +86,51 @@ export default async function Home() {
       </div>
 
       {/* Features Section */}
-      <div className="py-20 bg-white">
+      <div className="py-32 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl font-extrabold tracking-tighter text-foreground mb-4">
               Everything you need for perfect events
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-muted-foreground font-medium">
               Simple, powerful tools to create and manage your invitations
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-primary/5 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/10 group-hover:bg-primary/10 transition-colors">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Custom Designs</h3>
-              <p className="text-gray-600">
-                Upload your own images or choose from beautiful templates. Save and reuse your favorite designs.
+              <h3 className="text-xl font-extrabold tracking-tighter text-foreground mb-3">Signature Designs</h3>
+              <p className="text-muted-foreground font-medium leading-relaxed">
+                Upload bespoke assets or utilize curated templates to create invitations that resonate.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-primary/5 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/10 group-hover:bg-primary/10 transition-colors">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Easy RSVP Tracking</h3>
-              <p className="text-gray-600">
-                Guests can RSVP without creating accounts. Track responses and comments in real-time.
+              <h3 className="text-xl font-extrabold tracking-tighter text-foreground mb-3">Frictionless RSVP</h3>
+              <p className="text-muted-foreground font-medium leading-relaxed">
+                Elegant response workflows designed for guests. No accounts required, just pure interaction.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-primary/5 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/10 group-hover:bg-primary/10 transition-colors">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Share Anywhere</h3>
-              <p className="text-gray-600">
-                Get a unique link for each invitation. Share via text, email, social media, or any messaging app.
+              <h3 className="text-xl font-extrabold tracking-tighter text-foreground mb-3">Global Reach</h3>
+              <p className="text-muted-foreground font-medium leading-relaxed">
+                Seamless distribution via any medium. A single link to connect your entire guest list.
               </p>
             </div>
           </div>
@@ -136,12 +138,13 @@ export default async function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-blue-600 py-16">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white mb-4">
+      <div className="bg-primary py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary-foreground/10 via-transparent to-transparent opacity-50" />
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
+          <h2 className="text-4xl font-extrabold tracking-tighter text-primary-foreground mb-6">
             Ready to create your first invitation?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-primary-foreground/80 mb-10 font-medium">
             Join thousands of users who trust Simple Evite for their events
           </p>
           
@@ -150,49 +153,51 @@ export default async function Home() {
       </div>
 
       {/* Simple Footer */}
-      <div className="bg-gray-900 py-8">
+      <footer className="bg-card border-t border-border/40 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center mb-4 md:mb-0">
-              <Image
-                src="/sEvite.png"
-                alt="Simple Evite Logo"
-                width={32}
-                height={32}
-                className="rounded-lg mr-3"
-              />
-              <span className="text-white font-semibold">Simple Evite</span>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="flex items-center">
+              <div className="p-1.5 bg-primary/10 rounded-xl mr-3">
+                <Image
+                  src="/sEvite.png"
+                  alt="Simple Evite Logo"
+                  width={28}
+                  height={28}
+                  className="rounded-lg"
+                />
+              </div>
+              <span className="text-foreground font-extrabold tracking-tighter text-lg">Simple Evite</span>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-6 text-sm">
+            <div className="flex flex-wrap justify-center gap-10 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
               <Link
                 href="/features"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="hover:text-primary transition-colors"
               >
                 Features
               </Link>
               <Link
                 href="/about"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="hover:text-primary transition-colors"
               >
                 About
               </Link>
               <Link
                 href="/contact"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="hover:text-primary transition-colors"
               >
                 Contact
               </Link>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-6 pt-6 text-center">
-            <p className="text-gray-400 text-sm">
-              © 2024 Simple Evite. All rights reserved.
+          <div className="border-t border-border/40 mt-12 pt-8 text-center">
+            <p className="text-muted-foreground/40 text-[10px] font-bold uppercase tracking-widest">
+              © 2024 Simple Evite. Elevated event experiences.
             </p>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

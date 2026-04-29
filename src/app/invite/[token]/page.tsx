@@ -110,21 +110,21 @@ export default function PublicInvite() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (error || !invitation) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-3xl font-extrabold tracking-tighter text-foreground mb-4">
             {error || 'Invitation not found'}
           </h1>
-          <p className="text-gray-600">
-            The invitation link may be invalid or expired.
+          <p className="text-muted-foreground font-medium">
+            The invitation link may be invalid, expired, or has been removed by the organizer.
           </p>
         </div>
       </div>
@@ -150,95 +150,106 @@ export default function PublicInvite() {
         />
       )}
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <div className="relative">
+        <div className="relative border-b border-border/40">
           <InvitationDisplay
             invitation={invitation}
             design={getInvitationDesign(invitation)}
-            className="h-64 md:h-96"
+            className="h-64 md:h-[450px]"
             priority={true}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
         </div>
 
-        {/* Event Details */}
+        {/* Event Details Section */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+          <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-8 mb-8">
+            <div className="flex justify-between items-start mb-8">
+              <h2 className="text-3xl font-extrabold tracking-tighter text-foreground">Event Details</h2>
               {!eventPassed && <AddToCalendar invitation={invitation} />}
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="flex items-start space-x-3">
-                <svg className="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+              <div className="flex items-start space-x-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Date</h3>
-                  <p className="text-gray-600">{formatDisplayDate(invitation.event_date)}</p>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Date</h3>
+                  <p className="text-foreground font-bold">{formatDisplayDate(invitation.event_date)}</p>
                 </div>
               </div>
 
               {invitation.event_time && (
-                <div className="flex items-start space-x-3">
-                  <svg className="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-start space-x-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Time</h3>
-                    <p className="text-gray-600">{formatTime(invitation.event_time)}</p>
-                  </div>
                 </div>
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Time</h3>
+                  <p className="text-foreground font-bold">{formatTime(invitation.event_time)}</p>
+                </div>
+              </div>
               )}
 
-              {invitation.location && (
-                <div className="flex items-start space-x-3">
-                  <svg className="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {invitation.location && (
+              <div className="flex items-start space-x-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Location</h3>
-                    <p className="text-gray-600">{invitation.location}</p>
-                  </div>
                 </div>
-              )}
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Location</h3>
+                  <p className="text-foreground font-bold">{invitation.location}</p>
+                </div>
+              </div>
+            )}
 
               {invitation.organizer_notes && (
-                <div className="flex items-start space-x-3 md:col-span-2 mt-2 pt-6 border-t border-gray-100">
-                  <svg className="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                <div className="flex items-start space-x-4 md:col-span-2 mt-4 pt-8 border-t border-border/40">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">Organizer&apos;s Notes</h3>
-                    <p className="text-gray-600 whitespace-pre-wrap mt-1">{invitation.organizer_notes}</p>
+                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-2">Organizer&apos;s Notes</h3>
+                    <p className="text-foreground font-medium leading-relaxed whitespace-pre-wrap">{invitation.organizer_notes}</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* RSVP Section */}
-          <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">RSVP</h2>
-              <div className="flex space-x-4 text-sm">
-                <span className="text-green-600 font-medium">✓ {rsvpStats.yes} Yes</span>
-                <span className="text-yellow-600 font-medium">? {rsvpStats.maybe} Maybe</span>
-                <span className="text-red-600 font-medium">✗ {rsvpStats.no} No</span>
+          {/* RSVP Section Card */}
+          <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-8 mb-8">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-3xl font-extrabold tracking-tighter text-foreground">RSVP</h2>
+              <div className="flex space-x-4 text-[10px] uppercase tracking-widest font-bold">
+                <span className="text-green-500 bg-green-500/5 px-2 py-1 rounded-md border border-green-500/10">✓ {rsvpStats.yes} Yes</span>
+                <span className="text-yellow-500 bg-yellow-500/5 px-2 py-1 rounded-md border border-yellow-500/10">? {rsvpStats.maybe} Maybe</span>
+                <span className="text-red-500 bg-red-500/5 px-2 py-1 rounded-md border border-red-500/10">✗ {rsvpStats.no} No</span>
               </div>
             </div>
 
             {rsvpSubmitted ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center py-12">
+                <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20">
+                  <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{isUpdate ? 'Your RSVP has been updated!' : 'Your RSVP has been confirmed!'}</h3>
-                <p className="text-gray-600">Your response has been recorded.</p>
+                <h3 className="text-2xl font-extrabold tracking-tighter text-foreground mb-2">
+                  {isUpdate ? 'Response Updated' : 'RSVP Confirmed'}
+                </h3>
+                <p className="text-muted-foreground font-medium">Your response has been recorded beautifully.</p>
               </div>
 
             ) : eventPassed ? (
@@ -253,7 +264,7 @@ export default function PublicInvite() {
 
               <form onSubmit={handleRSVPSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label htmlFor="name" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
                     Your Name *
                   </label>
                   <input
@@ -263,19 +274,19 @@ export default function PublicInvite() {
                     autoFocus
                     value={rsvpData.name}
                     onChange={(e) => setRsvpData({ ...rsvpData, name: e.target.value })}
-                    className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                    className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
                     placeholder="Enter your name"
                   />
                   {formErrors.name && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+                    <p className="mt-2 text-xs font-bold text-red-500 uppercase tracking-tight">{formErrors.name}</p>
                   )}
                 </div>
 
                 <div>
-                  <label id="rsvp-attend-label" className="block text-sm font-semibold text-gray-900 mb-3">
+                  <label id="rsvp-attend-label" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
                     Will you attend? *
                   </label>
-                  <div role="radiogroup" aria-labelledby="rsvp-attend-label" className="grid grid-cols-3 gap-3">
+                  <div role="radiogroup" aria-labelledby="rsvp-attend-label" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {(['yes', 'no', 'maybe'] as const).map((response) => (
                       <button
                         key={response}
@@ -283,13 +294,13 @@ export default function PublicInvite() {
                         role="radio"
                         aria-checked={rsvpData.response === response}
                         onClick={() => setRsvpData({ ...rsvpData, response })}
-                        className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${rsvpData.response === response
+                        className={`px-4 py-4 rounded-xl border-2 font-bold uppercase tracking-widest text-[10px] transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${rsvpData.response === response
                             ? response === 'yes'
-                              ? 'border-green-500 bg-green-50 text-green-700'
+                              ? 'border-green-500 bg-green-500/5 text-green-500 shadow-[0_0_20px_rgba(34,197,94,0.1)]'
                               : response === 'no'
-                                ? 'border-red-500 bg-red-50 text-red-700'
-                                : 'border-yellow-500 bg-yellow-50 text-yellow-700'
-                            : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                                ? 'border-red-500 bg-red-500/5 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.1)]'
+                                : 'border-yellow-500 bg-yellow-500/5 text-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.1)]'
+                            : 'border-border bg-muted/20 text-muted-foreground hover:border-muted-foreground/30 hover:bg-muted/40'
                           }`}
                       >
                         {response === 'yes' ? "Yes, I'll be there!" :
@@ -305,8 +316,8 @@ export default function PublicInvite() {
 
                 {rsvpData.response === 'yes' && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                    <label htmlFor="guest_count" className="block text-sm font-semibold text-gray-900 mb-2">
-                      Number of Guests (including yourself)
+                    <label htmlFor="guest_count" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                      Total Guests (inc. you)
                     </label>
                     <input
                       type="number"
@@ -315,16 +326,16 @@ export default function PublicInvite() {
                       max="20"
                       value={rsvpData.guest_count}
                       onChange={(e) => setRsvpData({ ...rsvpData, guest_count: parseInt(e.target.value) || 1 })}
-                      className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                     />
                   </div>
                 )}
 
                 {/* Email Section (Mandatory) */}
-                <div className="border-t border-gray-200 pt-6 mt-6 mb-6">
+                <div className="border-t border-border/40 pt-8 mt-8">
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
+                      <label htmlFor="email" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
                         Email Address *
                       </label>
                       <input
@@ -333,21 +344,21 @@ export default function PublicInvite() {
                         required
                         value={rsvpData.email}
                         onChange={(e) => setRsvpData({ ...rsvpData, email: e.target.value })}
-                        className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
                         placeholder="your.email@example.com"
                       />
                       {formErrors.email && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                        <p className="mt-2 text-xs font-bold text-red-500 uppercase tracking-tight">{formErrors.email}</p>
                       )}
-                      <p className="mt-1.5 text-xs text-gray-500">
-                        We use your email to let you update your RSVP later.
+                      <p className="mt-2 text-xs text-muted-foreground/60 font-medium italic">
+                        Required to verify or update your response later.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <label htmlFor="comment" className="block text-sm font-semibold text-gray-900 mb-2">
+                <div className="mt-6">
+                  <label htmlFor="comment" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
                     Message (Optional)
                   </label>
                   <textarea
@@ -355,50 +366,41 @@ export default function PublicInvite() {
                     rows={3}
                     value={rsvpData.comment}
                     onChange={(e) => setRsvpData({ ...rsvpData, comment: e.target.value })}
-                    className="w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                    className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
                     placeholder="Any message for the host?"
                   />
                 </div>
 
                 {/* Email Notification Section - Only show if RSVP is "yes" */}
                 {rsvpData.response === 'yes' && (
-                  <div className="border-t border-gray-200 pt-6 mt-2">
-                    <div className="flex items-start mb-4">
+                  <div className="border-t border-border/40 pt-8 mt-8">
+                    <div className="flex items-start mb-6">
                       <div className="flex-shrink-0">
-                        <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                          </svg>
+                        </div>
                       </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                          Get Event Reminders (Optional)
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          We&apos;ll send you a friendly reminder 2 days before the event
-                        </p>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-bold tracking-tight text-foreground">Event Reminders</h3>
+                        <p className="text-xs text-muted-foreground font-medium">Receive a friendly notification 2 days before the event.</p>
                       </div>
                     </div>
 
                     <div className="space-y-4">
                       {rsvpData.email && (
-                        <div className="flex items-start">
-                          <div className="flex items-center h-5">
-                            <input
-                              id="emailNotifications"
-                              type="checkbox"
-                              checked={rsvpData.emailNotifications}
-                              onChange={(e) => setRsvpData({ ...rsvpData, emailNotifications: e.target.checked })}
-                              className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                            />
-                          </div>
-                          <div className="ml-3">
-                            <label htmlFor="emailNotifications" className="text-sm font-medium text-gray-700">
-                              Send me email reminders
-                            </label>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              You&apos;ll receive a notification 2 days before the event
-                            </p>
-                          </div>
+                        <div className="flex items-center space-x-3 p-4 rounded-xl bg-muted/20 border border-border/40">
+                          <input
+                            id="emailNotifications"
+                            type="checkbox"
+                            checked={rsvpData.emailNotifications}
+                            onChange={(e) => setRsvpData({ ...rsvpData, emailNotifications: e.target.checked })}
+                            className="w-5 h-5 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2"
+                          />
+                          <label htmlFor="emailNotifications" className="text-sm font-bold tracking-tight text-foreground cursor-pointer">
+                            Enable email reminders
+                          </label>
                         </div>
                       )}
                     </div>
@@ -406,21 +408,21 @@ export default function PublicInvite() {
                 )}
 
                 <InlineError error={submissionError} className="mb-4" />
-                <div className="flex gap-3">
+                <div className="flex gap-4 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowRSVPForm(false)}
-                    className="flex-1 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    className="flex-1 bg-muted/50 text-foreground px-6 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-muted transition-all shadow-lg"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response || !rsvpData.email.trim()}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    className="flex-1 bg-primary text-primary-foreground px-6 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-xl shadow-primary/20"
                   >
-                    {rsvpLoading && <Spinner className="-ml-1 mr-2 h-5 w-5 text-white" />}
-                    {rsvpLoading ? 'Submitting...' : 'Submit RSVP'}
+                    {rsvpLoading && <Spinner className="-ml-1 mr-2 h-4 w-4 text-primary-foreground" />}
+                    {rsvpLoading ? 'Submitting...' : 'Confirm RSVP'}
                   </button>
                 </div>
               </form>
@@ -431,7 +433,7 @@ export default function PublicInvite() {
                 </p>
                 <button
                   onClick={() => setShowRSVPForm(true)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                  className="bg-primary text-primary-foreground px-12 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary/90 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 shadow-xl shadow-primary/20"
                 >
                   RSVP Now
                 </button>
@@ -441,22 +443,29 @@ export default function PublicInvite() {
 
           {/* Guest List */}
           {invitation.rsvps && invitation.rsvps.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Who&apos;s Coming</h2>
+            <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-8">
+              <h2 className="text-3xl font-extrabold tracking-tighter text-foreground mb-8">Guest List</h2>
               <div className="space-y-4">
                 {invitation.rsvps
                   .filter(rsvp => rsvp.response === 'yes')
                   .map((rsvp) => (
-                    <div key={rsvp.id} className="flex items-start space-x-3 p-4 bg-green-50 rounded-lg">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div key={rsvp.id} className="flex items-start space-x-4 p-4 bg-muted/20 rounded-xl border border-border/40">
+                      <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20">
+                        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{rsvp.name}{rsvp.guest_count && rsvp.guest_count > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">+{rsvp.guest_count - 1} guest{rsvp.guest_count > 2 ? "s" : ""}</span>}</h4>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <h4 className="font-bold text-foreground truncate">{rsvp.name}</h4>
+                          {rsvp.guest_count && rsvp.guest_count > 1 && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary">
+                              +{rsvp.guest_count - 1} Guests
+                            </span>
+                          )}
+                        </div>
                         {rsvp.comment && (
-                          <p className="text-gray-600 text-sm mt-1">&ldquo;{rsvp.comment}&rdquo;</p>
+                          <p className="text-muted-foreground text-sm font-medium mt-1 italic">&ldquo;{rsvp.comment}&rdquo;</p>
                         )}
                       </div>
                     </div>

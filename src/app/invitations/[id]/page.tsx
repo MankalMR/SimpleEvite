@@ -124,14 +124,13 @@ export default function InvitationView() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+        <div className="max-w-4xl mx-auto py-4">
+          {/* Header Card */}
+          <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-6 mb-8">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
               <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{invitation.title}</h1>
-                <p className="text-gray-700 font-medium">
+                <h1 className="text-3xl font-extrabold tracking-tighter text-foreground mb-1">{invitation.title}</h1>
+                <p className="text-muted-foreground text-sm font-medium">
                   Created {new Date(invitation.created_at).toLocaleDateString()}
                 </p>
               </div>
@@ -148,7 +147,7 @@ export default function InvitationView() {
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
                   <Link
                     href={`/invitations/${invitation.id}/edit`}
-                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
+                    className="flex-1 sm:flex-initial bg-muted text-foreground px-4 py-2 rounded-md text-sm font-bold hover:bg-muted/80 transition-colors text-center flex items-center justify-center gap-1.5"
                   >
                     <Edit className="w-4 h-4 flex-shrink-0" />
                     Edit
@@ -156,7 +155,7 @@ export default function InvitationView() {
                   <Link
                     href={`/invite/${invitation.share_token}`}
                     target="_blank"
-                    className="flex-1 sm:flex-initial border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
+                    className="flex-1 sm:flex-initial bg-muted text-foreground px-4 py-2 rounded-md text-sm font-bold hover:bg-muted/80 transition-colors text-center flex items-center justify-center gap-1.5"
                   >
                     <Eye className="w-4 h-4 flex-shrink-0" />
                     Preview
@@ -171,13 +170,13 @@ export default function InvitationView() {
             </div>
           </div>
 
-          {/* Event Details */}
-          <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
+          {/* Event Details Card */}
+          <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-8 mb-8">
+            <h2 className="text-2xl font-extrabold tracking-tighter text-foreground mb-6">Event Details</h2>
 
             {/* Complete Invitation Preview */}
-            <div className="mb-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Invitation Preview</h3>
+            <div className="mb-8">
+              <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-4">Invitation Preview</h3>
               <InvitationDisplay
                 invitation={invitation}
                 design={getInvitationDesign(invitation)}
@@ -187,8 +186,8 @@ export default function InvitationView() {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Date</h3>
-                <p className="text-gray-800 font-medium">{formatDisplayDate(invitation.event_date)}</p>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Date</h3>
+                <p className="text-foreground font-bold">{formatDisplayDate(invitation.event_date)}</p>
               </div>
 
               {invitation.event_time && (
@@ -230,34 +229,34 @@ export default function InvitationView() {
             )}
           </div>
 
-          {/* RSVP Stats */}
-          <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">RSVP Summary</h2>
+          {/* RSVP Stats Card */}
+          <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-8 mb-8">
+            <h2 className="text-2xl font-extrabold tracking-tighter text-foreground mb-6">RSVP Summary</h2>
 
             <div className="grid grid-cols-3 gap-6 mb-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">{rsvpStats.attendingCount}</div>
-                <div className="text-sm text-gray-800 font-medium">Attending</div>
+              <div className="text-center p-4 rounded-xl bg-green-500/5 border border-green-500/10">
+                <div className="text-3xl font-extrabold text-green-500 mb-1">{rsvpStats.attendingCount}</div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-green-600/70">Attending</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-600 mb-2">{rsvpStats.maybe}</div>
-                <div className="text-sm text-gray-800 font-medium">Maybe</div>
+              <div className="text-center p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/10">
+                <div className="text-3xl font-extrabold text-yellow-500 mb-1">{rsvpStats.maybe}</div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-yellow-600/70">Maybe</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-red-600 mb-2">{rsvpStats.no}</div>
-                <div className="text-sm text-gray-800 font-medium">No</div>
+              <div className="text-center p-4 rounded-xl bg-red-500/5 border border-red-500/10">
+                <div className="text-3xl font-extrabold text-red-500 mb-1">{rsvpStats.no}</div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-red-600/70">No</div>
               </div>
             </div>
 
-            <div className="text-center text-sm text-gray-800 font-medium">
+            <div className="text-center text-xs text-muted-foreground font-bold uppercase tracking-widest">
               Total Responses: {(invitation.rsvps || []).length}
             </div>
           </div>
 
-          {/* RSVP List */}
+          {/* RSVP List Card */}
           {invitation.rsvps && invitation.rsvps.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">All RSVPs</h2>
+            <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-8">
+              <h2 className="text-2xl font-extrabold tracking-tighter text-foreground mb-6">All RSVPs</h2>
 
               <div className="space-y-4">
                 {invitation.rsvps
@@ -265,11 +264,11 @@ export default function InvitationView() {
                   .map((rsvp) => (
                     <div
                       key={rsvp.id}
-                      className={`p-4 rounded-lg border-l-4 ${rsvp.response === 'yes'
-                        ? 'bg-green-50 border-green-500'
+                      className={`p-4 rounded-xl border-l-4 transition-all duration-300 hover:bg-muted/30 ${rsvp.response === 'yes'
+                        ? 'bg-green-500/5 border-green-500'
                         : rsvp.response === 'no'
-                          ? 'bg-red-50 border-red-500'
-                          : 'bg-yellow-50 border-yellow-500'
+                          ? 'bg-red-500/5 border-red-500'
+                          : 'bg-yellow-500/5 border-yellow-500'
                         }`}
                     >
                       <div className="flex justify-between items-start">
@@ -297,41 +296,12 @@ export default function InvitationView() {
                                     ? 'bg-red-100 text-red-700'
                                     : 'bg-gray-100 text-gray-500'
                                 }`}>
-                                {rsvp.reminder_status === 'sent' ? (
-                                  <>
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                                    </svg>
-                                    Reminder Sent
-                                  </>
-                                ) : rsvp.reminder_status === 'pending' ? (
-                                  <>
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                    </svg>
-                                    Reminder Pending
-                                  </>
-                                ) : rsvp.reminder_status === 'failed' ? (
-                                  <>
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                    </svg>
-                                    Send Failed
-                                  </>
-                                ) : (
-                                  <>
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
-                                    </svg>
-                                    No Reminder
-                                  </>
-                                )}
+                                {rsvp.reminder_status === 'sent' ? 'Sent' : rsvp.reminder_status === 'pending' ? 'Pending' : rsvp.reminder_status === 'failed' ? 'Failed' : 'None'}
                               </span>
                             )}
                           </div>
                           {rsvp.comment && (
-                            <p className="text-gray-600 text-sm">&ldquo;{rsvp.comment}&rdquo;</p>
+                            <p className="text-muted-foreground text-sm font-medium italic">&ldquo;{rsvp.comment}&rdquo;</p>
                           )}
 
                           {/* Email and reminder info */}
@@ -383,7 +353,6 @@ export default function InvitationView() {
             </div>
           )}
         </div>
-      </div>
-    </ProtectedRoute>
-  );
-}
+      </ProtectedRoute>
+    );
+  }
