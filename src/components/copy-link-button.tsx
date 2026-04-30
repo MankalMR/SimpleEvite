@@ -18,7 +18,7 @@ interface CopyLinkButtonProps {
 
 export function CopyLinkButton({
     shareToken,
-    className = 'flex-1 px-3 py-2 rounded text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5',
+    className = 'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-1.5',
     baseUrl,
     label = 'Copy Link',
     copiedLabel = 'Copied!'

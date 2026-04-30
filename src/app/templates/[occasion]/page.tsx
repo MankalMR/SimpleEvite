@@ -45,98 +45,99 @@ export default async function OccasionTemplatesPage({ params }: PageProps) {
   const name = occasionDisplayNames[occasion] || occasion;
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="py-4">
       {/* Header */}
-      <div className="bg-blue-600 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-          <Link href="/templates" className="text-blue-200 hover:text-white mb-4 inline-block">
-            ← Back to All Occasions
-          </Link>
-          <h1 className="text-4xl font-extrabold sm:text-5xl mb-4">
-            Free {name} Invitation Templates
-          </h1>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-            Choose from our curated collection of {name} designs. 
-            Send via text or email and track your RSVPs for free.
-          </p>
-        </div>
+      <div className="mb-10">
+        <Link href="/templates" className="text-primary hover:text-primary/80 text-[10px] font-bold uppercase tracking-widest mb-4 inline-block transition-colors">
+          ← Back to All Occasions
+        </Link>
+        <h1 className="text-4xl font-extrabold tracking-tighter text-foreground mb-2">
+          Free {name} Invitation Templates
+        </h1>
+        <p className="text-muted-foreground text-sm font-medium">
+          Choose from our curated collection of {name} designs. 
+          Send via text or email and track your RSVPs for free.
+        </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-          {occasionTemplates.map((template) => (
-            <div key={template.id} className="group flex flex-col">
-              <div className="aspect-w-4 aspect-h-5 bg-gray-200 rounded-2xl overflow-hidden relative h-80 shadow-sm group-hover:shadow-md transition-shadow">
-                {template.image_url ? (
-                  <Image
-                    src={template.image_url}
-                    alt={template.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400">
-                    No Preview Available
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link
-                    href={`/create?template=${template.id}`}
-                    className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform"
-                  >
-                    Select Design
-                  </Link>
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {occasionTemplates.map((template) => (
+          <div 
+            key={template.id} 
+            className="group bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(45,91,255,0.08)] hover:-translate-y-1"
+          >
+            <div className="w-full aspect-video bg-muted relative overflow-hidden">
+              {template.image_url ? (
+                <Image
+                  src={template.image_url}
+                  alt={template.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  No Preview Available
                 </div>
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
+                <Link
+                  href={`/create?template=${template.id}`}
+                  className="bg-primary text-primary-foreground px-6 py-3 rounded-md text-xs font-bold uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all"
+                >
+                  Select Design
+                </Link>
               </div>
-              <div className="mt-4 flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">{template.name}</h3>
-                  <p className="text-sm text-gray-500">{template.theme} theme</p>
-                </div>
-                <div className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">
+            </div>
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-lg font-bold text-foreground tracking-tight truncate">{template.name}</h3>
+                <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest">
                   FREE
-                </div>
+                </span>
               </div>
+              <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">{template.theme} theme</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+      </div>
 
-        {/* Informational Section for SEO */}
-        <div className="mt-24 border-t border-gray-100 pt-16 max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            How to Create Your {name} Invitation
-          </h2>
-          <div className="space-y-8 text-left">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">1</div>
-              <div>
-                <h3 className="text-lg font-semibold">Choose your favorite {name} design</h3>
-                <p className="text-gray-600">Pick from our variety of themes and styles specifically curated for {name} celebrations.</p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">2</div>
-              <div>
-                <h3 className="text-lg font-semibold">Add your event details</h3>
-                <p className="text-gray-600">Enter your event name, date, time, and location. You can also add a personalized message for your guests.</p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">3</div>
-              <div>
-                <h3 className="text-lg font-semibold">Share and track RSVPs</h3>
-                <p className="text-gray-600">Send your invitation link via text or email. Your dashboard will update instantly as guests respond.</p>
-              </div>
+      {/* Informational Section for SEO */}
+      <div className="mt-24 border-t border-border/40 pt-16 max-w-3xl mx-auto">
+        <h2 className="text-3xl font-extrabold tracking-tighter text-foreground text-center mb-12">
+          How to Create Your {name} Invitation
+        </h2>
+        <div className="space-y-10">
+          <div className="flex gap-6">
+            <div className="flex-shrink-0 w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-lg">1</div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground tracking-tight mb-2">Choose your favorite {name} design</h3>
+              <p className="text-muted-foreground text-sm font-medium leading-relaxed">Pick from our variety of themes and styles specifically curated for {name} celebrations.</p>
             </div>
           </div>
-          
-          <div className="mt-12 bg-gray-50 p-8 rounded-2xl">
-            <p className="text-gray-700 font-medium italic">
-              &quot;Simple Evite made my {name} planning so much easier. The RSVPs started coming in within minutes!&quot;
-            </p>
-            <p className="mt-4 text-sm text-gray-500 font-semibold">— Happy User</p>
+          <div className="flex gap-6">
+            <div className="flex-shrink-0 w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-lg">2</div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground tracking-tight mb-2">Add your event details</h3>
+              <p className="text-muted-foreground text-sm font-medium leading-relaxed">Enter your event name, date, time, and location. You can also add a personalized message for your guests.</p>
+            </div>
           </div>
+          <div className="flex gap-6">
+            <div className="flex-shrink-0 w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-lg">3</div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground tracking-tight mb-2">Share and track RSVPs</h3>
+              <p className="text-muted-foreground text-sm font-medium leading-relaxed">Send your invitation link via text or email. Your dashboard will update instantly as guests respond.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-16 bg-muted/20 border border-border/40 p-10 rounded-[var(--radius)] text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+          <p className="text-foreground text-lg font-medium italic leading-relaxed relative z-10">
+            &quot;Simple Evite made my {name} planning so much easier. The RSVPs started coming in within minutes!&quot;
+          </p>
+          <p className="mt-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">— Happy User</p>
         </div>
       </div>
     </div>
