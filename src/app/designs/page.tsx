@@ -96,14 +96,14 @@ export default function MyDesigns() {
     <ProtectedRoute>
       <div className="py-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-10">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
             <div>
               <h1 className="text-4xl font-extrabold tracking-tighter text-foreground mb-2">My Templates</h1>
               <p className="text-muted-foreground text-sm font-medium">
                 Signature stationery for your premium events.
               </p>
             </div>
-            <div>
+            <div className="w-full sm:w-auto">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -114,10 +114,17 @@ export default function MyDesigns() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               >
                 {uploading && <Spinner className="w-4 h-4 text-primary-foreground" />}
-                {uploading ? 'Uploading...' : 'Upload Design'}
+                {uploading ? 'Uploading...' : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Upload Design
+                  </>
+                )}
               </button>
             </div>
           </div>

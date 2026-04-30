@@ -82,6 +82,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold tracking-tight transition-all
                   ${isActive 
@@ -99,12 +100,19 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
         {/* Bottom Links */}
         <div className="p-4 space-y-2 border-t border-border/40">
-          <Link href="/contact" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold tracking-tight text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
+          <Link 
+            href="/contact" 
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold tracking-tight text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+          >
             <HelpCircle className="w-5 h-5 text-muted-foreground/70" />
             Help
           </Link>
           <button 
-            onClick={() => isDemo ? window.location.href = '/' : signOut()}
+            onClick={() => {
+              setMobileMenuOpen(false);
+              isDemo ? window.location.href = '/' : signOut();
+            }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold tracking-tight text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
           >
             <LogOut className="w-5 h-5 text-muted-foreground/70" />
@@ -117,7 +125,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
         <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-border bg-card/50 backdrop-blur-sm z-30">
-          <div className="flex items-center gap-4 flex-1">
+          <div className="flex items-center gap-4">
             <button 
               className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground"
               onClick={() => setMobileMenuOpen(true)}
@@ -131,12 +139,14 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             
             <Link 
               href={isDemo ? "/demo/create" : "/create"}
-              className="hidden sm:flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2.5 rounded-md text-sm font-bold tracking-tight transition-all shadow-lg shadow-primary/20"
+              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-3 sm:px-5 py-2 sm:py-2.5 rounded-md text-xs sm:text-sm font-bold tracking-tight transition-all shadow-lg shadow-primary/20"
             >
-              <span className="text-xl leading-none">+</span> New Invite
+              <span className="text-lg sm:text-xl leading-none">+</span>
+              <span className="hidden xs:inline">New Invite</span>
+              <span className="xs:hidden">New</span>
             </Link>
 
-            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-border ml-2">
+            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-border sm:ml-2">
               {session?.user?.image ? (
                 <Image src={session.user.image} alt="User" width={32} height={32} />
               ) : (
