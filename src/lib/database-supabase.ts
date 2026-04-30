@@ -523,11 +523,13 @@ export const supabaseDb = {
   async batchUpdateRSVPStatuses(
     updates: Array<{ id: string; status: string; sentAt?: string }>
   ): Promise<void> {
-    const byStatus = updates.reduce((acc, curr) => {
-      if (!acc[curr.status]) acc[curr.status] = [];
-      acc[curr.status].push(curr);
-      return acc;
-    }, {} as Record<string, typeof updates>);
+    const byStatus: Record<string, typeof updates> = {};
+    for (const curr of updates) {
+      if (!byStatus[curr.status]) {
+        byStatus[curr.status] = [];
+      }
+      byStatus[curr.status].push(curr);
+    }
 
     for (const status in byStatus) {
       const items = byStatus[status];
