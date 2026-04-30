@@ -8,9 +8,8 @@ import { formatShortDate, isDateInPast } from '@/lib/date-utils';
 import { getRSVPStats, getTotalRSVPCount, getGlobalRSVPStats } from '@/lib/rsvp-utils';
 import { useInvitations } from '@/hooks/useInvitations';
 import { getInvitationImageUrl, hasInvitationDesign } from '@/lib/invitation-utils';
-import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { InlineError } from '@/components/inline-error';
-import { Eye, Mail, Users, CalendarDays } from 'lucide-react';
+import { Mail, Users, CalendarDays } from 'lucide-react';
 import { ShareLinkGroup } from '@/components/share-link-group';
 
 export default function Dashboard() {
@@ -21,21 +20,13 @@ export default function Dashboard() {
     loading,
     error,
     fetchInvitations,
-    deleteInvitation,
   } = useInvitations();
 
   useEffect(() => {
     fetchInvitations();
   }, [fetchInvitations]);
 
-  const handleDeleteInvitation = async (id: string) => {
-    setActionError(null);
-    try {
-      await deleteInvitation(id);
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Failed to delete invitation');
-    }
-  };
+
 
   // Global stats across all invitations
   const stats = useMemo(() => {

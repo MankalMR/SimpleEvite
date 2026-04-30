@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
@@ -78,37 +78,6 @@ function InvitationFormInner({ mode, initialData, onSubmit, onCancel, loading = 
     fetchDesigns();
   }, [fetchDesigns]);
 
-  // Handle template selection from URL
-  useEffect(() => {
-    async function fetchTemplate() {
-      if (templateIdFromUrl && mode === 'create') {
-        try {
-          const response = await fetch('/api/templates');
-          if (response.ok) {
-            const data = await response.json();
-            const templates = data.templates || [];
-            const template = templates.find((t: DefaultTemplate) => t.id === templateIdFromUrl);
-            if (template) {
-              handleTemplateSelect(template);
-            }
-          }
-        } catch (error) {
-          logger.error({ error }, 'Failed to fetch template from URL:');
-        }
-      }
-    }
-    fetchTemplate();
-  }, [templateIdFromUrl, mode]);
-
-  // Handle design selection from URL
-  useEffect(() => {
-    if (designIdFromUrl && mode === 'create' && designs.length > 0) {
-      const design = designs.find(d => d.id === designIdFromUrl);
-      if (design) {
-        handleDesignSelect(designIdFromUrl);
-      }
-    }
-  }, [designIdFromUrl, designs, mode]);
 
   // Initialize form data from initial data (for edit mode)
   useEffect(() => {
@@ -187,28 +156,60 @@ function InvitationFormInner({ mode, initialData, onSubmit, onCancel, loading = 
     });
   };
 
-const handleDesignSelect = (designId: string) => {
-    setFormData({
-      ...formData,
+  const handleDesignSelect = useCallback((designId: string) => {
+    setFormData(prev => ({
+      ...prev,
       design_id: designId,
-    });
+    }));
     const design = designs.find(d => d.id === designId);
     setSelectedDesign(design || null);
     setSelectedTemplate(null); // Clear template when custom design is selected
-  };
+  }, [designs]);
 
-  const handleTemplateSelect = (template: DefaultTemplate) => {
+  const handleTemplateSelect = useCallback((template: DefaultTemplate) => {
     setSelectedTemplate(template);
     setSelectedDesign({
       id: template.id,
       name: template.name,
       image_url: template.image_url
     });
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       design_id: template.id // Store template ID directly
-    });
-  };
+    }));
+  }, []);
+
+  // Handle template selection from URL
+  useEffect(() => {
+    async function fetchTemplate() {
+      if (templateIdFromUrl && mode === 'create') {
+        try {
+          const response = await fetch('/api/templates');
+          if (response.ok) {
+            const data = await response.json();
+            const templates = data.templates || [];
+            const template = templates.find((t: DefaultTemplate) => t.id === templateIdFromUrl);
+            if (template) {
+              handleTemplateSelect(template);
+            }
+          }
+        } catch (error) {
+          logger.error({ error }, 'Failed to fetch template from URL:');
+        }
+      }
+    }
+    fetchTemplate();
+  }, [templateIdFromUrl, mode, handleTemplateSelect]);
+
+  // Handle design selection from URL
+  useEffect(() => {
+    if (designIdFromUrl && mode === 'create' && designs.length > 0) {
+      const design = designs.find(d => d.id === designIdFromUrl);
+      if (design) {
+        handleDesignSelect(designIdFromUrl);
+      }
+    }
+  }, [designIdFromUrl, designs, mode, handleDesignSelect]);
 
   return (
     <ProtectedRoute>

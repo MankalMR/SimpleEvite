@@ -6,14 +6,11 @@ import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { 
   LayoutDashboard, 
-  Mail, 
+  Mail,
   Layout,
-  HelpCircle, 
   LogOut, 
-  Search, 
-  Bell,
-  Menu,
-  X
+  HelpCircle,
+  Menu
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import Image from 'next/image';
@@ -111,7 +108,11 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           <button 
             onClick={() => {
               setMobileMenuOpen(false);
-              isDemo ? window.location.href = '/' : signOut();
+              if (isDemo) {
+                window.location.href = '/';
+              } else {
+                signOut();
+              }
             }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold tracking-tight text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
           >

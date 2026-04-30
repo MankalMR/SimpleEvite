@@ -163,6 +163,17 @@ describe('security', () => {
       expect(result.sanitizedData.description).toBe('Cool party b!');
       expect(result.sanitizedData.organizer_notes).toBe('Notes iframe');
     });
+
+    it('should convert empty rsvp_deadline string to undefined', () => {
+      const data = {
+        title: 'Test Event',
+        event_date: '2024-12-25',
+        rsvp_deadline: '',
+      };
+      const result = validateInvitationData(data);
+      expect(result.isValid).toBe(true);
+      expect(result.sanitizedData.rsvp_deadline).toBeUndefined();
+    });
   });
 
   describe('validateRSVPData', () => {
