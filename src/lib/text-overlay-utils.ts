@@ -106,6 +106,33 @@ export const TEXT_SIZES: Record<TextSize, {
   },
 };
 
+// Size classes for small previews (scaled down versions)
+export const PREVIEW_TEXT_SIZES: Record<TextSize, {
+  title: string;
+  description: string;
+}> = {
+  'extra-small': {
+    title: 'text-sm',
+    description: 'text-[8px]',
+  },
+  small: {
+    title: 'text-base',
+    description: 'text-[10px]',
+  },
+  medium: {
+    title: 'text-lg',
+    description: 'text-xs',
+  },
+  large: {
+    title: 'text-2xl',
+    description: 'text-sm',
+  },
+  'extra-large': {
+    title: 'text-3xl md:text-4xl',
+    description: 'text-sm md:text-base',
+  },
+};
+
 /**
  * Get text overlay configuration from invitation data
  */
@@ -123,15 +150,26 @@ export function getTextOverlayConfig(invitation: Invitation): TextOverlayConfig 
 /**
  * Generate CSS classes for text overlay container
  */
-export function getTextOverlayContainerClasses(config: TextOverlayConfig): string {
-  const positionClasses = TEXT_POSITIONS[config.position];
+export function getTextOverlayContainerClasses(config: TextOverlayConfig, isSmall: boolean = false): string {
+  const rawPositionClasses = TEXT_POSITIONS[config.position];
+  
+  // Adjust padding for small previews
+  let positionClasses = rawPositionClasses;
+  if (isSmall) {
+    positionClasses = positionClasses
+      .replace('pt-12', 'pt-4')
+      .replace('pb-20', 'pb-4')
+      .replace('pl-12', 'pl-4')
+      .replace('pr-12', 'pr-4');
+  }
+  
   return `flex ${positionClasses}`;
 }
 
 /**
  * Generate CSS classes for text overlay content
  */
-export function getTextOverlayContentClasses(config: TextOverlayConfig): string {
+export function getTextOverlayContentClasses(config: TextOverlayConfig, isSmall: boolean = false): string {
   const style = TEXT_OVERLAY_STYLES[config.style];
 
   // Determine text alignment based on position
@@ -139,6 +177,10 @@ export function getTextOverlayContentClasses(config: TextOverlayConfig): string 
     config.position === 'right' ? 'text-right' : 'text-center';
 
   let classes = `${textAlign} px-4 ${style.textColor} ${style.fontWeight} ${style.letterSpacing}`;
+
+  if (isSmall) {
+    classes += ' scale-[0.8] origin-center';
+  }
 
   if (config.shadow) {
     classes += ` ${style.shadowColor}`;
@@ -150,7 +192,12 @@ export function getTextOverlayContentClasses(config: TextOverlayConfig): string 
 /**
  * Generate CSS classes for text overlay title
  */
-export function getTextOverlayTitleClasses(config: TextOverlayConfig): string {
+export function getTextOverlayTitleClasses(config: TextOverlayConfig, isSmall: boolean = false): string {
+  if (isSmall) {
+    const size = PREVIEW_TEXT_SIZES[config.size];
+    return `${size.title} font-bold mb-1 line-clamp-2 leading-tight`;
+  }
+  
   const size = TEXT_SIZES[config.size];
   return `${size.title} font-bold mb-4`;
 }
@@ -158,7 +205,12 @@ export function getTextOverlayTitleClasses(config: TextOverlayConfig): string {
 /**
  * Generate CSS classes for text overlay description
  */
-export function getTextOverlayDescriptionClasses(config: TextOverlayConfig): string {
+export function getTextOverlayDescriptionClasses(config: TextOverlayConfig, isSmall: boolean = false): string {
+  if (isSmall) {
+    const size = PREVIEW_TEXT_SIZES[config.size];
+    return `${size.description} max-w-[90%] mx-auto line-clamp-2`;
+  }
+
   const size = TEXT_SIZES[config.size];
   return `${size.description} max-w-2xl mx-auto`;
 }

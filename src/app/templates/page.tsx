@@ -78,7 +78,7 @@ export default async function TemplatesPage() {
                 </p>
                 <Link
                   href={`/templates/${occasion}`}
-                  className="block w-full text-center bg-primary text-primary-foreground py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/10"
+                  className="block w-full text-center bg-primary text-primary-foreground py-3 rounded-md text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/10"
                 >
                   Browse {occasionDisplayNames[occasion] || occasion}
                 </Link>

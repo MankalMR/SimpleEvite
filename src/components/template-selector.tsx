@@ -107,10 +107,10 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
     return (
       <div className="space-y-4">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="h-8 bg-muted/50 rounded w-1/4 mb-4"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-gray-200 rounded-lg h-48"></div>
+              <div key={i} className="bg-muted/30 rounded-[var(--radius)] h-48"></div>
             ))}
           </div>
         </div>
@@ -121,10 +121,10 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
   if (error) {
     return (
       <div className="text-center py-8">
-        <div className="text-red-600 mb-4">{error}</div>
+        <div className="text-red-400 mb-4">{error}</div>
         <button
           onClick={fetchAllTemplates}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
           Try Again
         </button>
@@ -137,17 +137,17 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <label htmlFor="template-occasion-filter" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="template-occasion-filter" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
             Occasion
           </label>
           <select
             id="template-occasion-filter"
             value={selectedOccasion}
             onChange={(e) => setSelectedOccasion(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium"
+            className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
           >
             {availableOccasions.map((occasion) => (
-              <option key={occasion.value} value={occasion.value} className="text-gray-900 bg-white">
+              <option key={occasion.value} value={occasion.value}>
                 {occasion.label}
               </option>
             ))}
@@ -155,17 +155,17 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
         </div>
 
         <div className="flex-1">
-          <label htmlFor="template-theme-filter" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="template-theme-filter" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
             Theme
           </label>
           <select
             id="template-theme-filter"
             value={selectedTheme}
             onChange={(e) => setSelectedTheme(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium"
+            className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
           >
             {availableThemes.map((theme) => (
-              <option key={theme.value} value={theme.value} className="text-gray-900 bg-white">
+              <option key={theme.value} value={theme.value}>
                 {theme.label}
               </option>
             ))}
@@ -176,33 +176,33 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
       {/* Templates Grid */}
       {filteredTemplates.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-gray-500 mb-4">No templates found for the selected filters.</div>
+          <div className="text-muted-foreground mb-4">No templates found for the selected filters.</div>
           <button
             onClick={() => {
               setSelectedOccasion('');
               setSelectedTheme('');
             }}
-            className="text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+            className="text-primary hover:text-primary/80 font-bold uppercase tracking-widest text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded px-2 py-1"
           >
             Clear Filters
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template) => (
             <button
               key={template.id}
               type="button"
-              className={`relative bg-white rounded-lg shadow-sm border-2 transition-all cursor-pointer hover:shadow-md w-full text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+              className={`relative bg-card rounded-[var(--radius)] border-2 transition-all cursor-pointer w-full text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary overflow-hidden flex flex-col ${
                 selectedTemplateId === template.id
-                  ? 'border-blue-500 ring-2 ring-blue-200'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-primary shadow-md'
+                  : 'border-border/40 hover:border-muted-foreground/30 hover:shadow-md hover:-translate-y-0.5'
               }`}
               onClick={() => onSelectTemplate(template)}
               aria-pressed={selectedTemplateId === template.id}
             >
               {/* Template Preview */}
-              <div className="relative h-48 w-full rounded-t-lg overflow-hidden bg-gray-100">
+              <div className="relative h-48 w-full overflow-hidden bg-muted/30 flex-shrink-0">
                 {template.thumbnail_url || template.image_url ? (
                   <Image
                     src={template.thumbnail_url || template.image_url}
@@ -212,14 +212,14 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
                     unoptimized
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                    <span className="text-gray-400 text-sm">Preview</span>
+                  <div className="w-full h-full flex items-center justify-center bg-muted/50">
+                    <span className="text-muted-foreground text-sm">Preview</span>
                   </div>
                 )}
 
                 {/* Selection Indicator */}
                 {selectedTemplateId === template.id && (
-                  <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                  <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -228,19 +228,19 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplateId }: Templ
               </div>
 
               {/* Template Info */}
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-1">{template.name}</h3>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 capitalize">
+              <div className="p-4 flex flex-col flex-1">
+                <h3 className="font-bold text-foreground mb-2 truncate">{template.name}</h3>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-primary/10 text-primary whitespace-nowrap">
                     {template.occasion.replace('-', ' ')}
                   </span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-muted text-muted-foreground whitespace-nowrap">
                     {template.theme}
                   </span>
                 </div>
-                {template.description && (
-                  <p className="text-sm text-gray-600 line-clamp-2">{template.description}</p>
-                )}
+                <p className="text-sm text-muted-foreground line-clamp-2 mt-auto min-h-[2.5rem]">
+                  {template.description || '\u00A0'}
+                </p>
               </div>
             </button>
           ))}

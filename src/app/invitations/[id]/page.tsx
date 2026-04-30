@@ -11,7 +11,7 @@ import { InvitationDisplay } from '@/components/invitation-display';
 import { getInvitationDesign } from '@/lib/invitation-utils';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { logger } from "@/lib/logger";
-import { Edit, Eye } from 'lucide-react';
+import { Edit, Eye, Trash2, Mail, Users } from 'lucide-react';
 import { ShareLinkGroup } from '@/components/share-link-group';
 
 export default function InvitationView() {
@@ -86,7 +86,7 @@ export default function InvitationView() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
-            <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
+            <div className="bg-white rounded-md shadow-sm border p-8 mb-8">
               <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
               <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -110,7 +110,7 @@ export default function InvitationView() {
             </p>
             <Link
               href="/dashboard"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+              className="bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
             >
               Return to Dashboard
             </Link>
@@ -129,43 +129,36 @@ export default function InvitationView() {
           <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-6 mb-8">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
               <div className="flex-1">
-                <h1 className="text-3xl font-extrabold tracking-tighter text-foreground mb-1">{invitation.title}</h1>
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-3xl font-extrabold tracking-tighter text-foreground">{invitation.title}</h1>
+                  <div className="flex items-center gap-1 ml-2">
+                    <Link 
+                      href={`/invitations/${invitation.id}/edit`}
+                      className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10"
+                      title="Edit invitation"
+                    >
+                      <Edit className="w-5 h-5" />
+                    </Link>
+                    <Link
+                      href={`/invite/${invitation.share_token}`}
+                      target="_blank"
+                      className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10"
+                      title="Preview guest view"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </Link>
+                  </div>
+                </div>
                 <p className="text-muted-foreground text-sm font-medium">
                   Created {new Date(invitation.created_at).toLocaleDateString()}
                 </p>
               </div>
 
-              {/* Mobile: Stack actions vertically, Desktop: Neatly group into two rows */}
-              <div className="flex flex-col gap-3 w-full sm:w-auto sm:items-end">
-                {/* Primary actions - Share */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:items-center">
                 <ShareLinkGroup
                   shareToken={invitation.share_token}
                   className="w-full sm:w-auto"
                 />
-
-                {/* Secondary actions - Edit, Preview, Delete */}
-                <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
-                  <Link
-                    href={`/invitations/${invitation.id}/edit`}
-                    className="flex-1 sm:flex-initial bg-muted text-foreground px-4 py-2 rounded-md text-sm font-bold hover:bg-muted/80 transition-colors text-center flex items-center justify-center gap-1.5"
-                  >
-                    <Edit className="w-4 h-4 flex-shrink-0" />
-                    Edit
-                  </Link>
-                  <Link
-                    href={`/invite/${invitation.share_token}`}
-                    target="_blank"
-                    className="flex-1 sm:flex-initial bg-muted text-foreground px-4 py-2 rounded-md text-sm font-bold hover:bg-muted/80 transition-colors text-center flex items-center justify-center gap-1.5"
-                  >
-                    <Eye className="w-4 h-4 flex-shrink-0" />
-                    Preview
-                  </Link>
-                  <ConfirmDeleteButton
-                    onConfirm={deleteInvitation}
-                    confirmLabel="Delete permanently?"
-                    className="flex-1 sm:flex-initial"
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -192,39 +185,39 @@ export default function InvitationView() {
 
               {invitation.event_time && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Time</h3>
-                  <p className="text-gray-800 font-medium">{formatTime(invitation.event_time)}</p>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Time</h3>
+                  <p className="text-foreground font-bold">{formatTime(invitation.event_time)}</p>
                 </div>
               )}
               {invitation.rsvp_deadline && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">RSVP Deadline</h3>
-                  <p className="text-gray-800 font-medium">{formatDisplayDate(invitation.rsvp_deadline)}</p>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">RSVP Deadline</h3>
+                  <p className="text-foreground font-bold">{formatDisplayDate(invitation.rsvp_deadline)}</p>
                 </div>
               )}
 
 
               {invitation.location && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Location</h3>
-                  <p className="text-gray-800 font-medium">{invitation.location}</p>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Location</h3>
+                  <p className="text-foreground font-bold">{invitation.location}</p>
                 </div>
               )}
 
               {invitation.description && (
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-800 font-medium">{invitation.description}</p>
+                <div className="md:col-span-2">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Description</h3>
+                  <p className="text-foreground font-medium whitespace-pre-wrap">{invitation.description}</p>
                 </div>
               )}
             </div>
 
             {invitation.organizer_notes && (
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  📝 Organizer&apos;s Notes
+              <div className="mt-8 p-6 bg-primary/5 border border-primary/10 rounded-xl">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+                  <span className="text-lg">📝</span> Organizer&apos;s Notes
                 </h3>
-                <p className="text-gray-700 whitespace-pre-wrap">{invitation.organizer_notes}</p>
+                <p className="text-foreground/90 whitespace-pre-wrap font-medium">{invitation.organizer_notes}</p>
               </div>
             )}
           </div>
@@ -256,89 +249,90 @@ export default function InvitationView() {
           {/* RSVP List Card */}
           {invitation.rsvps && invitation.rsvps.length > 0 && (
             <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-8">
-              <h2 className="text-2xl font-extrabold tracking-tighter text-foreground mb-6">All RSVPs</h2>
+              <h2 className="text-2xl font-extrabold tracking-tighter text-foreground mb-8">RSVP Responses</h2>
 
-              <div className="space-y-4">
-                {invitation.rsvps
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                  .map((rsvp) => (
-                    <div
-                      key={rsvp.id}
-                      className={`p-4 rounded-xl border-l-4 transition-all duration-300 hover:bg-muted/30 ${rsvp.response === 'yes'
-                        ? 'bg-green-500/5 border-green-500'
-                        : rsvp.response === 'no'
-                          ? 'bg-red-500/5 border-red-500'
-                          : 'bg-yellow-500/5 border-yellow-500'
-                        }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="font-semibold text-gray-900">{rsvp.name}{rsvp.guest_count && rsvp.guest_count > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">+{rsvp.guest_count - 1} guest{rsvp.guest_count > 2 ? "s" : ""}</span>}</h4>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${rsvp.response === 'yes'
-                              ? 'bg-green-100 text-green-800'
-                              : rsvp.response === 'no'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                              }`}>
-                              {rsvp.response === 'yes' ? 'Attending' :
-                                rsvp.response === 'no' ? 'Not Attending' :
-                                  'Maybe'}
-                            </span>
+              <div className="space-y-10">
+                {[
+                  { label: 'Attending', key: 'yes', color: 'border-green-500', icon: <Users className="w-4 h-4 text-green-500" /> },
+                  { label: 'Maybe', key: 'maybe', color: 'border-yellow-500', icon: <Users className="w-4 h-4 text-yellow-500" /> },
+                  { label: 'Not Attending', key: 'no', color: 'border-red-500', icon: <Users className="w-4 h-4 text-red-500" /> }
+                ].map((group) => {
+                  const rsvps = invitation.rsvps?.filter(r => r.response === group.key)
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) || [];
+                  
+                  if (rsvps.length === 0) return null;
 
-                            {/* Notification Status Badge */}
-                            {rsvp.response === 'yes' && rsvp.email && (
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${rsvp.reminder_status === 'sent'
-                                ? 'bg-blue-100 text-blue-800'
-                                : rsvp.reminder_status === 'pending'
-                                  ? 'bg-gray-100 text-gray-700'
-                                  : rsvp.reminder_status === 'failed'
-                                    ? 'bg-red-100 text-red-700'
-                                    : 'bg-gray-100 text-gray-500'
-                                }`}>
-                                {rsvp.reminder_status === 'sent' ? 'Sent' : rsvp.reminder_status === 'pending' ? 'Pending' : rsvp.reminder_status === 'failed' ? 'Failed' : 'None'}
-                              </span>
-                            )}
-                          </div>
-                          {rsvp.comment && (
-                            <p className="text-muted-foreground text-sm font-medium italic">&ldquo;{rsvp.comment}&rdquo;</p>
-                          )}
+                  return (
+                    <div key={group.key} className="space-y-4">
+                      <div className="flex items-center gap-2 border-b border-border/40 pb-2">
+                        {group.icon}
+                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">
+                          {group.label} ({rsvps.length})
+                        </h3>
+                      </div>
+                      
+                      <div className="grid gap-3">
+                        {rsvps.map((rsvp) => (
+                          <div
+                            key={rsvp.id}
+                            className={`group relative p-4 rounded-md border-l-4 bg-muted/20 border-border/10 ${group.color} transition-all duration-300 hover:bg-muted/40`}
+                          >
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                  <h4 className="font-bold text-foreground truncate">
+                                    {rsvp.name}
+                                  </h4>
+                                  {rsvp.guest_count && rsvp.guest_count > 1 && (
+                                    <span className="text-[10px] uppercase tracking-widest font-black px-1.5 py-0.5 bg-primary/10 text-primary rounded-sm">
+                                      +{rsvp.guest_count - 1} GUEST{rsvp.guest_count > 2 ? 'S' : ''}
+                                    </span>
+                                  )}
+                                  
+                                  {rsvp.email && rsvp.response === 'yes' && (
+                                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold px-1.5 py-0.5 bg-muted/50 text-muted-foreground rounded-sm">
+                                      <Mail className="w-3 h-3" />
+                                      {rsvp.reminder_status === 'sent' ? 'Reminded' : 'Email Saved'}
+                                    </div>
+                                  )}
+                                </div>
 
-                          {/* Email and reminder info */}
-                          {rsvp.email && rsvp.response === 'yes' && (
-                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                              </svg>
-                              <span>{rsvp.email}</span>
-                              {rsvp.reminder_sent_at && (
-                                <span className="text-gray-500">
-                                  • Reminded {new Date(rsvp.reminder_sent_at).toLocaleDateString()}
-                                </span>
-                              )}
+                                {rsvp.comment && (
+                                  <p className="text-muted-foreground text-sm font-medium italic mb-2 leading-relaxed">
+                                    &ldquo;{rsvp.comment}&rdquo;
+                                  </p>
+                                )}
+
+                                <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                                  <span>{new Date(rsvp.created_at).toLocaleDateString()}</span>
+                                  {rsvp.email && (
+                                    <span className="lowercase font-medium tracking-normal text-muted-foreground/40 truncate max-w-[150px]">
+                                      {rsvp.email}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={() => deleteRSVP(rsvp.id)}
+                                className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all focus:opacity-100"
+                                title="Remove RSVP"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
-                          )}
-
-                          <p className="text-xs text-gray-500 mt-2">
-                            Responded {new Date(rsvp.created_at).toLocaleDateString()} at {new Date(rsvp.created_at).toLocaleTimeString()}
-                          </p>
-                        </div>
-                        <ConfirmDeleteButton
-                          onConfirm={() => deleteRSVP(rsvp.id)}
-                          label="Remove"
-                          confirmLabel="Remove?"
-                          size="sm"
-                        />
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
           {invitation.rsvps && invitation.rsvps.length === 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+            <div className="bg-white rounded-md shadow-sm border p-8 text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">No RSVPs Yet</h2>
               <p className="text-gray-600 mb-6">
                 Share your invitation link to start receiving responses.
@@ -347,11 +341,29 @@ export default function InvitationView() {
                 shareToken={invitation.share_token}
                 orientation="vertical"
                 className="w-full mb-4"
-                copyButtonClassName="flex-1 px-6 py-3 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
-                qrButtonClassName="sm:w-auto w-full px-6 py-3 rounded-lg font-semibold transition-colors bg-gray-100 hover:bg-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                copyButtonClassName="flex-1 px-6 py-3 rounded-md font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2"
+                qrButtonClassName="sm:w-auto w-full px-6 py-3 rounded-md font-semibold transition-colors bg-gray-100 hover:bg-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 flex items-center justify-center gap-2"
               />
             </div>
           )}
+
+          {/* Danger Zone */}
+          <div className="mt-12 pt-8 border-t border-border/40">
+            <div className="bg-red-500/5 border border-red-500/10 rounded-md p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-red-600 mb-1">Danger Zone</h3>
+                <p className="text-sm text-red-600/70 font-medium">
+                  Once you delete an invitation, there is no going back. Please be certain.
+                </p>
+              </div>
+              <ConfirmDeleteButton
+                onConfirm={deleteInvitation}
+                label="Delete Invitation"
+                confirmLabel="Are you absolutely sure?"
+                className="sm:w-auto w-full"
+              />
+            </div>
+          </div>
         </div>
       </ProtectedRoute>
     );

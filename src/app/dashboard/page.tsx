@@ -125,7 +125,7 @@ export default function Dashboard() {
               <p className="text-muted-foreground mb-8 font-medium">Start your journey by creating a premium digital invitation.</p>
               <Link
                 href="/create"
-                className="bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
+                className="bg-primary text-primary-foreground px-8 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
               >
                 Create Your First Design
               </Link>
@@ -141,35 +141,39 @@ export default function Dashboard() {
                     key={invitation.id} 
                     className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(45,91,255,0.08)] hover:-translate-y-1"
                   >
-                    {hasInvitationDesign(invitation) && (
-                      <div className="aspect-video bg-muted relative">
-                        <Image
-                          src={getInvitationImageUrl(invitation) || ''}
-                          alt={invitation.title}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                    )}
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-lg font-bold text-foreground truncate">
-                          {invitation.title}
-                        </h3>
-                        <span className={`px-2.5 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-full ${isUpcoming
-                          ? 'bg-primary/10 text-primary'
-                          : 'bg-muted text-muted-foreground'
-                          }`}>
-                          {isUpcoming ? 'Upcoming' : 'Past'}
-                        </span>
-                      </div>
+                    <Link href={`/invitations/${invitation.id}`} className="block group/card">
+                      {hasInvitationDesign(invitation) && (
+                        <div className="aspect-video bg-muted relative">
+                          <Image
+                            src={getInvitationImageUrl(invitation) || ''}
+                            alt={invitation.title}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      )}
+                      <div className="p-6 pb-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="text-lg font-bold text-foreground truncate group-hover/card:text-primary transition-colors">
+                            {invitation.title}
+                          </h3>
+                          <span className={`px-2.5 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-full ${isUpcoming
+                            ? 'bg-primary/10 text-primary'
+                            : 'bg-muted text-muted-foreground'
+                            }`}>
+                            {isUpcoming ? 'Upcoming' : 'Past'}
+                          </span>
+                        </div>
 
-                      <p className="text-muted-foreground text-xs font-medium mb-5">
-                        {formatShortDate(invitation.event_date)}
-                        {invitation.event_time && ` • ${invitation.event_time}`}
-                      </p>
+                        <p className="text-muted-foreground text-xs font-medium mb-4">
+                          {formatShortDate(invitation.event_date)}
+                          {invitation.event_time && ` • ${invitation.event_time}`}
+                        </p>
+                      </div>
+                    </Link>
 
+                    <div className="p-6 pt-2">
                       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6 bg-muted/30 p-3 rounded-md">
                         <span className="text-foreground font-semibold flex items-center gap-1.5">
                           <Users className="w-4 h-4 text-green-500" />
@@ -185,19 +189,6 @@ export default function Dashboard() {
                           shareToken={invitation.share_token} 
                           className="w-full"
                         />
-                        <div className="flex gap-2 w-full">
-                          <Link
-                            href={`/invitations/${invitation.id}`}
-                            className="flex-1 bg-muted/50 text-foreground px-3 py-2.5 rounded-md text-sm font-medium hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 flex items-center justify-center gap-1.5"
-                          >
-                            <Eye className="w-4 h-4 flex-shrink-0" />
-                            View
-                          </Link>
-                          <ConfirmDeleteButton
-                            onConfirm={() => handleDeleteInvitation(invitation.id)}
-                            className="flex-1"
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>

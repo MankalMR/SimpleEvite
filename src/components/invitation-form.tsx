@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { getTextOverlayStyleOptions, getTextPositionOptions, getTextSizeOptions, TextOverlayStyle, TextPosition, TextSize } from '@/lib/text-overlay-utils';
@@ -24,12 +24,23 @@ interface InvitationFormProps {
   loading?: boolean;
 }
 
-export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading = false }: InvitationFormProps) {
+export function InvitationForm(props: InvitationFormProps) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Spinner /></div>}>
+      <InvitationFormInner {...props} />
+    </Suspense>
+  );
+}
+
+function InvitationFormInner({ mode, initialData, onSubmit, onCancel, loading = false }: InvitationFormProps) {
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const templateIdFromUrl = searchParams.get('template');
 
   const [selectedDesign, setSelectedDesign] = useState<{ id: string; name: string; image_url: string } | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<DefaultTemplate | null>(null);
-  const [designTab, setDesignTab] = useState<'template' | 'custom'>('template');
+  const [designTab, setDesignTab] = useState<'template' | 'custom'>(templateIdFromUrl ? 'template' : 'template');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -63,6 +74,28 @@ export function InvitationForm({ mode, initialData, onSubmit, onCancel, loading 
   useEffect(() => {
     fetchDesigns();
   }, [fetchDesigns]);
+
+  // Handle template selection from URL
+  useEffect(() => {
+    async function fetchTemplate() {
+      if (templateIdFromUrl && mode === 'create') {
+        try {
+          const response = await fetch('/api/templates');
+          if (response.ok) {
+            const data = await response.json();
+            const templates = data.templates || [];
+            const template = templates.find((t: DefaultTemplate) => t.id === templateIdFromUrl);
+            if (template) {
+              handleTemplateSelect(template);
+            }
+          }
+        } catch (error) {
+          logger.error({ error }, 'Failed to fetch template from URL:');
+        }
+      }
+    }
+    fetchTemplate();
+  }, [templateIdFromUrl, mode]);
 
   // Initialize form data from initial data (for edit mode)
   useEffect(() => {
@@ -168,12 +201,32 @@ const handleDesignSelect = (designId: string) => {
     <ProtectedRoute>
       <div className="py-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Page Header — matches Dashboard, My Templates, Browse Templates */}
+          <div className="flex items-start justify-between mb-10">
+            <div>
+              <h1 className="text-4xl font-extrabold tracking-tighter text-foreground mb-2">
+                {mode === 'create' ? 'New Invite' : 'Edit Invite'}
+              </h1>
+              <p className="text-muted-foreground text-sm font-medium">
+                {mode === 'create'
+                  ? 'Craft your perfect invitation with a live preview.'
+                  : 'Refine your invitation details and preview changes.'}
+              </p>
+            </div>
+            <button
+              onClick={onCancel}
+              className="text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] px-2 py-1 mt-2"
+            >
+              Cancel
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-8">
             {/* Left Panel - Preview */}
             <div className="lg:sticky lg:top-8 lg:self-start">
-              <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-6 h-[600px] lg:h-[700px]">
+              <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-6 flex flex-col">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">Live Preview</h2>
-                <div className="h-[calc(100%-3rem)]">
+                <div className="flex-1">
                   <InvitationPreview
                     formData={formData}
                     selectedDesign={selectedDesign}
@@ -185,18 +238,6 @@ const handleDesignSelect = (designId: string) => {
 
             {/* Right Panel - Form */}
             <div className="space-y-6">
-              <div className="flex items-center justify-between mb-10">
-                <h1 className="text-4xl font-extrabold tracking-tighter text-foreground">
-                  {mode === 'create' ? 'New Invite' : 'Edit Invite'}
-                </h1>
-                <button
-                  onClick={onCancel}
-                  className="text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] px-2 py-1"
-                >
-                  Cancel
-                </button>
-              </div>
-
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Basic Information */}
                 <div className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none p-8">
@@ -216,11 +257,11 @@ const handleDesignSelect = (designId: string) => {
                         value={formData.title}
                         onChange={handleChange}
                         onBlur={() => setHasTitleBlurred(true)}
-                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         placeholder="Enter event title"
                       />
                       {formErrors.title && <p className="text-red-500 text-sm mt-1">{formErrors.title}</p>}
-                      <label className="flex items-center mt-3 p-3 bg-muted/20 rounded-xl border border-border/40 cursor-pointer hover:bg-muted/30 transition-colors">
+                      <label className="flex items-center mt-3 p-3 bg-muted/20 rounded-md border border-border/40 cursor-pointer hover:bg-muted/30 transition-colors">
                         <input
                           type="checkbox"
                           name="hide_title"
@@ -246,7 +287,7 @@ const handleDesignSelect = (designId: string) => {
                           required
                           value={formData.event_date}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                          className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         />
                         {formErrors.event_date && <p className="text-red-500 text-sm mt-1">{formErrors.event_date}</p>}
                       </div>
@@ -261,7 +302,7 @@ const handleDesignSelect = (designId: string) => {
                           name="event_time"
                           value={formData.event_time}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                          className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         />
                       </div>
                       <div>
@@ -274,7 +315,7 @@ const handleDesignSelect = (designId: string) => {
                           name="rsvp_deadline"
                           value={formData.rsvp_deadline}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                          className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         />
                         {formErrors.rsvp_deadline && <p className="text-red-500 text-sm mt-1 font-bold uppercase tracking-tight text-[10px]">{formErrors.rsvp_deadline}</p>}
                       </div>
@@ -291,7 +332,7 @@ const handleDesignSelect = (designId: string) => {
                         name="location"
                         value={formData.location}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         placeholder="Enter event location"
                       />
                     </div>
@@ -316,10 +357,10 @@ const handleDesignSelect = (designId: string) => {
                         rows={4}
                         value={formData.description}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         placeholder="Describe your event"
                       />
-                      <label className="flex items-center mt-3 p-3 bg-muted/20 rounded-xl border border-border/40 cursor-pointer hover:bg-muted/30 transition-colors">
+                      <label className="flex items-center mt-3 p-3 bg-muted/20 rounded-md border border-border/40 cursor-pointer hover:bg-muted/30 transition-colors">
                         <input
                           type="checkbox"
                           name="hide_description"
@@ -341,7 +382,7 @@ const handleDesignSelect = (designId: string) => {
                         rows={3}
                         value={formData.organizer_notes}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         placeholder="Additional details (parking, gifts, attire) to show below location"
                       />
                       <p className="mt-2 text-xs text-muted-foreground/60 font-medium italic">Displayed after event details on the public page.</p>
@@ -396,13 +437,13 @@ const handleDesignSelect = (designId: string) => {
                         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">Choose a Design (Optional)</p>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                         {/* No Design Option */}
                         <button
                           type="button"
                           className={`cursor-pointer border-2 rounded-[var(--radius)] p-4 transition-all w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${formData.design_id === ''
-                            ? 'border-primary bg-primary/5'
-                            : 'border-muted bg-muted/20 hover:border-muted-foreground/30'
+                            ? 'border-primary bg-primary/5 shadow-md'
+                            : 'border-muted bg-muted/20 hover:border-muted-foreground/30 hover:shadow-md hover:-translate-y-0.5'
                             }`}
                           onClick={() => handleDesignSelect('')}
                           aria-pressed={formData.design_id === ''}
@@ -420,9 +461,9 @@ const handleDesignSelect = (designId: string) => {
                           <button
                             key={design.id}
                             type="button"
-                            className={`cursor-pointer border-2 rounded-xl p-4 transition-all w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${formData.design_id === design.id
-                              ? 'border-primary bg-primary/5'
-                              : 'border-muted bg-muted/20 hover:border-muted-foreground/30'
+                            className={`cursor-pointer border-2 rounded-[var(--radius)] p-4 transition-all w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${formData.design_id === design.id
+                              ? 'border-primary bg-primary/5 shadow-md'
+                              : 'border-muted bg-muted/20 hover:border-muted-foreground/30 hover:shadow-md hover:-translate-y-0.5'
                               }`}
                             onClick={() => handleDesignSelect(design.id)}
                             aria-pressed={formData.design_id === design.id}
@@ -449,7 +490,7 @@ const handleDesignSelect = (designId: string) => {
                           <button
                             type="button"
                             onClick={() => router.push('/designs')}
-                            className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                            className="bg-primary text-primary-foreground px-6 py-3 rounded-md font-bold uppercase tracking-widest text-[10px] hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
                           >
                             Upload Design
                           </button>
@@ -472,7 +513,7 @@ const handleDesignSelect = (designId: string) => {
                       name="text_font_family"
                       value={formData.text_font_family}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
                     >
                       <option value="inter">Inter (Modern Sans)</option>
                       <option value="playfair">Playfair (Elegant Serif)</option>
@@ -482,7 +523,7 @@ const handleDesignSelect = (designId: string) => {
                     </select>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="text_overlay_style" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
                         Color Palette
@@ -492,7 +533,7 @@ const handleDesignSelect = (designId: string) => {
                         name="text_overlay_style"
                         value={formData.text_overlay_style}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
                       >
                         {getTextOverlayStyleOptions().map((option) => (
                           <option key={option.value} value={option.value}>
@@ -511,7 +552,7 @@ const handleDesignSelect = (designId: string) => {
                         name="text_position"
                         value={formData.text_position}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
                       >
                         {getTextPositionOptions().map((option) => (
                           <option key={option.value} value={option.value}>
@@ -530,7 +571,7 @@ const handleDesignSelect = (designId: string) => {
                         name="text_size"
                         value={formData.text_size}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer"
                       >
                         {getTextSizeOptions().map((option) => (
                           <option key={option.value} value={option.value}>
@@ -593,14 +634,14 @@ const handleDesignSelect = (designId: string) => {
                     <button
                       type="button"
                       onClick={onCancel}
-                      className="px-6 py-3 bg-muted/50 hover:bg-muted text-foreground rounded-xl font-bold uppercase tracking-widest text-xs transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                      className="px-6 py-3 bg-muted/50 hover:bg-muted text-foreground rounded-md font-bold uppercase tracking-widest text-xs transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-10 py-4 bg-primary text-primary-foreground rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-xl shadow-primary/20"
+                      className="px-10 py-4 bg-primary text-primary-foreground rounded-md font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-xl shadow-primary/20"
                     >
                       {loading && <Spinner className="-ml-1 mr-2 h-4 w-4 text-primary-foreground" />}
                       {loading ? 'Processing...' : `${mode === 'create' ? 'Finalize Invite' : 'Update Invite'}`}
