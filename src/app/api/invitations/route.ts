@@ -54,31 +54,28 @@ export async function POST(request: NextRequest) {
       event_time,
       rsvp_deadline,
       location,
+      design_id,
       hide_title,
       hide_description,
       organizer_notes,
-      text_font_family
-    } = validation.sanitizedData!;
-
-    const {
-      design_id,
+      text_font_family,
       text_overlay_style,
       text_position,
       text_size,
       text_shadow,
       text_background,
       text_background_opacity,
-    } = body;
+    } = validation.sanitizedData!;
 
     // Debug logging
     logger.info({
       data0: {
-        text_overlay_style: text_overlay_style || 'light',
-        text_position: text_position || 'center',
-        text_size: text_size || 'large',
-        text_shadow: text_shadow ?? true,
-        text_background: text_background ?? false,
-        text_background_opacity: text_background_opacity ?? 0.3,
+        text_overlay_style,
+        text_position,
+        text_size,
+        text_shadow,
+        text_background,
+        text_background_opacity,
       }
     }, 'Creating invitation with text overlay settings:');
 
@@ -88,23 +85,22 @@ export async function POST(request: NextRequest) {
       user_id: userId,
       title,
       description,
-      event_date: event_date as string,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      event_time: event_time as string | any,
-      rsvp_deadline: rsvp_deadline as string | undefined,
+      event_date,
+      event_time,
+      rsvp_deadline,
       location,
-      design_id: design_id || null,
+      design_id,
       share_token: shareToken,
-      text_overlay_style: text_overlay_style || 'light',
-      text_position: text_position || 'center',
-      text_size: text_size || 'large',
-      text_shadow: text_shadow ?? true,
-      text_background: text_background ?? false,
-      text_background_opacity: text_background_opacity ?? 0.3,
-      hide_title: hide_title ?? false,
-      hide_description: hide_description ?? false,
-      organizer_notes: organizer_notes || undefined,
-      text_font_family: text_font_family as "inter" | "playfair" | "lora" | "pacifico" | "oswald" | undefined || 'inter',
+      text_overlay_style,
+      text_position,
+      text_size,
+      text_shadow,
+      text_background,
+      text_background_opacity,
+      hide_title,
+      hide_description,
+      organizer_notes,
+      text_font_family,
     }, userId);
 
     return NextResponse.json({ invitation }, { status: 201 });

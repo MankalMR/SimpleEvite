@@ -107,8 +107,8 @@ export function formatInvitationForSubmission(formData: Record<string, unknown>)
     event_date: formData.event_date as string,
     event_time: formData.event_time as string,
     location: (formData.location as string).trim(),
-    rsvp_deadline: formData.rsvp_deadline as string | undefined,
-    design_id: formData.design_id as string | undefined,
+    rsvp_deadline: (formData.rsvp_deadline as string)?.trim() || undefined,
+    design_id: (formData.design_id as string)?.trim() || undefined,
     // Text overlay fields
     text_overlay_style: (formData.text_overlay_style as Invitation['text_overlay_style']) || 'light',
     text_position: (formData.text_position as Invitation['text_position']) || 'center',
@@ -119,7 +119,7 @@ export function formatInvitationForSubmission(formData: Record<string, unknown>)
     // New invitation enhancement fields
     hide_title: (formData.hide_title as boolean) ?? false,
     hide_description: (formData.hide_description as boolean) ?? false,
-    organizer_notes: (formData.organizer_notes as string) || undefined,
+    organizer_notes: (formData.organizer_notes as string)?.trim() || undefined,
     text_font_family: (formData.text_font_family as Invitation['text_font_family']) || 'inter',
   };
 }
