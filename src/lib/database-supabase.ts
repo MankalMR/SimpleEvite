@@ -1,5 +1,5 @@
 import { supabaseAdmin } from './supabase';
-import { Invitation, Design, RSVP, DefaultTemplate } from './supabase';
+import { Invitation, Design, RSVP, DefaultTemplate, NotificationLog } from './supabase';
 import { logger } from "@/lib/logger";
 
 // Extended Invitation interface for database operations with nested data
@@ -18,6 +18,7 @@ function rowToInvitation(row: Record<string, unknown>): Invitation {
     description: row.description as string,
     event_date: row.event_date as string,
     event_time: row.event_time as string,
+    rsvp_deadline: row.rsvp_deadline as string | undefined,
     location: row.location as string,
     design_id: row.design_id as string | undefined,
     share_token: row.share_token as string,
@@ -66,17 +67,21 @@ async function enrichInvitationsWithTemplates(invitations: InvitationWithRSVPs[]
   }
 
   try {
-    // 1. Try fetching from custom designs
-    const { data: designData, error: designError } = await supabaseAdmin
-      .from('designs')
-      .select('*')
-      .in('id', missingDesignIds);
-
-    // 2. Try fetching from default templates
-    const { data: templateData, error: templateError } = await supabaseAdmin
-      .from('default_templates')
-      .select('*')
-      .in('id', missingDesignIds);
+    // ⚡ Bolt: Fetch custom designs and default templates concurrently
+    // using Promise.all to eliminate sequential network wait times and O(N) waterfalls
+    const [
+      { data: designData },
+      { data: templateData }
+    ] = await Promise.all([
+      supabaseAdmin
+        .from('designs')
+        .select('*')
+        .in('id', missingDesignIds),
+      supabaseAdmin
+        .from('default_templates')
+        .select('*')
+        .in('id', missingDesignIds)
+    ]);
 
     const designDict: Record<string, Design> = {};
     for (const d of designData || []) designDict[d.id] = rowToDesign(d);
@@ -136,6 +141,7 @@ function rowToRSVP(row: Record<string, unknown>): RSVP {
     invitation_id: row.invitation_id as string,
     name: row.name as string,
     response: row.response as 'yes' | 'no' | 'maybe',
+    guest_count: (row.guest_count as number) || 1,
     comment: row.comment as string | undefined,
     email: row.email as string | undefined,
     notification_preferences: row.notification_preferences as { email: boolean } | undefined,
@@ -148,15 +154,17 @@ function rowToRSVP(row: Record<string, unknown>): RSVP {
 // Reusable query fragments
 const INVITATION_BASE_SELECT = `*`;
 
-// Removed unused select constants - using INVITATION_FULL_SELECT instead
-
 const INVITATION_FULL_SELECT = `
   ${INVITATION_BASE_SELECT},
   rsvps (
     id,
     name,
     response,
+    guest_count,
     comment,
+    email,
+    notification_preferences,
+    reminder_status,
     created_at
   )
 `;
@@ -172,6 +180,21 @@ export const supabaseDb = {
 
     if (error) return false;
     return !!data;
+  },
+
+  // Get a user's email by their user ID
+  async getUserEmail(userId: string): Promise<string | null> {
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .select('email')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw error;
+    }
+    return data?.email || null;
   },
 
   // Get all invitations for a user with RSVP data and designs
@@ -243,6 +266,7 @@ export const supabaseDb = {
         description: invitation.description,
         event_date: invitation.event_date,
         event_time: invitation.event_time,
+        rsvp_deadline: invitation.rsvp_deadline,
         location: invitation.location,
         design_id: invitation.design_id,
         share_token: invitation.share_token,
@@ -277,6 +301,7 @@ export const supabaseDb = {
         description: updates.description,
         event_date: updates.event_date,
         event_time: updates.event_time,
+        rsvp_deadline: updates.rsvp_deadline,
         location: updates.location,
         design_id: updates.design_id,
         hide_title: updates.hide_title,
@@ -401,7 +426,7 @@ export const supabaseDb = {
 
   // Create a new RSVP
   async createRSVP(
-    rsvp: Omit<RSVP, 'id' | 'created_at'>,
+    rsvp: Omit<RSVP, 'id' | 'created_at' | 'invitation_id'>,
     invitationId: string
   ): Promise<RSVP> {
     const { data, error } = await supabaseAdmin
@@ -410,6 +435,7 @@ export const supabaseDb = {
         invitation_id: invitationId,
         name: rsvp.name,
         response: rsvp.response,
+        guest_count: rsvp.guest_count || 1,
         comment: rsvp.comment,
         email: rsvp.email,
         notification_preferences: rsvp.notification_preferences,
@@ -422,6 +448,46 @@ export const supabaseDb = {
     return rowToRSVP(data);
   },
 
+  // Create or Update RSVP by Email
+  async upsertRSVP(
+    rsvp: Omit<RSVP, 'id' | 'created_at' | 'invitation_id'>,
+    invitationId: string
+  ): Promise<{ rsvp: RSVP; isUpdate: boolean }> {
+    if (!rsvp.email) {
+      const newRsvp = await this.createRSVP(rsvp, invitationId);
+      return { rsvp: newRsvp, isUpdate: false };
+    }
+
+    const { data: existing } = await supabaseAdmin
+      .from('rsvps')
+      .select('id')
+      .eq('invitation_id', invitationId)
+      .eq('email', rsvp.email)
+      .single();
+
+    if (existing) {
+      const { data, error } = await supabaseAdmin
+        .from('rsvps')
+        .update({
+          name: rsvp.name,
+          response: rsvp.response,
+          guest_count: rsvp.guest_count || 1,
+          comment: rsvp.comment,
+          notification_preferences: rsvp.notification_preferences,
+          reminder_status: rsvp.reminder_status,
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return { rsvp: rowToRSVP(data), isUpdate: true };
+    } else {
+      const newRsvp = await this.createRSVP(rsvp, invitationId);
+      return { rsvp: newRsvp, isUpdate: false };
+    }
+  },
+
   // Delete an RSVP
   async deleteRSVP(id: string): Promise<boolean> {
     const { error } = await supabaseAdmin
@@ -431,4 +497,215 @@ export const supabaseDb = {
 
     return !error;
   },
+
+  // Fetch invitations for cron job reminders
+  async getInvitationsForReminders(startDate: string, endDate: string): Promise<Invitation[]> {
+    const { data, error } = await supabaseAdmin
+      .from('invitations')
+      .select(`
+        *,
+        users (
+          name,
+          email
+        )
+      `)
+      .gte('event_date', startDate)
+      .lte('event_date', endDate);
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Fetch pending RSVPs for a set of invitations
+  async getPendingRSVPsForInvitations(invitationIds: string[]): Promise<RSVP[]> {
+    const { data, error } = await supabaseAdmin
+      .from('rsvps')
+      .select('*')
+      .in('invitation_id', invitationIds)
+      .eq('response', 'yes')
+      .eq('reminder_status', 'pending')
+      .not('email', 'is', null);
+
+    if (error) throw error;
+    return (data || []).map(rowToRSVP);
+  },
+
+  // Batch update RSVP statuses and reminder details
+  async batchUpdateRSVPStatuses(
+    updates: Array<{ id: string; status: string; sentAt?: string }>
+  ): Promise<void> {
+    const byStatus = updates.reduce((acc, curr) => {
+      if (!acc[curr.status]) acc[curr.status] = [];
+      acc[curr.status].push(curr);
+      return acc;
+    }, {} as Record<string, typeof updates>);
+
+    for (const status in byStatus) {
+      const items = byStatus[status];
+      const ids = items.map(i => i.id);
+      
+      const updateData: { reminder_status: string; reminder_sent_at?: string } = { 
+        reminder_status: status 
+      };
+      if (items[0].sentAt) {
+        updateData.reminder_sent_at = items[0].sentAt;
+      }
+
+      const { error } = await supabaseAdmin
+        .from('rsvps')
+        .update(updateData)
+        .in('id', ids);
+      
+      if (error) throw error;
+    }
+  },
+
+  // Record notification logs in batch
+  async batchInsertNotificationLogs(logs: Omit<NotificationLog, 'id' | 'created_at'>[]): Promise<void> {
+    const { error } = await supabaseAdmin.from('notification_logs').insert(logs);
+    if (error) throw error;
+  },
+
+  // Delete RSVP with ownership check (userId must own the invitation)
+  async deleteRSVPWithOwnerCheck(rsvpId: string, userId: string): Promise<boolean> {
+     // First check if the user owns the invitation this RSVP belongs to
+    const { data: rsvpData, error: rsvpError } = await supabaseAdmin
+      .from('rsvps')
+      .select(`
+        id,
+        invitations!inner(
+          user_id
+        )
+      `)
+      .eq('id', rsvpId)
+      .single();
+
+    if (rsvpError || !rsvpData) return false;
+
+    const rsvp = rsvpData as unknown as { 
+      id: string; 
+      invitations: { user_id: string } | { user_id: string }[] 
+    };
+    const ownerId = Array.isArray(rsvp.invitations) 
+      ? rsvp.invitations[0]?.user_id 
+      : rsvp.invitations?.user_id;
+
+    if (ownerId !== userId) return false;
+
+    return await this.deleteRSVP(rsvpId);
+  },
+
+  // Get all active templates with optional filtering
+  async getTemplates(filters?: { occasion?: string; theme?: string }): Promise<DefaultTemplate[]> {
+    let query = supabaseAdmin
+      .from('default_templates')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (filters?.occasion) query = query.eq('occasion', filters.occasion);
+    if (filters?.theme) query = query.eq('theme', filters.theme);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Create a new template (admin)
+  async createTemplate(template: Omit<DefaultTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<DefaultTemplate> {
+    const { data, error } = await supabaseAdmin
+      .from('default_templates')
+      .insert(template)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Get all default templates (for admin)
+  async getDefaultTemplates(): Promise<Design[]> {
+    const { data, error } = await supabaseAdmin
+      .from('default_templates')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(rowToDesign);
+  },
+
+  // Get a single default template
+  async getDefaultTemplate(id: string): Promise<Design | null> {
+    const { data, error } = await supabaseAdmin
+      .from('default_templates')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) return null;
+    return rowToDesign(data);
+  },
+
+  // Create/Update/Delete for templates
+  async upsertDefaultTemplate(template: Omit<Design, 'id' | 'created_at' | 'updated_at'>, id?: string): Promise<Design> {
+    if (id) {
+      const { data, error } = await supabaseAdmin
+        .from('default_templates')
+        .update({
+          ...template,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return rowToDesign(data);
+    } else {
+      const { data, error } = await supabaseAdmin
+        .from('default_templates')
+        .insert([template])
+        .select()
+        .single();
+      if (error) throw error;
+      return rowToDesign(data);
+    }
+  },
+
+  async deleteDefaultTemplate(id: string): Promise<boolean> {
+    const { error } = await supabaseAdmin
+      .from('default_templates')
+      .delete()
+      .eq('id', id);
+    return !error;
+  },
+
+  // Upload a design image to storage
+  async uploadDesignImage(
+    fileName: string,
+    buffer: Uint8Array,
+    contentType: string
+  ): Promise<{ error: unknown }> {
+    return await supabaseAdmin.storage
+      .from('designs')
+      .upload(fileName, buffer, {
+        contentType,
+        upsert: false,
+      });
+  },
+
+  // Get public URL for a design image
+  getDesignPublicUrl(fileName: string): string | null {
+    const { data } = supabaseAdmin.storage
+      .from('designs')
+      .getPublicUrl(fileName);
+    return data?.publicUrl || null;
+  },
+
+  // Delete a design image from storage
+  async deleteDesignImage(fileName: string): Promise<void> {
+    await supabaseAdmin.storage
+      .from('designs')
+      .remove([fileName]);
+  },
 };
+

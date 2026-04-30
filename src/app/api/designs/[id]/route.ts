@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
-import { supabaseAdmin } from '@/lib/supabase';
+import { sanitizeText } from '@/lib/security';
 import { logger } from "@/lib/logger";
 
 // PUT /api/designs/[id] - Update design
@@ -12,8 +12,9 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string })?.id;
 
-    if (!session?.user?.email) {
+    if (!userId || !session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -25,19 +26,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
-    // Get user from database
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (userError) {
-      throw userError;
-    }
+    const sanitizedName = sanitizeText(name);
 
     // Update design using the database layer
-    const design = await supabaseDb.updateDesign(resolvedParams.id, { name }, userData.id);
+    const design = await supabaseDb.updateDesign(resolvedParams.id, { name: sanitizedName }, userId);
 
     if (!design) {
       return NextResponse.json({ error: 'Design not found or unauthorized' }, { status: 404 });
@@ -57,33 +49,23 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string })?.id;
 
-    if (!session?.user?.email) {
+    if (!userId || !session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const resolvedParams = await params;
 
-    // Get user from database
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (userError) {
-      throw userError;
-    }
-
     // First get the design to get the image URL for cleanup
-    const design = await supabaseDb.getDesign(resolvedParams.id, userData.id);
+    const design = await supabaseDb.getDesign(resolvedParams.id, userId);
 
     if (!design) {
       return NextResponse.json({ error: 'Design not found or unauthorized' }, { status: 404 });
     }
 
     // Delete the design using the database layer
-    const success = await supabaseDb.deleteDesign(resolvedParams.id, userData.id);
+    const success = await supabaseDb.deleteDesign(resolvedParams.id, userId);
 
     if (!success) {
       return NextResponse.json({ error: 'Failed to delete design' }, { status: 500 });
@@ -91,11 +73,25 @@ export async function DELETE(
 
     // Extract file path from URL and delete from Supabase Storage
     if (design.image_url && design.image_url.includes('/storage/v1/object/public/designs/')) {
-      const filePath = design.image_url.split('/storage/v1/object/public/designs/')[1];
-      if (filePath && filePath.startsWith(userData.id + '/')) {
-        await supabaseAdmin.storage
-          .from('designs')
-          .remove([filePath]);
+      const rawFilePath = design.image_url.split('/storage/v1/object/public/designs/')[1];
+      if (rawFilePath) {
+        try {
+          const filePath = decodeURIComponent(rawFilePath);
+          const pathParts = filePath.split('/');
+
+          // Strict validation: must be exactly userId/filename and no directory traversal
+          if (
+            pathParts.length === 2 &&
+            pathParts[0] === userId &&
+            !filePath.includes('..')
+          ) {
+            await supabaseDb.deleteDesignImage(filePath);
+          } else {
+            logger.warn({ userId, filePath }, 'Attempted path traversal or invalid file path in design deletion');
+          }
+        } catch (decodeError) {
+          logger.warn({ userId, rawFilePath, error: decodeError }, 'Malformed URI in design image URL during deletion');
+        }
       }
     }
 

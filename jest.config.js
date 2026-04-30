@@ -31,9 +31,10 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@auth/supabase-adapter$': '<rootDir>/__mocks__/@auth/supabase-adapter.js',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(uuid)/)',
+    'node_modules/(?!(uuid|@auth)/)',
   ],
   testTimeout: 10000,
 };

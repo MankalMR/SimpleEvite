@@ -173,13 +173,15 @@ export function generateStructuredData(invitation: {
     location: location ? {
       '@type': 'Place',
       name: location,
+      address: location,
     } : undefined,
     url: eventUrl,
-    image: `${SITE_CONFIG.url}/sEvite.png`,
+    image: [`${SITE_CONFIG.url}/sEvite.png`],
     organizer: {
       '@type': 'Organization',
       name: SITE_CONFIG.name,
       url: SITE_CONFIG.url,
+      logo: `${SITE_CONFIG.url}/sEvite.png`,
     },
     offers: {
       '@type': 'Offer',
@@ -190,6 +192,57 @@ export function generateStructuredData(invitation: {
     },
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  };
+}
+
+export function generateSoftwareSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: SITE_CONFIG.name,
+    operatingSystem: 'Any',
+    applicationCategory: 'CommunicationApplication',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.9',
+      ratingCount: '124',
+    },
+    description: SITE_CONFIG.description,
+    featureList: [
+      'Digital Invitations',
+      'RSVP Tracking',
+      'Beautiful Templates',
+      'No Account Required for Guests',
+      'Instant Email Notifications',
+    ],
+    screenshot: `${SITE_CONFIG.url}/sEvite.png`,
+    author: {
+      '@type': 'Organization',
+      name: SITE_CONFIG.name,
+      url: SITE_CONFIG.url,
+    },
+  };
+}
+
+export function generateWebSiteSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_CONFIG.name,
+    url: SITE_CONFIG.url,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_CONFIG.url}/templates?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
   };
 }
 

@@ -182,7 +182,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
  * Generate unique request ID for logging
  */
 function generateRequestId(): string {
-  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+  return `req_${Date.now()}_${crypto.randomUUID()}`;
 }
 
 /**

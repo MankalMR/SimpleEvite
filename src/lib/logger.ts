@@ -1,8 +1,5 @@
 import pino from 'pino';
 
-// Helper to determine if we are running in the browser
-const isBrowser = typeof window !== 'undefined';
-
 // Enable logs if NEXT_PUBLIC_ENABLE_DEBUG_LOGS is explicitly '1', or default to true for development.
 // In a real production environment without this flag, you may want to default to 'info' or 'error'.
 const isDebugEnabled = process.env.NEXT_PUBLIC_ENABLE_DEBUG_LOGS === '1';

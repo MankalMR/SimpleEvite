@@ -1,36 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { supabaseDb } from '@/lib/database-supabase';
 import { supabaseAdmin } from '@/lib/supabase';
+import { sanitizeText } from '@/lib/security';
 import { logger } from "@/lib/logger";
 
 // GET /api/designs - Get user's designs
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
+    let userId = (session?.user as { id?: string })?.id;
 
-    if (!session?.user?.email) {
+    // Fallback: If session exists but id is missing, try to find user by email
+    if (!userId && session?.user?.email) {
+      const { data: userData } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', session.user.email)
+        .single();
+      
+      if (userData) {
+        userId = userData.id;
+        logger.info({ userId }, 'Recovered userId from database via email fallback');
+      }
+    }
+
+    if (!userId) {
+      logger.warn({ session: !!session, email: session?.user?.email }, 'Unauthorized access attempt to /api/designs');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user from database
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (userError) {
-      // If user doesn't exist yet, return empty designs array
-      if (userError.code === 'PGRST116') {
-        return NextResponse.json({ designs: [] });
-      }
-      throw userError;
-    }
-
     // Get designs using the database layer
-    const designs = await supabaseDb.getDesigns(userData.id);
+    const designs = await supabaseDb.getDesigns(userId);
 
     return NextResponse.json({ designs });
   } catch (error) {
@@ -43,8 +45,22 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    let userId = (session?.user as { id?: string })?.id;
 
-    if (!session?.user?.email) {
+    // Fallback: If session exists but id is missing, try to find user by email
+    if (!userId && session?.user?.email) {
+      const { data: userData } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', session.user.email)
+        .single();
+      
+      if (userData) {
+        userId = userData.id;
+      }
+    }
+
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -56,27 +72,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name and image URL are required' }, { status: 400 });
     }
 
-    // Get user from database
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (userError) {
-      // If user doesn't exist yet, this shouldn't happen in POST, but handle gracefully
-      if (userError.code === 'PGRST116') {
-        return NextResponse.json({ error: 'User not found. Please sign in again.' }, { status: 404 });
-      }
-      throw userError;
-    }
+    const sanitizedName = sanitizeText(name);
 
     // Create design using the database layer
     const design = await supabaseDb.createDesign({
-      user_id: userData.id,
-      name,
+      user_id: userId,
+      name: sanitizedName,
       image_url,
-    }, userData.id);
+    }, userId);
 
     return NextResponse.json({ design }, { status: 201 });
   } catch (error) {

@@ -1,14 +1,15 @@
 import { MetadataRoute } from 'next';
+import { supabaseDb } from '@/lib/database-supabase';
 import { logger } from "@/lib/logger";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.NODE_ENV === 'production'
       ? 'https://evite.mankala.space'
       : 'http://localhost:3008');
   const currentDate = new Date();
 
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: currentDate,
@@ -16,25 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/auth/signin`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/create`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/designs`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/features`,
+      url: `${baseUrl}/demo`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: 0.8,
@@ -52,38 +35,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/auth/error`,
+      url: `${baseUrl}/templates`,
       lastModified: currentDate,
-      changeFrequency: 'yearly',
-      priority: 0.1,
+      changeFrequency: 'daily',
+      priority: 0.9,
     },
   ];
-}
-
-// Optional: Generate dynamic sitemap for public invitations
-// This would be called periodically or triggered by new invitation creation
-export async function generateInvitationSitemap() {
-  // This is a placeholder for future implementation
-  // You would fetch public invitations and generate sitemap entries
 
   try {
+    // Fetch all active template categories (occasions) for dynamic SEO entry points
+    const templates = await supabaseDb.getTemplates();
 
-    // Fetch public invitations that should be indexed
-    // const response = await fetch(`${baseUrl}/api/public-invitations`);
-    // const invitations = await response.json();
+    // Get unique occasions to create category pages in the sitemap
+    const occasions = Array.from(new Set(templates.map(t => t.occasion)));
 
-    // return invitations.map(invitation =>
-    //   generateSitemapEntry(
-    //     `/invite/${invitation.share_token}`,
-    //     new Date(invitation.updated_at),
-    //     'weekly',
-    //     0.7
-    //   )
-    // );
+    const templateRoutes: MetadataRoute.Sitemap = occasions.map(occasion => ({
+      url: `${baseUrl}/templates/${occasion}`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }));
 
-    return [];
+    return [...staticRoutes, ...templateRoutes];
   } catch (error) {
-    logger.error({ error }, 'Error generating invitation sitemap:');
-    return [];
+    logger.error({ error }, 'Error generating dynamic sitemap:');
+    return staticRoutes;
   }
 }
