@@ -1,7 +1,7 @@
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseDb } from '@/lib/database-supabase';
 import { logger } from "@/lib/logger";
 
 // GET /api/templates - Get all active templates with optional filtering
@@ -11,28 +11,20 @@ export async function GET(request: NextRequest) {
     const occasion = searchParams.get('occasion');
     const theme = searchParams.get('theme');
 
-    let query = supabaseAdmin
-      .from('default_templates')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
+    const templates = await supabaseDb.getTemplates({
+      occasion: occasion || undefined,
+      theme: theme || undefined
+    });
 
-    // Apply filters if provided
-    if (occasion) {
-      query = query.eq('occasion', occasion);
-    }
-    if (theme) {
-      query = query.eq('theme', theme);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      logger.error({ error }, 'Error fetching templates:');
-      return NextResponse.json({ error: 'Failed to fetch templates' }, { status: 500 });
-    }
-
-    return NextResponse.json({ templates: data || [] });
+    // ⚡ Bolt: Added Cache-Control to reduce DB load and improve TTFB for template selector
+    return NextResponse.json(
+      { templates: templates },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    );
   } catch (error) {
     logger.error({ error }, 'Error in GET /api/templates:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -86,27 +78,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('default_templates')
-      .insert({
-        name,
-        occasion,
-        theme,
-        image_url,
-        thumbnail_url,
-        description,
-        tags: tags || [],
-        sort_order: sort_order || 0
-      })
-      .select()
-      .single();
+    const template = await supabaseDb.createTemplate({
+      name,
+      occasion,
+      theme,
+      image_url,
+      thumbnail_url,
+      description,
+      tags: tags || [],
+      sort_order: sort_order || 0,
+      is_active: true
+    });
 
-    if (error) {
-      logger.error({ error }, 'Error creating template:');
-      return NextResponse.json({ error: 'Failed to create template' }, { status: 500 });
-    }
-
-    return NextResponse.json({ template: data }, { status: 201 });
+    return NextResponse.json({ template }, { status: 201 });
   } catch (error) {
     logger.error({ error }, 'Error in POST /api/templates:');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

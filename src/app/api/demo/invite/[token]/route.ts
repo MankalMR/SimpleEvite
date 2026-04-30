@@ -20,9 +20,17 @@ export async function GET(
     if (sessionId) {
         const state = demoStore.get(sessionId);
         if (state) {
-            const invitation = state.invitations.find(i => i.share_token === resolvedParams.token);
+            const invitation = state.invitationsByTokenMap.get(resolvedParams.token);
             if (invitation) {
-                return NextResponse.json({ invitation });
+                // ⚡ Bolt: Added Cache-Control to reduce demo DB/memory load and improve TTFB
+                return NextResponse.json(
+                    { invitation },
+                    {
+                        headers: {
+                            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+                        },
+                    }
+                );
             }
         }
     }
