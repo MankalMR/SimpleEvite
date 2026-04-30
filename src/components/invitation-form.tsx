@@ -37,10 +37,13 @@ function InvitationFormInner({ mode, initialData, onSubmit, onCancel, loading = 
 
   const searchParams = useSearchParams();
   const templateIdFromUrl = searchParams.get('template');
+  const designIdFromUrl = searchParams.get('designId');
 
   const [selectedDesign, setSelectedDesign] = useState<{ id: string; name: string; image_url: string } | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<DefaultTemplate | null>(null);
-  const [designTab, setDesignTab] = useState<'template' | 'custom'>(templateIdFromUrl ? 'template' : 'template');
+  const [designTab, setDesignTab] = useState<'template' | 'custom'>(
+    templateIdFromUrl ? 'template' : (designIdFromUrl ? 'custom' : 'template')
+  );
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -96,6 +99,16 @@ function InvitationFormInner({ mode, initialData, onSubmit, onCancel, loading = 
     }
     fetchTemplate();
   }, [templateIdFromUrl, mode]);
+
+  // Handle design selection from URL
+  useEffect(() => {
+    if (designIdFromUrl && mode === 'create' && designs.length > 0) {
+      const design = designs.find(d => d.id === designIdFromUrl);
+      if (design) {
+        handleDesignSelect(designIdFromUrl);
+      }
+    }
+  }, [designIdFromUrl, designs, mode]);
 
   // Initialize form data from initial data (for edit mode)
   useEffect(() => {

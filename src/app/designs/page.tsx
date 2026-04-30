@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useDesigns } from '@/hooks/useDesigns';
 import { InlineError } from '@/components/inline-error';
@@ -155,14 +156,23 @@ export default function MyDesigns() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {designs.map((design) => (
                 <div key={design.id} className="bg-card rounded-[var(--radius)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-none overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(45,91,255,0.08)] hover:-translate-y-1">
-                  <div className="aspect-square bg-muted relative">
+                  <div className="aspect-square bg-muted relative group-inner">
                     <Image
                       src={design.image_url}
                       alt={design.name}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                       unoptimized
                     />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
+                      <Link
+                        href={`/create?designId=${design.id}`}
+                        className="bg-primary text-primary-foreground px-6 py-3 rounded-md text-xs font-bold uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all"
+                      >
+                        Select Design
+                      </Link>
+                    </div>
                   </div>
                   <div className="p-4">
                     <div className="space-y-4">
