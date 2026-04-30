@@ -162,6 +162,9 @@ const INVITATION_FULL_SELECT = `
     response,
     guest_count,
     comment,
+    email,
+    notification_preferences,
+    reminder_status,
     created_at
   )
 `;
