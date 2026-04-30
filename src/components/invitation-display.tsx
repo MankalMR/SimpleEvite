@@ -24,6 +24,7 @@ interface InvitationDisplayProps {
   className?: string;
   showPlaceholder?: boolean;
   priority?: boolean;
+  isSmall?: boolean;
 }
 
 /**
@@ -38,7 +39,8 @@ export const InvitationDisplay = memo(function InvitationDisplay({
   design,
   className = "h-96",
   showPlaceholder = false,
-  priority = false
+  priority = false,
+  isSmall = false
 }: InvitationDisplayProps) {
   // Create beautiful gradient backgrounds for when no design is selected
   const gradientBackgrounds = [
@@ -64,10 +66,10 @@ export const InvitationDisplay = memo(function InvitationDisplay({
   };
 
   const textConfig = getTextOverlayConfig(invitation);
-  const containerClasses = getTextOverlayContainerClasses(textConfig);
-  const contentClasses = getTextOverlayContentClasses(textConfig);
-  const titleClasses = getTextOverlayTitleClasses(textConfig);
-  const descriptionClasses = getTextOverlayDescriptionClasses(textConfig);
+  const containerClasses = getTextOverlayContainerClasses(textConfig, isSmall);
+  const contentClasses = getTextOverlayContentClasses(textConfig, isSmall);
+  const titleClasses = getTextOverlayTitleClasses(textConfig, isSmall);
+  const descriptionClasses = getTextOverlayDescriptionClasses(textConfig, isSmall);
   const backgroundClasses = getTextOverlayBackgroundClasses(textConfig);
   const backgroundStyles = getTextOverlayBackgroundStyles(textConfig);
 

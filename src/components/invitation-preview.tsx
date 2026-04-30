@@ -63,18 +63,18 @@ export function InvitationPreview({ formData, selectedDesign }: InvitationPrevie
   // Show empty state when no content has been entered
   if (!hasContent && !selectedDesign) {
     return (
-      <div className="w-full h-full bg-muted/30 rounded-xl border-2 border-dashed border-border/40">
+      <div className="w-full aspect-video bg-muted/30 rounded-xl border-2 border-dashed border-border/40">
         <div className="relative h-full flex items-center justify-center">
           <div className="text-center px-6">
-            <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold tracking-tight text-foreground mb-2">Preview Your Invitation</h3>
-            <p className="text-muted-foreground text-sm font-medium">
-              Start filling in your event details to see a live preview of your invitation
+            <h3 className="text-base font-bold tracking-tight text-foreground mb-1">Preview Your Invitation</h3>
+            <p className="text-muted-foreground text-[10px] font-medium max-w-[200px] mx-auto">
+              Start filling in your event details to see a live preview
             </p>
           </div>
         </div>
@@ -83,16 +83,17 @@ export function InvitationPreview({ formData, selectedDesign }: InvitationPrevie
   }
 
   return (
-    <div className="w-full h-full bg-muted/30 rounded-xl border-2 border-dashed border-border/40 flex flex-col">
+    <div className="w-full bg-muted/30 rounded-xl border-2 border-dashed border-border/40">
       {/* Main invitation display with fixed aspect ratio matching actual view */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
-          {/* Use same dimensions as actual invitation: h-64 md:h-96 */}
+      <div className="flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl">
+          {/* Use same dimensions as actual invitation: aspect-video */}
           <InvitationDisplay
             invitation={mockInvitation}
             design={selectedDesign}
-            className="h-64 md:h-80 w-full"
+            className="w-full aspect-video shadow-lg"
             showPlaceholder={true}
+            isSmall={true}
           />
         </div>
       </div>

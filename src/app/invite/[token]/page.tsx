@@ -171,7 +171,7 @@ export default function PublicInvite() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="flex items-start space-x-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+              <div className="flex items-start space-x-4 p-4 rounded-md bg-muted/20 border border-border/40">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -184,7 +184,7 @@ export default function PublicInvite() {
               </div>
 
               {invitation.event_time && (
-              <div className="flex items-start space-x-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+              <div className="flex items-start space-x-4 p-4 rounded-md bg-muted/20 border border-border/40">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -198,7 +198,7 @@ export default function PublicInvite() {
               )}
 
             {invitation.location && (
-              <div className="flex items-start space-x-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+              <div className="flex items-start space-x-4 p-4 rounded-md bg-muted/20 border border-border/40">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -274,7 +274,7 @@ export default function PublicInvite() {
                     autoFocus
                     value={rsvpData.name}
                     onChange={(e) => setRsvpData({ ...rsvpData, name: e.target.value })}
-                    className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
+                    className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
                     placeholder="Enter your name"
                   />
                   {formErrors.name && (
@@ -294,7 +294,7 @@ export default function PublicInvite() {
                         role="radio"
                         aria-checked={rsvpData.response === response}
                         onClick={() => setRsvpData({ ...rsvpData, response })}
-                        className={`px-4 py-4 rounded-xl border-2 font-bold uppercase tracking-widest text-[10px] transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${rsvpData.response === response
+                        className={`px-4 py-4 rounded-md border-2 font-bold uppercase tracking-widest text-[10px] transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${rsvpData.response === response
                             ? response === 'yes'
                               ? 'border-green-500 bg-green-500/5 text-green-500 shadow-[0_0_20px_rgba(34,197,94,0.1)]'
                               : response === 'no'
@@ -326,7 +326,7 @@ export default function PublicInvite() {
                       max="20"
                       value={rsvpData.guest_count}
                       onChange={(e) => setRsvpData({ ...rsvpData, guest_count: parseInt(e.target.value) || 1 })}
-                      className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                      className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                     />
                   </div>
                 )}
@@ -344,7 +344,7 @@ export default function PublicInvite() {
                         required
                         value={rsvpData.email}
                         onChange={(e) => setRsvpData({ ...rsvpData, email: e.target.value })}
-                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
+                        className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
                         placeholder="your.email@example.com"
                       />
                       {formErrors.email && (
@@ -366,7 +366,7 @@ export default function PublicInvite() {
                     rows={3}
                     value={rsvpData.comment}
                     onChange={(e) => setRsvpData({ ...rsvpData, comment: e.target.value })}
-                    className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
+                    className="w-full px-4 py-3 text-foreground bg-muted/30 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder-muted-foreground/50"
                     placeholder="Any message for the host?"
                   />
                 </div>
@@ -390,7 +390,7 @@ export default function PublicInvite() {
 
                     <div className="space-y-4">
                       {rsvpData.email && (
-                        <div className="flex items-center space-x-3 p-4 rounded-xl bg-muted/20 border border-border/40">
+                        <div className="flex items-center space-x-3 p-4 rounded-md bg-muted/20 border border-border/40">
                           <input
                             id="emailNotifications"
                             type="checkbox"
@@ -412,14 +412,14 @@ export default function PublicInvite() {
                   <button
                     type="button"
                     onClick={() => setShowRSVPForm(false)}
-                    className="flex-1 bg-muted/50 text-foreground px-6 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-muted transition-all shadow-lg"
+                    className="flex-1 bg-muted/50 text-foreground px-6 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-muted transition-all shadow-lg"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response || !rsvpData.email.trim()}
-                    className="flex-1 bg-primary text-primary-foreground px-6 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-xl shadow-primary/20"
+                    className="flex-1 bg-primary text-primary-foreground px-6 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-xl shadow-primary/20"
                   >
                     {rsvpLoading && <Spinner className="-ml-1 mr-2 h-4 w-4 text-primary-foreground" />}
                     {rsvpLoading ? 'Submitting...' : 'Confirm RSVP'}
@@ -433,7 +433,7 @@ export default function PublicInvite() {
                 </p>
                 <button
                   onClick={() => setShowRSVPForm(true)}
-                  className="bg-primary text-primary-foreground px-12 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary/90 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 shadow-xl shadow-primary/20"
+                  className="bg-primary text-primary-foreground px-12 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-primary/90 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 shadow-xl shadow-primary/20"
                 >
                   RSVP Now
                 </button>
@@ -449,7 +449,7 @@ export default function PublicInvite() {
                 {invitation.rsvps
                   .filter(rsvp => rsvp.response === 'yes')
                   .map((rsvp) => (
-                    <div key={rsvp.id} className="flex items-start space-x-4 p-4 bg-muted/20 rounded-xl border border-border/40">
+                    <div key={rsvp.id} className="flex items-start space-x-4 p-4 bg-muted/20 rounded-md border border-border/40">
                       <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20">
                         <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

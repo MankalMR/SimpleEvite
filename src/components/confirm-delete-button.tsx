@@ -92,7 +92,7 @@ export function ConfirmDeleteButton({
         ? 'px-2 py-1 text-xs'
         : 'px-3 py-2 text-sm';
 
-    const baseClasses = `${sizeClasses} rounded font-medium transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 flex items-center justify-center gap-1.5`;
+    const baseClasses = `${sizeClasses} rounded-md font-medium transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 flex items-center justify-center gap-1.5`;
 
     const stateClasses = {
         idle: 'border border-red-300 text-red-700 hover:bg-red-50 focus:ring-red-400',
