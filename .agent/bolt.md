@@ -37,3 +37,6 @@
 ## 2024-05-26 - Concurrent DB queries in DAL
  **Learning:** The function `enrichInvitationsWithTemplates` in `src/lib/database-supabase.ts` was executing two Supabase queries (`designs` and `default_templates`) sequentially. This resulted in an O(N) waterfall where network latency of the second query was entirely blocked by the first query.
  **Action:** Refactored the queries to use `Promise.all` to fetch both `designs` and `default_templates` concurrently. This optimization reduces the total database wait time from `O(request1 + request2)` to `O(max(request1, request2))`, directly improving the TTFB of public `/api/invite/[token]` endpoints and private `/api/invitations` routes.
+## 2026-04-30 - Optimize batchUpdateRSVPStatuses
+**Learning:** The `batchUpdateRSVPStatuses` method in `src/lib/database-supabase.ts` used `.reduce()` to group updates by status. Since `.reduce()` causes unnecessary functional callback execution overhead and object allocations, it scales suboptimally on V8 for larger datasets.
+**Action:** Replaced `.reduce()` with a plain `for...of` loop and a standard dictionary (`Record<string, typeof updates>`) to group updates. This significantly reduces array operations and closure allocation overhead, aligning with V8 optimization best practices for JS/TS.
