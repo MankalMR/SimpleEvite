@@ -137,6 +137,9 @@ function rowToRSVP(row: Record<string, unknown>): RSVP {
     name: row.name as string,
     response: row.response as 'yes' | 'no' | 'maybe',
     comment: row.comment as string | undefined,
+    email: row.email as string | undefined,
+    notification_preferences: row.notification_preferences as { email: boolean } | undefined,
+    reminder_status: row.reminder_status as 'pending' | 'sent' | 'failed' | 'skipped' | undefined,
     created_at: row.created_at as string,
   };
 }
@@ -153,6 +156,9 @@ const INVITATION_FULL_SELECT = `
     name,
     response,
     comment,
+    email,
+    notification_preferences,
+    reminder_status,
     created_at
   )
 `;
