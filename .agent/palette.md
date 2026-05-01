@@ -32,3 +32,6 @@
 ## 2026-04-18 - Missing label association for template filters
 **Learning:** React select dropdowns used as custom filters (like Occasion and Theme in the template selector) often have visually descriptive text placed near them via `<label>` tags but they often lack the explicit `htmlFor` property tying them to the `id` of the `<select>`. This makes them inaccessible to screen readers which require the association.
 **Action:** When creating or editing forms and filter components, explicitly use `<label htmlFor="unique-id">` and ensure the target input/select has `id="unique-id"`.
+## 2024-05-01 - Missing ARIA labels on Icon-only actions
+**Learning:** Found that multiple icon-only interactive elements in the `invitation/[id]` route, such as 'Edit', 'Preview', and 'Remove RSVP' actions, lacked `aria-label`s and only relied on `title` attributes, making them inaccessible to screen readers without visual hover. Using template literals for dynamic ARIA labels (e.g. `aria-label={"Remove RSVP from ${rsvp.name}"}`) provides highly effective context.
+**Action:** When auditing or implementing icon-only buttons or links across the application, ensure `aria-label` is always present and consider using dynamic string interpolation to provide specific context when operating on mapped lists.
