@@ -136,6 +136,7 @@ export default function InvitationView() {
                       href={`/invitations/${invitation.id}/edit`}
                       className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10"
                       title="Edit invitation"
+                      aria-label="Edit invitation"
                     >
                       <Edit className="w-5 h-5" />
                     </Link>
@@ -144,6 +145,7 @@ export default function InvitationView() {
                       target="_blank"
                       className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10"
                       title="Preview guest view"
+                      aria-label="Preview guest view"
                     >
                       <Eye className="w-5 h-5" />
                     </Link>
@@ -317,6 +319,7 @@ export default function InvitationView() {
                                 onClick={() => deleteRSVP(rsvp.id)}
                                 className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all focus:opacity-100"
                                 title="Remove RSVP"
+                                aria-label={`Remove RSVP from ${rsvp.name}`}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
