@@ -1,12 +1,10 @@
 import { MetadataRoute } from 'next';
 import { supabaseDb } from '@/lib/database-supabase';
 import { logger } from "@/lib/logger";
+import { getBaseUrl } from '@/lib/url-utils';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.NODE_ENV === 'production'
-      ? 'https://evite.mankala.space'
-      : 'http://localhost:3008');
+  const baseUrl = getBaseUrl();
   const currentDate = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [
