@@ -44,6 +44,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if user is an admin
+    const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
+    if (!adminEmails.includes(session.user.email.toLowerCase())) {
+      logger.warn({ email: session.user.email }, 'Unauthorized template update attempt by non-admin');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const resolvedParams = await params;
     const body = await request.json();
 
@@ -65,6 +72,13 @@ export async function DELETE(
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if user is an admin
+    const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
+    if (!adminEmails.includes(session.user.email.toLowerCase())) {
+      logger.warn({ email: session.user.email }, 'Unauthorized template deletion attempt by non-admin');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

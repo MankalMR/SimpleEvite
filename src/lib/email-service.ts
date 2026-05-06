@@ -1240,7 +1240,7 @@ function generateHostNotificationEmailHTML(params: {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New RSVP: ${eventTitle}</title>
+  <title>New RSVP: ${safeEventTitle}</title>
   <style>
     body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
