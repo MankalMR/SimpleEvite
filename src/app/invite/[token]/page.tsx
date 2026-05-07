@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { supabaseDb } from '@/lib/database-supabase';
 import { generateEventMetadata } from '@/lib/seo';
 import PublicInviteClient from './PublicInviteClient';
+import { PublicInvitationWithData } from '@/hooks/usePublicInvitation';
 
 interface PageProps {
   params: Promise<{
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  return generateEventMetadata(invitation as any);
+  return generateEventMetadata(invitation as unknown as PublicInvitationWithData);
 }
 
 export default async function Page({ params }: PageProps) {
@@ -31,5 +32,5 @@ export default async function Page({ params }: PageProps) {
     notFound();
   }
 
-  return <PublicInviteClient initialInvitation={invitation as any} token={token} />;
+  return <PublicInviteClient initialInvitation={invitation as unknown as PublicInvitationWithData} token={token} />;
 }

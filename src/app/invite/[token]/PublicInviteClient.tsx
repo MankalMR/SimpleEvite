@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 import { formatDisplayDate, isDateInPast } from '@/lib/date-utils';
 import { getRSVPStats } from '@/lib/rsvp-utils';
 import { InvitationDisplay } from '@/components/invitation-display';
