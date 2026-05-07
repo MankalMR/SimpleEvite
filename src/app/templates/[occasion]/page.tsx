@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { supabaseDb } from '@/lib/database-supabase';
 import { generateMetadata as generateSEOMetadata } from '@/lib/seo';
+import Breadcrumbs from '@/components/seo/Breadcrumbs';
 
 interface PageProps {
   params: Promise<{
@@ -46,11 +47,12 @@ export default async function OccasionTemplatesPage({ params }: PageProps) {
 
   return (
     <div className="py-4">
+      <Breadcrumbs items={[
+        { label: 'Templates', href: '/templates' },
+        { label: name, href: `/templates/${occasion}` }
+      ]} />
       {/* Header */}
       <div className="mb-10">
-        <Link href="/templates" className="text-primary hover:text-primary/80 text-[10px] font-bold uppercase tracking-widest mb-4 inline-block transition-colors">
-          ← Back to All Occasions
-        </Link>
         <h1 className="text-4xl font-extrabold tracking-tighter text-foreground mb-2">
           Free {name} Invitation Templates
         </h1>

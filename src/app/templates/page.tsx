@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabaseDb } from '@/lib/database-supabase';
 import { generateMetadata } from '@/lib/seo';
+import Breadcrumbs from '@/components/seo/Breadcrumbs';
 
 export const metadata: Metadata = generateMetadata({
   title: 'Free Event Invitation Templates',
@@ -29,6 +30,7 @@ export default async function TemplatesPage() {
 
   return (
     <div className="py-4">
+      <Breadcrumbs items={[{ label: 'Templates', href: '/templates' }]} />
       <div className="mb-10">
         <h1 className="text-4xl font-extrabold tracking-tighter text-foreground mb-2">
           Browse Templates

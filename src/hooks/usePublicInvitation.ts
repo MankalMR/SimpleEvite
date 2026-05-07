@@ -10,7 +10,7 @@ export interface PublicInvitationWithData extends Invitation {
 /**
  * Custom hook for managing public invitation data (by share token)
  */
-export function usePublicInvitation(token: string) {
+export function usePublicInvitation(token: string, initialData?: PublicInvitationWithData) {
   // Fetch invitation by share token
   const fetchInvitation = useCallback(async (): Promise<PublicInvitationWithData> => {
     const response = await fetch(`/api/invite/${token}`);
@@ -56,7 +56,7 @@ export function usePublicInvitation(token: string) {
     return { rsvp: data.rsvp, isUpdate: data.isUpdate || false };
   }, [token]);
 
-  const invitationRequest = useApiRequest(fetchInvitation);
+  const invitationRequest = useApiRequest(fetchInvitation, initialData || null);
   const rsvpRequest = useApiRequest(submitRSVP);
 
   return {
