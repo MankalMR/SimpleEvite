@@ -40,3 +40,6 @@
 ## 2026-04-30 - Optimize batchUpdateRSVPStatuses
 **Learning:** The `batchUpdateRSVPStatuses` method in `src/lib/database-supabase.ts` used `.reduce()` to group updates by status. Since `.reduce()` causes unnecessary functional callback execution overhead and object allocations, it scales suboptimally on V8 for larger datasets.
 **Action:** Replaced `.reduce()` with a plain `for...of` loop and a standard dictionary (`Record<string, typeof updates>`) to group updates. This significantly reduces array operations and closure allocation overhead, aligning with V8 optimization best practices for JS/TS.
+## 2026-05-18 - Optimize email dispatching in invitations api
+**Learning:** Chained array methods like `.filter().map()` allocate intermediate arrays, which can be inefficient for large datasets such as RSVPs. Next.js serverless functions also benefit from reduced memory allocation.
+**Action:** Replaced chained `.filter().map()` with a single `for...of` loop in `src/app/api/invitations/[id]/route.ts` to gather concurrent email dispatch promises, preventing intermediate array allocations.

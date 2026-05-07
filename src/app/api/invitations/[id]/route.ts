@@ -128,29 +128,33 @@ export async function PUT(
     if (hasCoreDetailsChanged) {
       try {
         const rsvps = await supabaseDb.getRSVPs(resolvedParams.id);
-        const yesRsvps = rsvps.filter(r => r.response === 'yes' && r.email);
+        const emailPromises = [];
+        const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://evite.mankala.space'}/invite/${invitation.share_token}`;
 
-        if (yesRsvps.length > 0) {
-          const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://evite.mankala.space'}/invite/${invitation.share_token}`;
+        // ⚡ Bolt: Using for...of instead of chained .filter().map() to avoid intermediate array allocations
+        for (const rsvp of rsvps) {
+          if (rsvp.response === 'yes' && rsvp.email) {
+            // Check if email notifications are enabled, assuming true by default
+            const prefs = rsvp.notification_preferences as { email?: boolean } | null;
+            if (prefs?.email !== false) {
+              emailPromises.push(
+                sendEventUpdateEmail({
+                  to: rsvp.email as string,
+                  guestName: rsvp.name,
+                  eventTitle: invitation.title,
+                  eventDate: invitation.event_date,
+                  eventTime: invitation.event_time,
+                  location: invitation.location,
+                  description: invitation.description || undefined,
+                  inviteUrl,
+                  organizerNotes: invitation.organizer_notes || undefined,
+                })
+              );
+            }
+          }
+        }
 
-          const emailPromises = yesRsvps
-            .filter(rsvp => {
-              // Check if email notifications are enabled, assuming true by default
-              const prefs = rsvp.notification_preferences as { email?: boolean } | null;
-              return prefs?.email !== false;
-            })
-            .map(rsvp => sendEventUpdateEmail({
-              to: rsvp.email as string,
-              guestName: rsvp.name,
-              eventTitle: invitation.title,
-              eventDate: invitation.event_date,
-              eventTime: invitation.event_time,
-              location: invitation.location,
-              description: invitation.description || undefined,
-              inviteUrl,
-              organizerNotes: invitation.organizer_notes || undefined,
-            }));
-
+        if (emailPromises.length > 0) {
           // Await to ensure serverless function doesn't exit before sending
           await Promise.allSettled(emailPromises);
         }
