@@ -1,7 +1,12 @@
 # Feature Ticket: "View on Map" Link for Event Location
 
 ## Status
-pending-implementation
+done
+
+## Implementation Notes
+- Files changed: `src/lib/url-utils.ts`, `src/app/demo/i/[token]/page.tsx`, `src/app/invite/[token]/PublicInviteClient.tsx`.
+- Behavior: Added `generateGoogleMapsUrl` utility to correctly URI encode the query. Modified the demo and public invite views to conditionally render an anchor tag linking to Google Maps with `target="_blank"` underneath the Location section if the location text is present.
+- Tests: Handled UI visual verification using Playwright in `/demo/i/[token]`. Re-ran all core integration/unit tests.
 
 ## Context
 When guests receive an invitation link (e.g., via `/demo/i/[token]`), they see the event location as plain text. To find out where the event is or how to get there, guests must manually highlight, copy, and paste the text into their preferred map application. This adds friction to the user experience, especially on mobile devices.
