@@ -216,3 +216,13 @@ export function getEnvironmentConfig() {
     protocol: getUrlConfig().protocol
   };
 }
+
+/**
+ * Generate a Google Maps search URL for a given location string
+ * @param location - The location string to search for
+ * @returns Google Maps URL
+ */
+export function generateGoogleMapsUrl(location: string): string {
+  if (!location) return '';
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+}
