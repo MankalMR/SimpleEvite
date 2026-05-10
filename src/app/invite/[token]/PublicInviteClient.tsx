@@ -416,14 +416,14 @@ export default function PublicInvite({
                   <button
                     type="button"
                     onClick={() => setShowRSVPForm(false)}
-                    className="flex-1 bg-muted/50 text-foreground px-6 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-muted transition-all shadow-lg"
+                    className="flex-1 bg-muted/50 text-foreground px-6 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-muted transition-all shadow-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={rsvpLoading || !rsvpData.name.trim() || !rsvpData.response || !rsvpData.email.trim()}
-                    className="flex-1 bg-primary text-primary-foreground px-6 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-xl shadow-primary/20"
+                    className="flex-1 bg-primary text-primary-foreground px-6 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-xl shadow-primary/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
                   >
                     {rsvpLoading && <Spinner className="-ml-1 mr-2 h-4 w-4 text-primary-foreground" />}
                     {rsvpLoading ? 'Submitting...' : 'Confirm RSVP'}
