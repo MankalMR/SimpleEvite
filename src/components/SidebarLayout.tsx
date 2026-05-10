@@ -114,7 +114,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                 signOut();
               }
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold tracking-tight text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold tracking-tight text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
           >
             <LogOut className="w-5 h-5 text-muted-foreground/70" />
             {isDemo ? 'Exit Demo' : 'Logout'}
@@ -128,7 +128,8 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-border bg-card/50 backdrop-blur-sm z-30">
           <div className="flex items-center gap-4">
             <button 
-              className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground"
+              aria-label="Open mobile menu"
+              className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary rounded-md"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu className="w-6 h-6" />

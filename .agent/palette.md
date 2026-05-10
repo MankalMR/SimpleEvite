@@ -35,3 +35,6 @@
 ## 2024-05-01 - Missing ARIA labels on Icon-only actions
 **Learning:** Found that multiple icon-only interactive elements in the `invitation/[id]` route, such as 'Edit', 'Preview', and 'Remove RSVP' actions, lacked `aria-label`s and only relied on `title` attributes, making them inaccessible to screen readers without visual hover. Using template literals for dynamic ARIA labels (e.g. `aria-label={"Remove RSVP from ${rsvp.name}"}`) provides highly effective context.
 **Action:** When auditing or implementing icon-only buttons or links across the application, ensure `aria-label` is always present and consider using dynamic string interpolation to provide specific context when operating on mapped lists.
+## 2026-05-08 - Accessible Layout and Menu Controls
+**Learning:** Found that custom layout elements, such as the mobile menu toggle button in the sidebar and action buttons in RSVP forms, frequently missed explicit `aria-label`s and visible keyboard focus states (`focus:ring`), significantly impacting accessibility for keyboard and screen reader users.
+**Action:** Always ensure that icon-only toggle buttons include descriptive `aria-label`s (e.g., `aria-label="Open mobile menu"`) and that all interactive buttons have standard focus utility classes applied (`focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1`).
