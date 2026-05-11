@@ -2,6 +2,16 @@ import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { SupabaseAdapter } from '@auth/supabase-adapter';
 
+/**
+ * Checks if a given email is in the list of admin emails defined in the environment.
+ */
+export function isAdmin(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const adminEmailsVar = process.env.ADMIN_EMAILS || '';
+  const adminEmails = adminEmailsVar.split(',').map(e => e.trim().toLowerCase());
+  return adminEmails.includes(email.toLowerCase());
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
