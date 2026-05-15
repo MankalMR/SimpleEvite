@@ -12,6 +12,7 @@ import { Spinner } from '@/components/spinner';
 import { InvitationWithRSVPs } from '@/lib/database-supabase';
 import { InlineError } from '@/components/inline-error';
 import { AddToCalendar } from '@/components/add-to-calendar';
+import { generateGoogleMapsUrl } from '@/lib/url-utils';
 
 export default function DemoPublicInvite() {
     const params = useParams();
@@ -236,6 +237,18 @@ export default function DemoPublicInvite() {
                                     <div>
                                         <h3 className="font-semibold text-gray-900">Location</h3>
                                         <p className="text-gray-600">{invitation.location}</p>
+                                        <a
+                                            href={generateGoogleMapsUrl(invitation.location)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline text-sm inline-flex items-center gap-1 mt-1"
+                                            aria-label={`View ${invitation.location} on Google Maps`}
+                                        >
+                                            View on Map
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
                                     </div>
                                 </div>
                             )}
