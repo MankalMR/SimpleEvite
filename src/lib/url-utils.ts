@@ -204,6 +204,16 @@ export function isDevelopment(): boolean {
 }
 
 /**
+ * Generate a Google Maps search URL for a given location string
+ * @param location - The location text
+ * @returns A Google Maps search URL
+ */
+export function generateGoogleMapsUrl(location: string): string {
+  if (!location || typeof location !== 'string') return '';
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`;
+}
+
+/**
  * Get environment-specific configuration
  * @returns Environment configuration
  */

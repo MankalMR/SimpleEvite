@@ -1,7 +1,7 @@
 # Feature Ticket: "View on Map" Link for Event Location
 
 ## Status
-pending-implementation
+done
 
 ## Context
 When guests receive an invitation link (e.g., via `/demo/i/[token]`), they see the event location as plain text. To find out where the event is or how to get there, guests must manually highlight, copy, and paste the text into their preferred map application. This adds friction to the user experience, especially on mobile devices.

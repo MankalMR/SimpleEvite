@@ -15,6 +15,7 @@ import { InlineError } from '@/components/inline-error';
 import { logger } from "@/lib/logger";
 import { AddToCalendar } from '@/components/add-to-calendar';
 import { PublicInvitationWithData } from '@/hooks/usePublicInvitation';
+import { generateGoogleMapsUrl } from '@/lib/url-utils';
 
 export default function PublicInvite({ 
   initialInvitation, 
@@ -212,6 +213,18 @@ export default function PublicInvite({
                 <div>
                   <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Location</h3>
                   <p className="text-foreground font-bold">{invitation.location}</p>
+                  <a
+                    href={generateGoogleMapsUrl(invitation.location)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm inline-flex items-center gap-1 mt-1"
+                    aria-label={`View ${invitation.location} on Google Maps`}
+                  >
+                    View on Map
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
               </div>
             )}
