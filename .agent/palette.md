@@ -35,3 +35,7 @@
 ## 2024-05-01 - Missing ARIA labels on Icon-only actions
 **Learning:** Found that multiple icon-only interactive elements in the `invitation/[id]` route, such as 'Edit', 'Preview', and 'Remove RSVP' actions, lacked `aria-label`s and only relied on `title` attributes, making them inaccessible to screen readers without visual hover. Using template literals for dynamic ARIA labels (e.g. `aria-label={"Remove RSVP from ${rsvp.name}"}`) provides highly effective context.
 **Action:** When auditing or implementing icon-only buttons or links across the application, ensure `aria-label` is always present and consider using dynamic string interpolation to provide specific context when operating on mapped lists.
+
+## 2024-05-18 - Mobile Sidebar Accessibility Insights
+**Learning:** Decorative background overlay divs (like mobile menu dark backdrops) can accidentally trap screen readers or cause confusion if they are clickable but lack semantic meaning. Additionally, hamburger menus toggling state need `aria-expanded` attributes, and closing mechanisms must have explicit, accessible buttons rather than relying solely on clicking outside.
+**Action:** When creating modals, sidebars, or dropdown menus, ensure backdrops always have `aria-hidden="true"`, toggle buttons include `aria-expanded`, and an explicit "Close" button with a clear `aria-label` is provided inside the component.

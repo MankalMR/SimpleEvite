@@ -10,7 +10,8 @@ import {
   Layout,
   LogOut, 
   HelpCircle,
-  Menu
+  Menu,
+  X
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import Image from 'next/image';
@@ -50,6 +51,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         <div 
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
           onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
         />
       )}
 
@@ -62,13 +64,20 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Logo */}
-        <div className="h-16 flex items-center px-6 border-b border-border/40">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-border/40">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="p-1.5 bg-primary/10 rounded-md group-hover:bg-primary/20 transition-colors">
               <Image src="/sEvite.png" alt="Logo" width={24} height={24} className="rounded-md" />
             </div>
             <span className="font-extrabold text-xl tracking-tighter text-foreground">Simple Evite</span>
           </Link>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="md:hidden p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Close navigation menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Nav Links */}
@@ -128,8 +137,10 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-border bg-card/50 backdrop-blur-sm z-30">
           <div className="flex items-center gap-4">
             <button 
-              className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground"
+              className="md:hidden p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+              aria-expanded={mobileMenuOpen}
             >
               <Menu className="w-6 h-6" />
             </button>
